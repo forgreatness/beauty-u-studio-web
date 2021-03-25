@@ -1,0 +1,2 @@
+export const OUR_MISSION = "At BeautyUStudio we prioritize our client beauty more than anything. " +
+"With a variety of services aiming at captivating the true beauty of our client, we are ready to take you to the most enchantress place in your world";

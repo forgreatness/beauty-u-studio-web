@@ -1,0 +1,27 @@
+.homepage_cover {
+  width: 100%;
+  height: auto;
+}
+
+.vision_container {
+  padding: 10px 20px;
+}
+
+.vision_container > p {
+  margin: auto;
+  padding: 5% 5%;
+  width: 50%;
+  box-shadow: -5px 5px 10px rgba(0, 0, 0, 0.4);
+}
+
+.service_container {
+  padding: 10px 20px;
+}
+
+.service_container > .services_flexbox {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 30px 20px; 
+}

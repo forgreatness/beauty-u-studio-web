@@ -63,7 +63,9 @@ export default function Home() {
           <h3>OUR STUDIO</h3>
           <div className={styles.description}>
             <p>{Constants.OUR_VISION}</p>
-            <button>Learn More</button>
+            <Link href="/about" passHref>
+              <a className={styles.learnmore_link}>Learn More</a>
+            </Link>
           </div>
         </div>
         <img alt="Image of BeautyUStudio shop" src={Constants.STUDIO_COVER} className={styles.child}/>

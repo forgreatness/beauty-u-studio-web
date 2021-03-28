@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat');
+
 .homepage_cover {
   position: relative
 }
@@ -34,10 +36,6 @@
 .description_section > .description {
   padding: 5% 5%;
   box-shadow: -5px 5px 10px rgba(0, 0, 0, 0.4);
-}
-
-.description > button {
-  float: right;
 }
 
 .studio_section > img {
@@ -142,4 +140,62 @@
 
 .arrow:active {
   transform: scale(0.8);
+}
+
+.learnmore_link {
+  --b64: url('https://image.flaticon.com/icons/png/128/109/109617.png');
+
+  color: black;
+  text-decoration: none;
+  font-size: 1em;
+  display: inline-block;
+  position: relative;
+  font-family: Montserrat;
+  text-transform: uppercase;
+  padding: 0.5em 2em;
+  border: 2px solid black;
+  transition: .02s .2s cubic-bezier(.1, 0, .1, 1);
+}
+
+.learnmore_link::before {
+  content: "";
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 100%;
+  bottom: 0;
+  background: #666;
+  transition: .3s .2s cubic-bezier(.1, 0, .1, 1), left .3s cubic-bezier(.1, 0, .1, 1);
+  z-index: -1;
+}
+
+.learnmore_link::after {
+  content: "";
+  display: inline-block;
+  background-image: var(--b64);
+  position: absolute;
+  top: 0;
+  left: calc(100% - 3em);
+  right: 3em;
+  bottom: 0;
+  background-size: 1.5em;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: right .3s cubic-bezier(.1, 0 .1, 1);
+}
+
+.learnmore_link:hover {
+  padding: 0.5em 3.5em 0.5em 0.5em;
+}
+
+.learnmore_link:hover::before {
+  left: calc(100% - 3em);
+  right: 0;
+  transition: .3s cubic-bezier(.1, 0, .1, 1), left .3s .2s cubic-bezier(.1, 0, .1, 1);
+}
+
+.learnmore_link:hover::after {
+  right: 0;
+  transition: right .3s .2s cubic-bezier(.1, 0, .1, 1);
 }

@@ -12,6 +12,10 @@ export default function PageLayout({ children }) {
             padding: 0 1rem;
             margin: 3rem auto 6rem;
         }
+
+        main {
+            margin-top: 64px;
+        }
     `;
 
     return (

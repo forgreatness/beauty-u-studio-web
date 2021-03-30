@@ -6,10 +6,12 @@ import Layout from '../components/page-layout';
 import styles from '../styles/homepage.module.css';
 import * as Constants from '../src/constants/index';
 import ServiceCard from '../components/service-card';
+import MemberSelector from '../components/member_selector';
 import Loading from '../components/loading';
 import { GET_SERVICES } from '../lib/apollo/data-queries';
 
 export default function Home() {
+  const [cuurentMember, setSelectedMember] = useState(0);
   const [pageCover, setPageCover] = useState(0);
   const { loading, error, data } = useQuery(GET_SERVICES);
   var typeOfServices = [];
@@ -41,6 +43,18 @@ export default function Home() {
     }
   }
 
+  const handleSelectMember = (e) => {
+    e.preventDefault;
+
+    const selected_member_name = e.target.id;
+
+    Constants.TEAM_MEMBER.forEach((member, i) => {
+      if (member.name == selected_member_name) {
+        setSelectedMember(i);
+      }
+    });
+  }
+
   return (
     <Layout>
       <div className={styles.homepage_cover}>
@@ -70,7 +84,7 @@ export default function Home() {
         </div>
         <img alt="Image of BeautyUStudio shop" src={Constants.STUDIO_COVER} className={styles.child}/>
       </div>
-      <div className={styles.service_container}>
+      <div className={styles.service_section}>
         <h3>SERVICES</h3>
         <div className={styles.services_flexbox}>
           {typeOfServices.map(service => {
@@ -83,6 +97,24 @@ export default function Home() {
             );
           })}
         </div>
+      </div>
+      <div className={styles.team_section}>
+          <div>
+            {Constants.TEAM_MEMBER.map((member, i) => 
+              [
+                <MemberSelector member={member} selected={i==cuurentMember} onSelectMemberSelector={handleSelectMember}/>,
+              ]
+            )}
+          </div>
+          <h3>OUR TEAM</h3>
+          <div className={styles.team_card}>
+            <img alt="Image of Team Member" src={Constants.TEAM_MEMBER[cuurentMember].photo}/>
+            <div className={styles.member_info}>
+              <b>{Constants.TEAM_MEMBER[cuurentMember].name}</b>
+              <p>{Constants.TEAM_MEMBER[cuurentMember].about}</p>
+              <button>BOOK APOINTMENT</button>
+            </div>
+          </div>
       </div>
     </Layout>
   )

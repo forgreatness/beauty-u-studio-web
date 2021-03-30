@@ -9,12 +9,15 @@
   height: 95vh;
 }
 
+/*OUR STUDIO section */
+
 .studio_section {
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   align-content: center;
+  background-color: #666;
 }
 
 .studio_section > .child {
@@ -35,18 +38,25 @@
 
 .description_section > .description {
   padding: 5% 5%;
-  box-shadow: -5px 5px 10px rgba(0, 0, 0, 0.4);
+  box-shadow: -5px 5px 10px lightgray;
+  background-color: white;
+}
+
+.description_section > h3 {
+  color: white;
 }
 
 .studio_section > img {
   max-width: 100%;
 }
 
-.service_container {
+
+/* SERVICE SECTION */
+.service_section {
   padding: 10px 20px;
 }
 
-.service_container > .services_flexbox {
+.service_section > .services_flexbox {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -54,13 +64,14 @@
   margin: 30px 20px; 
 }
 
+/*ARROW CONTAINER*/
 .arrow {
   cursor: pointer;
-  height: 90px;
+  height: 60px;
   position: absolute;
   bottom: 50%;
   transition: transform .1s;
-  width: 60px;
+  width: 40px;
 
   --transition-time: .15s;
 }
@@ -142,6 +153,8 @@
   transform: scale(0.8);
 }
 
+/*LEARN MORE BUTTON*/
+
 .learnmore_link {
   --b64: url('https://image.flaticon.com/icons/png/128/109/109617.png');
 
@@ -193,9 +206,74 @@
   left: calc(100% - 3em);
   right: 0;
   transition: .3s cubic-bezier(.1, 0, .1, 1), left .3s .2s cubic-bezier(.1, 0, .1, 1);
+  z-index: 0;
 }
 
 .learnmore_link:hover::after {
   right: 0;
   transition: right .3s .2s cubic-bezier(.1, 0, .1, 1);
 }
+
+/* TEAM SECTION */
+.team_section {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    padding: 20px 10px;
+    background-color: #666;
+    position: relative;
+}
+
+.team_section > h3 {
+  width: 20%;
+  text-align: center;
+  flex-shrink: 1;
+}
+
+.team_section > .team_card {
+  padding: 30px 40px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  align-content: flex-start;
+  color: white;
+}
+
+.team_card > img {
+	height: 300px;
+	border: 8px solid transparent;
+	background-origin: border-box;
+	background-clip: content-box, border-box;
+	background-size: cover;
+	box-sizing: border-box;
+	box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.5);
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 2px;
+  background-image: url(""), linear-gradient(to bottom right, lightgray, white, black);
+}
+
+.team_card > .member_info {
+  width: 300px;
+  margin-left: 50px;
+}
+
+.member_info > button {
+  font-weight: 700;
+  padding: 7px 15px;
+  color: black;
+  background-color: white;
+  border: 2px solid black;
+  float: right;
+}
+
+.member_info > button:hover {
+  color: white;
+  background-color: black;
+}
+

@@ -6,10 +6,15 @@ export default function MemberSelector({ member, selected, onSelectMemberSelecto
     const styles = css`
         width: 10px;
         height: 10px;
+        margin: 5px;
         border: ${selected ? '2px solid white' : 'none'};
         border-radius: 50%;
         background-color: ${selected ? 'black' : 'white'};
-        margin-bottom: 20px;
+
+        &:hover {
+            filter: brightness(50%);
+            cursor: pointer;
+        }
     `;
 
 

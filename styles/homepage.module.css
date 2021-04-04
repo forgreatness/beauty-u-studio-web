@@ -227,10 +227,26 @@
     background-color: #666;
 }
 
-.team_section > h3 {
+.team_section > .team_section_header {
   width: 20%;
   text-align: center;
   flex-shrink: 1;
+}
+
+.team_section_header > h3 {
+  color: white;
+}
+
+.team_section_header > .member_selectors {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+}
+
+.member_selectors > .member_selector:hover {
+  background-color: blue;
 }
 
 .team_section > .team_card {
@@ -274,6 +290,21 @@
 .member_info > button:hover {
   color: white;
   background-color: black;
+}
+
+/* CLIENT REVIEWS SECTION */
+.client_reviews_section {
+  padding: 20px 10px;
+}
+
+.client_reviews_section > .reviews {
+  overflow-x: scroll;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+
+.reviews > .review {
+  display: inline-block;
 }
 
 @media (max-width:749px) {

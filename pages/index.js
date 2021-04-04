@@ -8,6 +8,7 @@ import * as Constants from '../src/constants/index';
 import ServiceCard from '../components/service-card';
 import MemberSelector from '../components/member_selector';
 import Loading from '../components/loading';
+import ClientReview from '../components/client_review';
 import { GET_SERVICES } from '../lib/apollo/data-queries';
 
 export default function Home() {
@@ -99,23 +100,40 @@ export default function Home() {
         </div>
       </div>
       <div className={styles.team_section}>
-          <div>
+        <div className={styles.team_section_header}>
+          <h3>OUR TEAM</h3>
+          <div className={styles.member_selectors}>
             {Constants.TEAM_MEMBER.map((member, i) => 
               [
                 <MemberSelector member={member} selected={i==cuurentMember} onSelectMemberSelector={handleSelectMember}/>,
               ]
             )}
           </div>
-          <h3>OUR TEAM</h3>
-          <div className={styles.team_card}>
-            <img alt="Image of Team Member" src={Constants.TEAM_MEMBER[cuurentMember].photo}/>
-            <div className={styles.member_info}>
-              <b>{Constants.TEAM_MEMBER[cuurentMember].name}</b>
-              <p>{Constants.TEAM_MEMBER[cuurentMember].about}</p>
-              <button>BOOK APOINTMENT</button>
-            </div>
+        </div>
+        <div className={styles.team_card}>
+          <img alt="Image of Team Member" src={Constants.TEAM_MEMBER[cuurentMember].photo}/>
+          <div className={styles.member_info}>
+            <b>{Constants.TEAM_MEMBER[cuurentMember].name}</b>
+            <p>{Constants.TEAM_MEMBER[cuurentMember].about}</p>
+            <button>BOOK APOINTMENT</button>
           </div>
+        </div>
+      </div>
+      <div className={styles.client_reviews_section}>
+        <h3>CLIENT REVIEWS</h3>
+        <div className={styles.reviews}>
+          {Constants.REVIEWS.map((review, i) => 
+            [
+              <ClientReview review={review} className={styles.review}/>
+            ]
+          )}
+        </div>
       </div>
     </Layout>
   )
 }
+
+//TODO:
+//1. Make Client Reviews Scrollable with mouse
+//2. Enable next section scroll with click on next section arrow
+//3. Footer

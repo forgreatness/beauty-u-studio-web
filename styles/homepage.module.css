@@ -306,16 +306,3 @@
 .reviews > .review {
   display: inline-block;
 }
-
-@media (max-width:749px) {
-  .team_section {
-    flex-direction: column;
-    width: 100%;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    align-content: center;
-    padding: 20px 10px;
-    background-color: #666;
-  }
-}

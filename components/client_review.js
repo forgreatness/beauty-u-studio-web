@@ -8,7 +8,7 @@ export default function ClientReview({ review }) {
         height: 400px;
         padding: 20px 20px;
         margin: 20px; 
-        background-color: lightgray;
+        background-color: #666;
         display: inline-block;
         vertical-align: top;
         white-space: normal;
@@ -33,10 +33,12 @@ export default function ClientReview({ review }) {
             font-size: 48px;
             padding: 0px;
             margin: 0px;
+            color: white;
         }
 
         div > p {
             margin: 0px;
+            color: white;
         }
 
         #opening-quote {

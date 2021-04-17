@@ -9,6 +9,10 @@ export const HOMEPAGE_COVER = [
 
 export const STUDIO_COVER = 'images/studio_cover.jpg';
 
+export const ICONS = {
+    signin: 'images/signin_icon.png'
+};
+
 export const TEAM_MEMBER = [
     {
         name: 'Lưu Vân', 
@@ -18,7 +22,7 @@ export const TEAM_MEMBER = [
     {
         name: 'Danh Nguyen',
         photo: 'images/team_member2.JPG',
-        about: 'AKA Gucci. He is fanciest and most luxurious stylist you will have ever met. With years of experiences under his belt and a wife which he has to feed. Booking him is a must'
+        about: 'AKA Gucci. He is fanciest and most luxurious stylist. With years of experiences under his belt and a wife which he has to feed. Booking him is a must'
     }
 ];
 

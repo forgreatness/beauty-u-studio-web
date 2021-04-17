@@ -220,7 +220,6 @@
     align-content: center;
     padding: 20px 10px;
     background-color: #666;
-    overflow: auto;
 }
 
 .team_section > .team_section_header {
@@ -253,6 +252,7 @@
   align-items: center;
   align-content: flex-start;
   color: white;
+  overflow: auto;
 }
 
 .team_card > img {

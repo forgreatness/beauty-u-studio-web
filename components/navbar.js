@@ -4,6 +4,8 @@ import { jsx, css } from '@emotion/react';
 import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 
+import * as Constants from '../src/constants/index';
+
 export default function Navbar() {
     const [scrolled, hasScrolled] = useState(false);
     const [menuClicked, hasClicked] = useState(false);
@@ -18,6 +20,35 @@ export default function Navbar() {
         z-index: 2;
         vertical-align: middle;
 
+        .signin {
+            display: inline-flex;
+            float: right;
+            height: 100%;
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            align-content: center;
+            padding: 10px;
+        }
+
+        .signin:hover {
+            background-color: #666;
+            cursor: pointer;
+            color: white;
+        }
+
+        .signin > img {
+            display: inline-block;
+            height: 50%;
+            object-fit: contain;
+            margin: 5px;
+        }
+
+        .signin > p {
+            display: inline-block;
+            margin: 0;
+        }
+
         a {
             display: inline-block;
             height: 100%;
@@ -26,7 +57,12 @@ export default function Navbar() {
             font-weight: 500;
         }
 
-        .home > img {
+        .home {
+            height: 100%;
+            display: inline-block;
+        }
+
+        .home img {
             height: 100%;
             width: auto;
         }
@@ -87,13 +123,32 @@ export default function Navbar() {
             
             .home {
                 text-align: center;
-                position: relative;
                 flex-grow: 1;
             }
 
             .nav {
-                display: none;
-                position: 
+                display: block;
+                height: 100%;
+                width: ${menuClicked ? '80%' : '0%'};
+                position: fixed;
+                z-index: 1;
+                top: 0;
+                left: 0;
+                background-color: white;
+                transition: 0.5s;
+                overflow-x: hidden;
+                text-align: right;
+            }
+
+            .nav > a {
+                display: block;
+                height: auto;
+                text-align: left;
+            }
+
+            .nav > .signin {
+                height: 64px;
+                float: none;
             }
         }
     `;
@@ -123,15 +178,20 @@ export default function Navbar() {
                 <div class="bar2"></div>
                 <div class="bar3"></div>
             </div>
-
-            <Link href="/" passHref>
-                <a className="home">
-                    <img 
-                        alt="BeautyUStudio Home Link" 
-                        src="images/BeautyUStudio-logo.png" />
-                </a>
-            </Link>
+            <div className="home">
+                <Link href="/" passHref>
+                    <a>
+                        <img 
+                            alt="BeautyUStudio Home Link" 
+                            src="images/BeautyUStudio-logo.png" />
+                    </a>
+                </Link>
+            </div>
             <div className="nav">
+                <div className="signin">
+                    <img src={Constants.ICONS.signin} alt="Sign-In icon" />
+                    <b>Sign-In</b>
+                </div>
                 <Link href="/services" passHref>
                     <a>Services</a>
                 </Link>

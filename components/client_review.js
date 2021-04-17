@@ -41,6 +41,10 @@ export default function ClientReview({ review }) {
             color: white;
         }
 
+        div > h3 {
+            color: white;
+        }
+
         #opening-quote {
             float: left;
         }

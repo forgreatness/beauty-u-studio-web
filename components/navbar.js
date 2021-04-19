@@ -105,6 +105,18 @@ export default function Navbar() {
             transform: rotate(45deg) translate(-8px, -8px);
         }
 
+        .footer {
+            display: none;
+        }
+
+        .social-media {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            align-content: center;
+            overflow: hide;
+        }
+
         @media (max-width:749px) {
             display: flex;
             flex-direction: row;
@@ -150,6 +162,37 @@ export default function Navbar() {
                 height: 64px;
                 float: none;
             }
+
+            .nav > .footer {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                align-content: center;
+                height: 20%;
+                width: 100%;
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                text-align: center;
+            }
+
+            .footer a {
+                display: block;
+                height: 70px;
+                padding: 10px 30px;
+            }
+    
+            .footer img {
+                height: 100%;
+                width: auto;
+                object-fit: contain;
+            }
+
+            .social-media a {
+                height: 50px;
+                padding: 10px 5px;
+            }
         }
     `;
 
@@ -174,9 +217,9 @@ export default function Navbar() {
     return (
         <nav css={styles}>
             <div className={(menuClicked) ? 'menu-icon clicked' : 'menu-icon'} onClick={handleMenuClick}>
-                <div class="bar1"></div>
-                <div class="bar2"></div>
-                <div class="bar3"></div>
+                <div className="bar1"></div>
+                <div className="bar2"></div>
+                <div className="bar3"></div>
             </div>
             <div className="home">
                 <Link href="/" passHref>
@@ -201,6 +244,26 @@ export default function Navbar() {
                 <Link href="/about" passHref>
                     <a>About Us</a>
                 </Link>
+                <div className="footer">
+                    <Link href="/" passHref>
+                        <a>
+                            <img 
+                                alt="BeautyUStudio Home Link" 
+                                src="images/BeautyUStudio-logo.png" />
+                        </a>
+                    </Link>
+                    <div className="social-media">
+                        <a href=""> 
+                            <img alt="BeautyUStudio Facebook Page" src={Constants.ICONS.facebook} />
+                        </a>
+                        <a href="https://www.instagram.com/beautyu_byyen/?hl=en" target="_blank"> 
+                            <img alt="BeautyUStudio Instagram Page" src={Constants.ICONS.instagram} />
+                        </a>
+                        <a href=""> 
+                            <img alt="BeautyUStudio Twitter Page" src={Constants.ICONS.twitter} />
+                        </a>
+                    </div>
+                </div>
             </div>
         </nav>
     );

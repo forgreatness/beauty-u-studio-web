@@ -10,7 +10,10 @@ export const HOMEPAGE_COVER = [
 export const STUDIO_COVER = 'images/studio_cover.jpg';
 
 export const ICONS = {
-    signin: 'images/signin_icon.png'
+    signin: 'images/signin_icon.png',
+    facebook: 'images/facebook_icon.png',
+    instagram: 'images/instagram_icon.png',
+    twitter: 'images/twitter_icon.png'
 };
 
 export const TEAM_MEMBER = [

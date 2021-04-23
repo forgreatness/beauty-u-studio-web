@@ -25,7 +25,7 @@ export const TEAM_MEMBER = [
     {
         name: 'Danh Nguyen',
         photo: 'images/team_member2.JPG',
-        about: 'AKA Gucci. He is fanciest and most luxurious stylist. With years of experiences under his belt and a wife which he has to feed. Booking him is a must'
+        about: 'AKA Gucci. He is the fanciest and most luxurious stylist. With years of experiences under his belt and a wife which he has to feed. Booking him is a must.'
     }
 ];
 

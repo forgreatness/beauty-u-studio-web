@@ -9,12 +9,12 @@ import ServiceCard from '../components/service-card';
 import MemberSelector from '../components/member_selector';
 import Loading from '../components/loading';
 import ClientReview from '../components/client_review';
-import { GET_SERVICES } from '../lib/apollo/data-queries';
+import { GET_SERVICES, GET_USERS, GET_HOMEDATA } from '../lib/apollo/data-queries';
 
 export default function Home() {
-  const [cuurentMember, setSelectedMember] = useState(0);
+  const [currentMember, setSelectedMember] = useState(0);
   const [pageCover, setPageCover] = useState(0);
-  const { loading, error, data } = useQuery(GET_SERVICES);
+  const { loading, error, data } = useQuery(GET_HOMEDATA());
   var typeOfServices = [];
 
   if (loading) return <Loading /> 
@@ -49,8 +49,8 @@ export default function Home() {
 
     const selected_member_name = e.target.id;
 
-    Constants.TEAM_MEMBER.forEach((member, i) => {
-      if (member.name == selected_member_name) {
+    data.stylists.forEach((stylist, i) => {
+      if (stylist.name == selected_member_name) {
         setSelectedMember(i);
       }
     });
@@ -103,18 +103,18 @@ export default function Home() {
         <div className={styles.team_section_header}>
           <h3>OUR TEAM</h3>
           <div className={styles.member_selectors}>
-            {Constants.TEAM_MEMBER.map((member, i) => 
+            {data.stylists.map((stylist, i) => 
               [
-                <MemberSelector member={member} selected={i==cuurentMember} onSelectMemberSelector={handleSelectMember}/>,
+                <MemberSelector key={stylist.name} member={stylist} selected={i==currentMember} onSelectMemberSelector={handleSelectMember}/>,
               ]
             )}
           </div>
         </div>
         <div className={styles.team_card}>
-          <img alt="Image of Team Member" src={Constants.TEAM_MEMBER[cuurentMember].photo}/>
+          <img alt="Image of Team Member" src={"data:image/png;base64, " + data.stylists[currentMember].photo} />
           <div className={styles.member_info}>
-            <b>{Constants.TEAM_MEMBER[cuurentMember].name}</b>
-            <p>{Constants.TEAM_MEMBER[cuurentMember].about}</p>
+            <b>{data.stylists[currentMember].name}</b>
+            <p>{data.stylists[currentMember].about}</p>
             <button>BOOK APOINTMENT</button>
           </div>
         </div>
@@ -124,7 +124,7 @@ export default function Home() {
         <div className={styles.reviews}>
           {Constants.REVIEWS.map((review, i) => 
             [
-              <ClientReview review={review} className={styles.review}/>
+              <ClientReview key={review.id} review={review} className={styles.review}/>
             ]
           )}
         </div>

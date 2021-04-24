@@ -9,6 +9,7 @@ import ServiceCard from '../components/service-card';
 import MemberSelector from '../components/member_selector';
 import Loading from '../components/loading';
 import ClientReview from '../components/client_review';
+import CustomButton from '../components/custom_button';
 import { GET_SERVICES, GET_USERS, GET_HOMEDATA } from '../lib/apollo/data-queries';
 
 export default function Home() {
@@ -79,7 +80,7 @@ export default function Home() {
           <div className={styles.description}>
             <p>{Constants.OUR_VISION}</p>
             <Link href="/about" passHref>
-              <a className={styles.learnmore_link}>Learn More</a>
+              <CustomButton>Learn More</CustomButton>
             </Link>
           </div>
         </div>

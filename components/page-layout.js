@@ -4,6 +4,7 @@ import { jsx, css } from '@emotion/react';
 import Head from 'next/head'
 
 import Navbar from './navbar';
+import Footbar from './footbar';
 
 export default function PageLayout({ children }) {
     const styles = css`
@@ -32,6 +33,9 @@ export default function PageLayout({ children }) {
             <main>
                 {children}
             </main>
+            <footer>
+                <Footbar />
+            </footer>
         </div>
     );
 }

@@ -1,0 +1,13 @@
+.services_menu {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-content: center;
+    align-items: stretch;
+    width: min(80vw, 1280px);
+}
+
+.services_menu > * {
+    width: 50%;
+    min-width: 500px;
+}

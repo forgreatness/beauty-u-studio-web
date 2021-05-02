@@ -19,7 +19,7 @@ export default function Footbar() {
         align-items: center;
         background-color: #666;
         border: 10px solid #666;
-        outline: 2px dashed #fff;
+        outline: 2px solid black;
         outline-offset: -10px;
         padding: 10px 5px;
 
@@ -70,7 +70,7 @@ export default function Footbar() {
             </div>
             <Link href="/" passHref>
                 <a className="home">
-                    <img src="images/BeautyUStudio-logo.png" alt="BeautyUStudio Home Link" />
+                    <img src="/images/BeautyUStudio-logo.png" alt="BeautyUStudio Home Link" />
                 </a>
             </Link>
             <CustomButton className="appointment_button">Appointment</CustomButton>

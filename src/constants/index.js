@@ -6,18 +6,18 @@ export const CONTACTS = {
 }
 
 export const HOMEPAGE_COVER = [
-    'images/homepage_cover1.jpg',
-    'images/homepage_cover2.jpg',
-    'images/homepage_cover3.jpg',
+    '/images/homepage_cover1.jpg',
+    '/images/homepage_cover2.jpg',
+    '/images/homepage_cover3.jpg',
 ];
 
-export const STUDIO_COVER = 'images/studio_cover.jpg';
+export const STUDIO_COVER = '/images/studio_cover.jpg';
 
 export const ICONS = {
-    signin: 'images/signin_icon.png',
-    facebook: 'images/facebook_icon.png',
-    instagram: 'images/instagram_icon.png',
-    twitter: 'images/twitter_icon.png'
+    signin: '/images/signin_icon.png',
+    facebook: '/images/facebook_icon.png',
+    instagram: '/images/instagram_icon.png',
+    twitter: '/images/twitter_icon.png'
 };
 
 export const TEAM_MEMBER = [

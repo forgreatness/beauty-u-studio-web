@@ -226,7 +226,7 @@ export default function Navbar() {
                     <a>
                         <img 
                             alt="BeautyUStudio Home Link" 
-                            src="images/BeautyUStudio-logo.png" />
+                            src="/images/BeautyUStudio-logo.png" />
                     </a>
                 </Link>
             </div>

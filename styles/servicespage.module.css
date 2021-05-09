@@ -1,13 +1,18 @@
 .services_menu {
     display: flex;
     flex-direction: row;
-    justify-content: center;
+    flex-wrap: wrap;
+    justify-content: space-between;
     align-content: center;
     align-items: stretch;
     width: min(80vw, 1280px);
+    margin: auto;
+    padding: 20px 10px;   
 }
 
-.services_menu > * {
+.services_menu > .service_panel {
     width: 50%;
     min-width: 500px;
+    height: 400px;
+    text-align: center;
 }

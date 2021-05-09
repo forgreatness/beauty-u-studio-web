@@ -4,8 +4,10 @@ import { jsx, css } from '@emotion/react';
 
 export default function ServicePanel({ className, serviceType, services }) {
     const styles = css`
-        overflow: scroll;
         position: relative;
+        cursor: pointer;
+        border: 5px solid #666;
+        margin: 10px;
 
         h3 {
             position: absolute;
@@ -20,21 +22,36 @@ export default function ServicePanel({ className, serviceType, services }) {
             color: white;
         }
 
+        .panel {
+            overflow: auto;
+            height: 100%;
+            width: 100%;
+            text-align: center;
+        }
+
         &:hover {
             h3 {
                 display: none;
             }
         }
 
-        &::-webkit-scrollbar {
-            width: 12px;
-            background-color: #F5F5F5;
+        &:active {
+            -webkit-box-shadow: inset 0px 0px 10px black;
+            -moz-box-shadow: inset 0px 0px 10px black;
+            box-shadow: inset 0px 0px 10px black;
+            transform: scale(0.99);
         }
 
-        &::-webkit-scrollbar-thumb {
-            border-radius: 10px;
+        .panel::-webkit-scrollbar {
+            width: 11px;
+            background-color: none;
+        }
+
+        .panel::-webkit-scrollbar-thumb {
+            border-radius: 5px;
+            
             -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
-            background-color: #555;
+            background-color: #666;
         }
     `;
 

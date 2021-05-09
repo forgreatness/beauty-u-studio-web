@@ -11,7 +11,7 @@
 }
 
 .services_menu > .service_panel {
-    width: 50%;
+    width: calc(50% - 20px);
     min-width: 500px;
     height: 400px;
     text-align: center;

@@ -2,7 +2,27 @@
 /* @jsx jsx */
 import { jsx, css } from '@emotion/react';
 
+import ArrowHeading from './arrow_heading';
+
 export default function ServicePanel({ className, serviceType, services }) {
+    const servicesByKind = {};
+
+    services.forEach(service => {
+        if (service.kind == null) {
+            if (servicesByKind.hasOwnProperty("Standard")) {
+                servicesByKind["Standard"].push(service);
+            } else {
+                servicesByKind["Standard"] = [service];
+            }
+        } else {
+            if (servicesByKind.hasOwnProperty(service.kind.type)) {
+                servicesByKind[service.kind.type].push(service);
+            } else {
+                servicesByKind[service.kind.type] = [service];
+            }
+        }
+    });
+
     const styles = css`
         position: relative;
         cursor: pointer;
@@ -26,7 +46,7 @@ export default function ServicePanel({ className, serviceType, services }) {
             overflow: auto;
             height: 100%;
             width: 100%;
-            text-align: center;
+            padding: 10px 10px;
         }
 
         &:hover {
@@ -53,15 +73,39 @@ export default function ServicePanel({ className, serviceType, services }) {
             -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
             background-color: #666;
         }
+
+        .service_tag {
+            width: 80%;
+            clear: both;
+            margin: auto;
+            overflow: hidden;
+            padding: 5px 10px;
+        }
+
+        .service_tag > .service_name {
+            display: inline-block;
+            float: left;
+        }
+
+        .service_tag > .service_price {
+            display: inline-block;
+            float: right;
+        }
     `;
 
     return (
         <div css={styles} className={className}>
             <h3>{serviceType}</h3>
             <div className="panel">
-                {services.map(service => {
+                {Object.entries(servicesByKind).map(key => {
                     return (
-                        <p>{service.name} - {service.price}</p>
+                        [
+                            <ArrowHeading key={key[0]} heading={key[0]} />
+                        ].concat(key[1].map(service => {
+                            return (
+                                <p key={service.id} className="service_tag"><strong className="service_name">{service.name}</strong><em className="service_price">${parseFloat(service.price).toFixed(2)}</em></p>
+                            )
+                        }))
                     )
                 })}
             </div>

@@ -65,6 +65,7 @@ export default function Navbar() {
         .home img {
             height: 100%;
             width: auto;
+            filter: brightness(0);
         }
 
         .nav {

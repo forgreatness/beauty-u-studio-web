@@ -10,7 +10,7 @@ import * as Constants from '../src/constants/index';
 export default function Footbar() {
     const styles = css`
         text-align: center;
-        height: 200px;
+        height: 300px;
         width: 100%;
         display: flex;
         flex-wrap: wrap;
@@ -25,20 +25,23 @@ export default function Footbar() {
 
         .home {
             display: block;
-            height: 70px;
-            text-align: center;
+            width: min(100%, 200px);
         }
 
-        img {
-            height: 100%;
-            width: auto;
-            object-fit: contain;
+        .home > img {
+            filter: brightness(0);
         }
 
         .contacts > a {
             display: inline-block;
-            height: 50px;
+            width: 50px;
             padding: 10px 5px;
+        }
+
+        img {
+            height: auto;
+            width: 100%;
+            object-fit: contain;
         }
 
         h5 {
@@ -49,8 +52,17 @@ export default function Footbar() {
         @media (max-width:749px) {
             display: block;
             text-align: center;
-            height: auto;
             width: 100%;
+            height: auto;
+
+            & > * {
+                margin: 10px;
+            }
+
+            .home {
+                display: block;
+                margin: 0 auto; 
+            }
         }
     `;
 

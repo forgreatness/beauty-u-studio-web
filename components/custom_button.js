@@ -4,7 +4,7 @@
 import { jsx, css } from '@emotion/react';
 import React from 'react';
 
-export default React.forwardRef(({ onClick, href, children }, ref) => {
+export default React.forwardRef(({ className, onClick, href, children }, ref) => {
     const styles = css`
         --b64: url('https://image.flaticon.com/icons/png/128/109/109617.png');
 
@@ -66,6 +66,6 @@ export default React.forwardRef(({ onClick, href, children }, ref) => {
     `;
 
     return (
-        <a css={styles} href={href} onClick={onClick} ref={ref}>{children}</a>
+        <a className={className} css={styles} href={href} onClick={onClick} ref={ref}>{children}</a>
     );
 });

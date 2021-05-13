@@ -20,9 +20,9 @@ export default function ServicesPage({ services }) {
     return (
         <Layout>
             <div className={styles.services_menu}>
-                {/* {Object.entries(servicesByType).map(key => {
+                {Object.entries(servicesByType).map(key => {
                     return (<ServicePanel key={key[0]} className={styles.service_panel} serviceType={key[0]} services={key[1]} />);
-                })} */}
+                })}
             </div>
         </Layout>
     );

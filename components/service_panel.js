@@ -40,7 +40,6 @@ export default function ServicePanel({ className, serviceType, services }) {
             margin: 0;
             background-color: black;
             color: white;
-            display: none;
         }
 
         .panel {

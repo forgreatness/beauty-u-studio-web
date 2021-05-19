@@ -44,10 +44,11 @@ export default function ServicePanel({ className, serviceType, services }) {
         }
 
         .panel {
-            overflow: scroll;
+            overflow: auto;
             height: 100%;
             width: 100%;
             padding: 10px 10px;
+            -webkit-overflow-scrolling: touch;
         }
 
         &:hover {
@@ -63,17 +64,16 @@ export default function ServicePanel({ className, serviceType, services }) {
             transform: scale(0.99);
         }
 
-        // .panel::-webkit-scrollbar {
-        //     width: 11px;
-        //     background-color: none;
-        // }
+        .panel::-webkit-scrollbar {
+            width: 11px;
+            background-color: none;
+        }
 
-        // .panel::-webkit-scrollbar-thumb {
-        //     border-radius: 5px;
-            
-        //     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
-        //     background-color: #666;
-        // }
+        .panel::-webkit-scrollbar-thumb {
+            border-radius: 5px;   
+            -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+            background-color: #666;
+        }
 
         .service_tag {
             width: 80%;

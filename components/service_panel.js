@@ -40,6 +40,7 @@ export default function ServicePanel({ className, serviceType, services }) {
             margin: 0;
             background-color: black;
             color: white;
+            display: none;
         }
 
         .panel {
@@ -62,17 +63,17 @@ export default function ServicePanel({ className, serviceType, services }) {
             transform: scale(0.99);
         }
 
-        .panel::-webkit-scrollbar {
-            width: 11px;
-            background-color: none;
-        }
+        // .panel::-webkit-scrollbar {
+        //     width: 11px;
+        //     background-color: none;
+        // }
 
-        .panel::-webkit-scrollbar-thumb {
-            border-radius: 5px;
+        // .panel::-webkit-scrollbar-thumb {
+        //     border-radius: 5px;
             
-            -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
-            background-color: #666;
-        }
+        //     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+        //     background-color: #666;
+        // }
 
         .service_tag {
             width: 80%;

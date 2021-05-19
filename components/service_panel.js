@@ -47,7 +47,6 @@ export default function ServicePanel({ className, serviceType, services }) {
             height: 100%;
             width: 100%;
             padding: 10px 10px;
-            -webkit-overflow-scrolling: touch;
         }
 
         &:hover {

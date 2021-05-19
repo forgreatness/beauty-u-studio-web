@@ -40,10 +40,11 @@ export default function ServicePanel({ className, serviceType, services }) {
             margin: 0;
             background-color: black;
             color: white;
+            z-index: 2;
         }
 
         .panel {
-            overflow: auto;
+            overflow-y: auto;
             height: 100%;
             width: 100%;
             padding: 10px 10px;

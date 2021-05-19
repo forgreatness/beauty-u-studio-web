@@ -43,7 +43,7 @@ export default function ServicePanel({ className, serviceType, services }) {
         }
 
         .panel {
-            overflow: auto;
+            overflow: scroll;
             height: 100%;
             width: 100%;
             padding: 10px 10px;

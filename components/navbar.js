@@ -190,6 +190,10 @@ export default function Navbar() {
                 object-fit: contain;
             }
 
+            .footer_home {
+                filter: brightness(0);
+            }
+
             .social-media a {
                 height: 50px;
                 padding: 10px 5px;
@@ -247,7 +251,7 @@ export default function Navbar() {
                 </Link>
                 <div className="footer">
                     <Link href="/" passHref>
-                        <a>
+                        <a className="footer_home">
                             <img 
                                 alt="BeautyUStudio Home Link" 
                                 src="images/BeautyUStudio-logo.png" />

@@ -40,6 +40,7 @@ export default function ServicePanel({ className, serviceType, services }) {
             margin: 0;
             background-color: black;
             color: white;
+            display: none;
         }
 
         .panel {
@@ -49,18 +50,18 @@ export default function ServicePanel({ className, serviceType, services }) {
             padding: 10px 10px;
         }
 
-        &:hover {
-            h3 {
-                display: none;
-            }
-        }
+        // &:hover {
+        //     h3 {
+        //         display: none;
+        //     }
+        // }
 
-        &:active {
-            -webkit-box-shadow: inset 0px 0px 10px black;
-            -moz-box-shadow: inset 0px 0px 10px black;
-            box-shadow: inset 0px 0px 10px black;
-            transform: scale(0.99);
-        }
+        // &:active {
+        //     -webkit-box-shadow: inset 0px 0px 10px black;
+        //     -moz-box-shadow: inset 0px 0px 10px black;
+        //     box-shadow: inset 0px 0px 10px black;
+        //     transform: scale(0.99);
+        // }
 
         .panel::-webkit-scrollbar {
             width: 11px;

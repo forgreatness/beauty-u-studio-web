@@ -43,7 +43,7 @@ export default function ServicePanel({ className, serviceType, services }) {
         }
 
         .panel {
-            overflow-y: auto;
+            overflow: auto;
             height: 100%;
             width: 100%;
             padding: 10px 10px;
@@ -64,7 +64,7 @@ export default function ServicePanel({ className, serviceType, services }) {
 
         .panel::-webkit-scrollbar {
             width: 11px;
-            background-color: none;
+            border: 5px solid white;
         }
 
         .panel::-webkit-scrollbar-thumb {
@@ -72,6 +72,32 @@ export default function ServicePanel({ className, serviceType, services }) {
             -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
             background-color: #666;
         }
+
+        .panel::-webkit-scrollbar-button:single-button {
+            background-color: #bbbbbb;
+            display: block;
+            border-style: solid;
+            height: 13px;
+            width: 16px;
+        }
+
+        .panel::-webkit-scrollbar-button:single-button:vertical:decrement {
+            border-width: 0 8px 8px 8px;
+            border-color: transparent transparent #555555 transparent;
+          }
+          
+          .panel::-webkit-scrollbar-button:single-button:vertical:decrement:hover {
+            border-color: transparent transparent #777777 transparent;
+          }
+          /* Down */
+          .panel::-webkit-scrollbar-button:single-button:vertical:increment {
+            border-width: 8px 8px 0 8px;
+            border-color: #555555 transparent transparent transparent;
+          }
+          
+        .panel::-webkit-scrollbar-button:vertical:single-button:increment:hover {
+            border-color: #777777 transparent transparent transparent;
+          }
 
         .service_tag {
             width: 80%;

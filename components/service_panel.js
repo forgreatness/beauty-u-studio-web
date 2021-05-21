@@ -1,11 +1,39 @@
 /** @jsxRuntime classic /
 /* @jsx jsx */
 import { jsx, css } from '@emotion/react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/router';
 
 import ArrowHeading from './arrow_heading';
+import useLongPress from '../hooks/useLongPress';
 
-export default function ServicePanel({ className, serviceType, services }) {
+export default React.forwardRef(({ className, href, serviceType, services }, ref) => {
+    const [isSelected, setIsSelected] = useState(false); 
+    const router = useRouter();
     const servicesByKind = {};
+
+    const onServicePanelSelect = () => {
+        setIsSelected(true);
+    }
+
+    const onServicePanelClick = () => {
+        
+    }
+
+    const onServicePanelSelectRelease = () => {
+        router.push(href);
+    }
+
+    const onServicePanelSelectCancel = () => {
+        setIsSelected(false);
+    }
+
+    const longPressOptions = {
+        shouldPreventDefault: true,
+        delay: 500
+    };
+
+    const longPressEvent = useLongPress(onServicePanelSelect, onServicePanelClick, onServicePanelSelectRelease, onServicePanelSelectCancel, longPressOptions);
 
     services.forEach(service => {
         if (service.kind == null) {
@@ -28,6 +56,12 @@ export default function ServicePanel({ className, serviceType, services }) {
         cursor: pointer;
         border: 5px solid #666;
         margin: 10px;
+
+        ${isSelected ? 
+            `-webkit-box-shadow: inset 0px 0px 10px black;
+            -moz-box-shadow: inset 0px 0px 10px black;
+            box-shadow: inset 0px 0px 10px black;
+            transform: scale(0.99);` : ``}
 
         h3 {
             position: absolute;
@@ -55,12 +89,12 @@ export default function ServicePanel({ className, serviceType, services }) {
             }
         }
 
-        &:active {
-            -webkit-box-shadow: inset 0px 0px 10px black;
-            -moz-box-shadow: inset 0px 0px 10px black;
-            box-shadow: inset 0px 0px 10px black;
-            transform: scale(0.99);
-        }
+        // &:active {
+        //     -webkit-box-shadow: inset 0px 0px 10px black;
+        //     -moz-box-shadow: inset 0px 0px 10px black;
+        //     box-shadow: inset 0px 0px 10px black;
+        //     transform: scale(0.99);
+        // }
 
         .panel::-webkit-scrollbar {
             -webkit-appearance: none;
@@ -82,33 +116,6 @@ export default function ServicePanel({ className, serviceType, services }) {
             background-color: black;
         }
 
-        // .panel::-webkit-scrollbar-button:single-button {
-        //     background-color: #bbbbbb;
-        //     display: block;
-        //     border-style: solid;
-        //     height: 13px;
-        //     width: 16px;
-        // }
-
-        // /* Up */
-        // .panel::-webkit-scrollbar-button:single-button:vertical:decrement {
-        //     border-width: 0 8px 8px 8px;
-        //     border-color: transparent transparent #555555 transparent;
-        // }
-          
-        // .panel::-webkit-scrollbar-button:single-button:vertical:decrement:hover {
-        //     border-color: transparent transparent #777777 transparent;
-        // }
-        // /* Down */
-        // .panel::-webkit-scrollbar-button:single-button:vertical:increment {
-        //     border-width: 8px 8px 0 8px;
-        //     border-color: #555555 transparent transparent transparent;
-        // }
-          
-        // .panel::-webkit-scrollbar-button:vertical:single-button:increment:hover {
-        //     border-color: #777777 transparent transparent transparent;
-        // }
-
         .service_tag {
             width: 80%;
             clear: both;
@@ -129,7 +136,7 @@ export default function ServicePanel({ className, serviceType, services }) {
     `;
 
     return (
-        <div css={styles} className={className}>
+        <div {...longPressEvent} css={styles} className={className} ref={ref}>
             <h3>{serviceType}</h3>
             <div className="panel">
                 {Object.entries(servicesByKind).map(key => {
@@ -146,4 +153,4 @@ export default function ServicePanel({ className, serviceType, services }) {
             </div>
         </div>
     );
-}
+});

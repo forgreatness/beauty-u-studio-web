@@ -254,7 +254,7 @@ export default function Navbar() {
                         <a className="footer_home">
                             <img 
                                 alt="BeautyUStudio Home Link" 
-                                src="images/BeautyUStudio-logo.png" />
+                                src="/images/BeautyUStudio-logo.png" />
                         </a>
                     </Link>
                     <div className="social-media">

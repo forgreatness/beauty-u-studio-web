@@ -5,7 +5,6 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 
 import ArrowHeading from './arrow_heading';
-import useLongPress from '../hooks/useLongPress';
 
 export default React.forwardRef(({ className, href, serviceType, services }, ref) => {
     const [isSelected, setIsSelected] = useState(false); 
@@ -14,26 +13,8 @@ export default React.forwardRef(({ className, href, serviceType, services }, ref
 
     const onServicePanelSelect = () => {
         setIsSelected(true);
-    }
-
-    const onServicePanelClick = () => {
-        
-    }
-
-    const onServicePanelSelectRelease = () => {
         router.push(href);
     }
-
-    const onServicePanelSelectCancel = () => {
-        setIsSelected(false);
-    }
-
-    const longPressOptions = {
-        shouldPreventDefault: true,
-        delay: 500
-    };
-
-    const longPressEvent = useLongPress(onServicePanelSelect, onServicePanelClick, onServicePanelSelectRelease, onServicePanelSelectCancel, longPressOptions);
 
     services.forEach(service => {
         if (service.kind == null) {
@@ -136,7 +117,7 @@ export default React.forwardRef(({ className, href, serviceType, services }, ref
     `;
 
     return (
-        <div {...longPressEvent} css={styles} className={className} ref={ref}>
+        <div onDoubleClick={onServicePanelSelect} css={styles} className={className} ref={ref}>
             <h3>{serviceType}</h3>
             <div className="panel">
                 {Object.entries(servicesByKind).map(key => {

@@ -92,7 +92,7 @@ export default function Home() {
           {typeOfServices.map(service => {
             return (
               <Link key={service} href={`/services/${service.toLowerCase()}`} passHref>
-                <a>
+                <a className={styles.service_card}>
                   <ServiceCard serviceType={service.toUpperCase()} />
                 </a>
               </Link>
@@ -116,7 +116,7 @@ export default function Home() {
           <div className={styles.member_info}>
             <b>{data.stylists[currentMember].name}</b>
             <p>{data.stylists[currentMember].about}</p>
-            <button>BOOK APOINTMENT</button>
+            <button>BOOK APPOINTMENT</button>
           </div>
         </div>
       </div>
@@ -133,8 +133,3 @@ export default function Home() {
     </Layout>
   )
 }
-
-//TODO:
-//1. Make Client Reviews Scrollable with mouse
-//2. Enable next section scroll with click on next section arrow
-//3. Footer

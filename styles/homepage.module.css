@@ -245,3 +245,7 @@
 @media (max-width:749px) {
 
 }
+
+.service_card {
+  text-decoration: none;
+}

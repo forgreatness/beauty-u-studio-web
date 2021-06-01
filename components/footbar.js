@@ -10,7 +10,7 @@ import * as Constants from '../src/constants/index';
 export default function Footbar() {
     const styles = css`
         text-align: center;
-        height: 300px;
+        height: 100%;
         width: 100%;
         display: flex;
         flex-wrap: wrap;

@@ -50,7 +50,9 @@ export default function Navbar() {
         }
 
         a {
+            text-decoration: none;
             display: inline-block;
+            color: black;
             height: 100%;
             padding: 10px 30px;
             line-height: 2.5em;
@@ -243,8 +245,8 @@ export default function Navbar() {
                 <Link href="/services" passHref>
                     <a>Services</a>
                 </Link>
-                <Link href="/apointment" passHref>
-                    <a>Apointment</a>
+                <Link href="/appointment" passHref>
+                    <a>Appointment</a>
                 </Link>
                 <Link href="/about" passHref>
                     <a>About Us</a>

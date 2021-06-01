@@ -8,7 +8,7 @@ import Footbar from './footbar';
 
 export default function PageLayout({ children }) {
     const styles = css`
-        .container {
+        .layout {
             max-width: 36rem;
             padding: 0 1rem;
             margin: 3rem auto 6rem;
@@ -17,10 +17,17 @@ export default function PageLayout({ children }) {
         main {
             margin-top: 64px;
         }
+
+        footer {
+            position: absolute;
+            bottom: -300px;
+            width: 100%;
+            height: 300px;
+        }
     `;
 
     return (
-        <div css={styles} className="container">
+        <div css={styles} className="layout">
             <Head>
                 <link rel="icon" href="/favicon.ico" />
                 <meta name="description" content="A website use to serve all informations relating to BeautyUStudio salon" />

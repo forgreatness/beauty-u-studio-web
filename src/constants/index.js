@@ -59,3 +59,14 @@ export const REVIEWS = [
         review: 'Oh my gosh, I went from having literally no eyebrow to now and 2 inch shots of two full latch of hair. I amazes me so much, because the eyebrows are so crips and clean and that it gives enough texture for the viewers to be able to see that the eyebrow is real'
     }
 ]
+
+export const user = {
+    id: "60b42095d2fe265ce922e9cd",
+    name: "Bang Nguyen",
+    email: "bangnguyen2024@gmail.com",
+    phone: "9713443559",
+    role: "client"
+}
+
+export const studioOpens = "08:00:00";
+export const studioCloses =  "05:00:00";

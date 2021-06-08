@@ -4,20 +4,25 @@ import React, { useState } from 'react';
 
 import Layout from '../../components/page-layout';
 import ApolloClient from '../../lib/apollo/apollo-client';
-import { GET_SERVICES, GET_APPOINTMENTPAGEDATA } from '../../lib/apollo/data-queries';
+import { GET_SERVICES, GET_APPOINTMENTPAGEDATA, GET_APPOINTMENTS } from '../../lib/apollo/data-queries';
 import Loading from '../../components/loading';
+import { user } from '../../src/constants/index';
 
 export default function ApppointmentPage({ services }) {
     const today = new Date();
-    const minAppointmentDate = new Date();
-    const maxAppointmentDate = new Date();
+    
+    var minAppointmentDate = new Date();
+    var maxAppointmentDate = new Date();
 
     minAppointmentDate.setDate(today.getDate() + 1);
     maxAppointmentDate.setDate(today.getDate() + 15);
+    minAppointmentDate = new Date(`${minAppointmentDate.getFullYear()}-${minAppointmentDate.getMonth()+1}-${minAppointmentDate.getDate()}PDT`);
+    maxAppointmentDate = new Date(`${maxAppointmentDate.getFullYear()}-${maxAppointmentDate.getMonth()+1}-${maxAppointmentDate.getDate()}PDT`);
 
     const [selectedServices, setSelectedServices] = useState([]);
-    const [selectedStylist, setSelectedStylist] = useState(0);
+    const [selectedStylist, setSelectedStylist] = useState("");
     const [selectedDate, setSelectedDate] = useState("");
+    const [selectedTime, setSelectedTime] = useState("");
     const { loading, error, data } = useQuery(GET_APPOINTMENTPAGEDATA(), {
         onCompleted: (data) => {
             if (data.stylists) {
@@ -31,8 +36,6 @@ export default function ApppointmentPage({ services }) {
       return <p>ERROR</p>
     }
 
-    console.log(minAppointmentDate, );
-
     const handleServicesChange = (e) => {
         let selectedServices = Array.from(e.target.selectedOptions, option => option.value);
         setSelectedServices(selectedServices);
@@ -43,9 +46,13 @@ export default function ApppointmentPage({ services }) {
     }
 
     const handleDateChange = (e) => {
-        var date = e.target.value.replace("/", "-");
+        var date = new Date(e.target.value + 'PDT');
 
-        setSelectedDate(date);
+        console.log(date, minAppointmentDate, maxAppointmentDate);
+
+        if (date >= minAppointmentDate && date <= maxAppointmentDate) {
+            setSelectedDate(e.target.value.replace("/", "-"));   
+        }
     }
 
     return (
@@ -72,7 +79,7 @@ export default function ApppointmentPage({ services }) {
                     </Form.Control>
                 </Form.Group>
                 <Form.Group controlId="selectedDate">
-                    <Form.Label>Date</Form.Label>
+                    <Form.Label>Date of Appointment (2 weeks)</Form.Label>
                     <Form.Control type="date" value={selectedDate} onChange={handleDateChange} min={DateToYYYYMMDDFormat(minAppointmentDate)} max={DateToYYYYMMDDFormat(maxAppointmentDate)} ></Form.Control>
                 </Form.Group>
             </Form>

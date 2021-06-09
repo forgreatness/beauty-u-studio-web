@@ -1,40 +1,139 @@
 import Form from 'react-bootstrap/Form';
 import { useQuery } from '@apollo/client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import Layout from '../../components/page-layout';
 import ApolloClient from '../../lib/apollo/apollo-client';
 import { GET_SERVICES, GET_APPOINTMENTPAGEDATA, GET_APPOINTMENTS } from '../../lib/apollo/data-queries';
 import Loading from '../../components/loading';
-import { user } from '../../src/constants/index';
+import { user, studioOpens, studioCloses } from '../../src/constants/index';
 
 export default function ApppointmentPage({ services }) {
     const today = new Date();
+    const timeSlots = [];
     
     var minAppointmentDate = new Date();
     var maxAppointmentDate = new Date();
 
     minAppointmentDate.setDate(today.getDate() + 1);
     maxAppointmentDate.setDate(today.getDate() + 15);
-    minAppointmentDate = new Date(`${minAppointmentDate.getFullYear()}-${minAppointmentDate.getMonth()+1}-${minAppointmentDate.getDate()}PDT`);
-    maxAppointmentDate = new Date(`${maxAppointmentDate.getFullYear()}-${maxAppointmentDate.getMonth()+1}-${maxAppointmentDate.getDate()}PDT`);
+    minAppointmentDate = new Date(`${minAppointmentDate.getFullYear()}-${minAppointmentDate.getMonth()+1}-${minAppointmentDate.getDate()} 00:00:00`);
+    maxAppointmentDate = new Date(`${maxAppointmentDate.getFullYear()}-${maxAppointmentDate.getMonth()+1}-${maxAppointmentDate.getDate()} 00:00:00`);
 
     const [selectedServices, setSelectedServices] = useState([]);
     const [selectedStylist, setSelectedStylist] = useState("");
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedTime, setSelectedTime] = useState("");
+    const [appointments, setAppointments] = useState([]);
     const { loading, error, data } = useQuery(GET_APPOINTMENTPAGEDATA(), {
         onCompleted: (data) => {
             if (data.stylists) {
                 setSelectedStylist(data.stylists[0].id);
             }
         }
-    }); //TODO: get stylists based on the selected Service;
+    }); //TODO: get stylists that can only perform the selected Service;
 
-    if (loading) return <Loading /> 
-    if (error) {
-      return <p>ERROR</p>
-    }
+    // Calculate slots
+    if (selectedServices.length > 0 && selectedStylist && selectedDate) {
+        // #1:filter appointments to only use one from selectedDate and order the appointments by time
+        const onDate = new Date(selectedDate + " 00:00:00");
+        let appointmentsOnDate = [];
+
+        for (var i = 0; i < appointments.length; i++) {
+            let appointmentDate = new Date(appointments[i].time);
+
+            // if the current appointment in iteration is on the same day as the selected date user choosed
+            if (onDate.getMonth() == appointmentDate.getMonth() && onDate.getDate() == appointmentDate.getDate()) {
+                var x = 0;
+
+                while (x < i) {
+                    if (appointmentDate < new Date(appointmentsOnDate[x].time)) {
+                        appointmentsOnDate.splice(x, 0, appointments[i]);
+                        break;
+                    }
+
+                    x++;
+                }
+
+                if (x == i) {
+                    appointmentsOnDate.push(appointments[i]);
+                }
+            }
+        }
+
+        // #2 Calculate slots using the ordered Appointments of the onDate and the startTime and endTime of studio/stylist
+            // Condition for adding slots. Starting at last free time. If there is a gap between free time and the next appointment and the gap is bigger than services time. (Normalize the seconds, and milliseconds) 
+        let nextAvailableTime = new Date(`${selectedDate} ${studioOpens}`);
+        let nextUnavailableTime = new Date();
+        let currentSlot = new Date();
+        let newAppointmentTime = 0;
+
+            // Calculate newAppointmentTime; 
+        selectedServices.forEach(serviceId => {
+            let service = services.find(service => service.id == serviceId);
+
+            newAppointmentTime = newAppointmentTime + service.time;
+        });
+
+            // Looking at the calendar for the day
+        appointmentsOnDate.forEach(appointment => {
+            // Get appointment time and normalize it
+            nextUnavailableTime.setTime(Date.parse(appointment.time));
+            nextUnavailableTime.setSeconds(0);
+            nextUnavailableTime.setMilliseconds(0);
+            currentSlot.setTime(nextAvailableTime.getTime());
+
+            while (nextAvailableTime.setMinutes(nextAvailableTime.getMinutes() + newAppointmentTime) <= nextUnavailableTime.getTime()) {
+                let meridiem = currentSlot.getHours() < 12 ? "AM" : "PM";
+                let hour = currentSlot.getHours() < 13 ? `${currentSlot.getHours()}` : `${currentSlot.getHours() - 12}`;
+                let minutes = currentSlot.getMinutes();
+    
+                if (parseInt(hour) < 10) {
+                    hour = "0" + hour;
+                }
+    
+                if (parseInt(minutes) < 10) {
+                    minutes = "0" + minutes;
+                }
+    
+                timeSlots.push(hour + ":" + minutes + " " + meridiem);
+                
+                currentSlot.setHours(nextAvailableTime.getHours());
+                currentSlot.setMinutes(nextAvailableTime.getMinutes());
+            };
+
+            let appointmentTime = 0;
+            appointment.services.forEach(service => {
+                appointmentTime = appointmentTime + service.time;
+            });
+            nextAvailableTime.setTime(nextUnavailableTime);
+            nextAvailableTime.setMinutes(nextAvailableTime.getMinutes() + appointmentTime);
+        });
+
+            // Calculate the slots from last appointment till close;
+        nextUnavailableTime.setTime(Date.parse(`${selectedDate} ${studioCloses}`));
+        currentSlot.setTime(nextAvailableTime.getTime());
+        while (nextAvailableTime.setMinutes(nextAvailableTime.getMinutes() + newAppointmentTime) <= nextUnavailableTime.getTime()) {
+            let meridiem = currentSlot.getHours() < 12 ? "AM" : "PM";
+            let hour = currentSlot.getHours() < 13 ? `${currentSlot.getHours()}` : `${currentSlot.getHours() - 12}`;
+            let minutes = currentSlot.getMinutes();
+
+            if (parseInt(hour) < 10) {
+                hour = "0" + hour;
+            }
+
+            if (parseInt(minutes) < 10) {
+                minutes = "0" + minutes;
+            }
+
+            timeSlots.push(hour + ":" + minutes + " " + meridiem);
+
+            currentSlot.setHours(nextAvailableTime.getHours());
+            currentSlot.setMinutes(nextAvailableTime.getMinutes());
+        }
+    } 
+
+    console.log(timeSlots);
 
     const handleServicesChange = (e) => {
         let selectedServices = Array.from(e.target.selectedOptions, option => option.value);
@@ -46,13 +145,36 @@ export default function ApppointmentPage({ services }) {
     }
 
     const handleDateChange = (e) => {
-        var date = new Date(e.target.value + 'PDT');
-
-        console.log(date, minAppointmentDate, maxAppointmentDate);
+        var date = new Date(e.target.value + ' 00:00:00');
 
         if (date >= minAppointmentDate && date <= maxAppointmentDate) {
             setSelectedDate(e.target.value.replace("/", "-"));   
         }
+    }
+
+    const handleTimeChange = (e) => {
+        setSelectedTime(e.target.value);
+    }
+
+    useEffect(async () => {
+        if (selectedStylist ?? "" != null) {
+            const { data } = await ApolloClient.query({
+                query: GET_APPOINTMENTS,
+                variables: {
+                    query: {
+                        stylist: selectedStylist.toString(),
+                        client: user.id
+                    }
+                }
+            });
+    
+            setAppointments(data.appointments);   
+        }
+    }, [selectedStylist]);
+
+    if (loading) return <Loading /> 
+    if (error) {
+      return <p>ERROR</p>
     }
 
     return (
@@ -81,6 +203,16 @@ export default function ApppointmentPage({ services }) {
                 <Form.Group controlId="selectedDate">
                     <Form.Label>Date of Appointment (2 weeks)</Form.Label>
                     <Form.Control type="date" value={selectedDate} onChange={handleDateChange} min={DateToYYYYMMDDFormat(minAppointmentDate)} max={DateToYYYYMMDDFormat(maxAppointmentDate)} ></Form.Control>
+                </Form.Group>
+                <Form.Group controlId="selectedSlot">
+                    <Form.Label>Time Slot</Form.Label>
+                    <Form.Control as="select" onChange={handleTimeChange} value={selectedTime}>
+                        {timeSlots.map(slot => {
+                            return (
+                                <option key={slot} value={slot}>{slot}</option>
+                            )
+                        })}
+                    </Form.Control>
                 </Form.Group>
             </Form>
         </Layout>

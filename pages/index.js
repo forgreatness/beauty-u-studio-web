@@ -10,12 +10,16 @@ import MemberSelector from '../components/member_selector';
 import Loading from '../components/loading';
 import ClientReview from '../components/client_review';
 import CustomButton from '../components/custom_button';
-import { GET_SERVICES, GET_USERS, GET_HOMEDATA } from '../lib/apollo/data-queries';
+import { GET_SERVICES, GET_USERS, GET_HOMEPAGEDATA } from '../lib/apollo/data-queries';
 
 export default function Home() {
   const [currentMember, setSelectedMember] = useState(0);
   const [pageCover, setPageCover] = useState(0);
-  const { loading, error, data } = useQuery(GET_HOMEDATA());
+  const { loading, error, data } = useQuery(GET_HOMEPAGEDATA, {
+    variables: {
+      userRole: "stylist"
+    }
+  });
   var typeOfServices = [];
 
   if (loading) return <Loading /> 

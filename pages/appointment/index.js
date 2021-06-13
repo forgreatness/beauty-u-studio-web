@@ -4,45 +4,45 @@ import React, { useEffect, useState } from 'react';
 
 import Layout from '../../components/page-layout';
 import ApolloClient from '../../lib/apollo/apollo-client';
-import { GET_SERVICES, GET_APPOINTMENTPAGEDATA, GET_APPOINTMENTS } from '../../lib/apollo/data-queries';
+import { GET_SERVICES, GET_USERS, GET_APPOINTMENTS } from '../../lib/apollo/data-queries';
 import Loading from '../../components/loading';
 import { user, studioOpens, studioCloses } from '../../src/constants/index';
 
 export default function ApppointmentPage({ services }) {
     const today = new Date();
+    today.setHours(0,0,0,0);
     const timeSlots = [];
+    const millisecondsPerDay = 8.64e+7;
     
-    var minAppointmentDate = new Date();
-    var maxAppointmentDate = new Date();
-
-    minAppointmentDate.setDate(today.getDate() + 1);
-    maxAppointmentDate.setDate(today.getDate() + 15);
-    minAppointmentDate = new Date(`${minAppointmentDate.getFullYear()}-${minAppointmentDate.getMonth()+1}-${minAppointmentDate.getDate()} 00:00:00`);
-    maxAppointmentDate = new Date(`${maxAppointmentDate.getFullYear()}-${maxAppointmentDate.getMonth()+1}-${maxAppointmentDate.getDate()} 00:00:00`);
+    const minAppointmentDate = new Date(today.getTime() + millisecondsPerDay);
+    const maxAppointmentDate = new Date(today.getTime() + millisecondsPerDay * 15);
 
     const [selectedServices, setSelectedServices] = useState([]);
     const [selectedStylist, setSelectedStylist] = useState("");
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedTime, setSelectedTime] = useState("");
     const [appointments, setAppointments] = useState([]);
-    const { loading, error, data } = useQuery(GET_APPOINTMENTPAGEDATA(), {
+    const { loading, error, data } = useQuery(GET_USERS, {
+        variables: {
+            role: "stylist"
+        },
         onCompleted: (data) => {
-            if (data.stylists) {
-                setSelectedStylist(data.stylists[0].id);
+            if (data.users) {
+                setSelectedStylist(data.users[0].id);
             }
         }
     }); //TODO: get stylists that can only perform the selected Service;
 
-    // Calculate slots
+    // Calculate slots if we have all the data needed;
     if (selectedServices.length > 0 && selectedStylist && selectedDate) {
-        // #1:filter appointments to only use one from selectedDate and order the appointments by time
+        // #1:filter all the appointments from our system to only use one from the selectedDate and order the filtered appointments by time;
         const onDate = new Date(selectedDate + " 00:00:00");
         let appointmentsOnDate = [];
 
         for (var i = 0; i < appointments.length; i++) {
             let appointmentDate = new Date(appointments[i].time);
 
-            // if the current appointment in iteration is on the same day as the selected date user choosed
+            // if the current appointment in iteration is on the same day as the selected date user choosed;
             if (onDate.getMonth() == appointmentDate.getMonth() && onDate.getDate() == appointmentDate.getDate()) {
                 var x = 0;
 
@@ -61,8 +61,8 @@ export default function ApppointmentPage({ services }) {
             }
         }
 
-        // #2 Calculate slots using the ordered Appointments of the onDate and the startTime and endTime of studio/stylist
-            // Condition for adding slots. Starting at last free time. If there is a gap between free time and the next appointment and the gap is bigger than services time. (Normalize the seconds, and milliseconds) 
+        // #2 Calculate slots using the ordered appointmentsOnDate and the startTime and endTime of studio/stylist;
+            // Condition for adding slots. Starting at last free time. If there is a gap between free time and the next appointment and the gap is bigger than services time;
         let nextAvailableTime = new Date(`${selectedDate} ${studioOpens}`);
         let nextUnavailableTime = new Date();
         let currentSlot = new Date();
@@ -75,12 +75,16 @@ export default function ApppointmentPage({ services }) {
             newAppointmentTime = newAppointmentTime + service.time;
         });
 
-            // Looking at the calendar for the day
-        appointmentsOnDate.forEach(appointment => {
-            // Get appointment time and normalize it
-            nextUnavailableTime.setTime(Date.parse(appointment.time));
-            nextUnavailableTime.setSeconds(0);
-            nextUnavailableTime.setMilliseconds(0);
+        for (let j = 0; j <= appointmentsOnDate.length; j++) {
+            if (j == appointmentsOnDate.length) {
+                nextUnavailableTime.setTime(Date.parse(`${selectedDate} ${studioCloses}`));
+            } else {
+                // Date must be normalized to start at midnight;
+                nextUnavailableTime.setTime(Date.parse(appointmentsOnDate[j].time));
+                nextUnavailableTime.setSeconds(0);
+                nextUnavailableTime.setMilliseconds(0);
+            }
+
             currentSlot.setTime(nextAvailableTime.getTime());
 
             while (nextAvailableTime.setMinutes(nextAvailableTime.getMinutes() + newAppointmentTime) <= nextUnavailableTime.getTime()) {
@@ -102,38 +106,16 @@ export default function ApppointmentPage({ services }) {
                 currentSlot.setMinutes(nextAvailableTime.getMinutes());
             };
 
-            let appointmentTime = 0;
-            appointment.services.forEach(service => {
-                appointmentTime = appointmentTime + service.time;
-            });
-            nextAvailableTime.setTime(nextUnavailableTime);
-            nextAvailableTime.setMinutes(nextAvailableTime.getMinutes() + appointmentTime);
-        });
-
-            // Calculate the slots from last appointment till close;
-        nextUnavailableTime.setTime(Date.parse(`${selectedDate} ${studioCloses}`));
-        currentSlot.setTime(nextAvailableTime.getTime());
-        while (nextAvailableTime.setMinutes(nextAvailableTime.getMinutes() + newAppointmentTime) <= nextUnavailableTime.getTime()) {
-            let meridiem = currentSlot.getHours() < 12 ? "AM" : "PM";
-            let hour = currentSlot.getHours() < 13 ? `${currentSlot.getHours()}` : `${currentSlot.getHours() - 12}`;
-            let minutes = currentSlot.getMinutes();
-
-            if (parseInt(hour) < 10) {
-                hour = "0" + hour;
+            if (j < appointmentsOnDate.length) {
+                let appointmentTime = 0;
+                appointmentsOnDate[j].services.forEach(service => {
+                    appointmentTime = appointmentTime + service.time;
+                });
+                nextAvailableTime.setTime(nextUnavailableTime);
+                nextAvailableTime.setMinutes(nextAvailableTime.getMinutes() + appointmentTime);             
             }
-
-            if (parseInt(minutes) < 10) {
-                minutes = "0" + minutes;
-            }
-
-            timeSlots.push(hour + ":" + minutes + " " + meridiem);
-
-            currentSlot.setHours(nextAvailableTime.getHours());
-            currentSlot.setMinutes(nextAvailableTime.getMinutes());
         }
     } 
-
-    console.log(timeSlots);
 
     const handleServicesChange = (e) => {
         let selectedServices = Array.from(e.target.selectedOptions, option => option.value);
@@ -193,7 +175,7 @@ export default function ApppointmentPage({ services }) {
                 <Form.Group controlId="selectedStylist">
                     <Form.Label>Choose Stylist</Form.Label>
                     <Form.Control as="select" onChange={handleStylistChange} value={selectedStylist}>
-                        {data.stylists.map(stylist => {
+                        {data.users.map(stylist => {
                             return (
                                 <option key={stylist.id} value={stylist.id}>{stylist.name}</option>
                             )

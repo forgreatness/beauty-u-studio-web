@@ -1,10 +1,11 @@
 import Form from 'react-bootstrap/Form';
+import Button from 'react-bootstrap/Button';
 import { useQuery } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
 
 import Layout from '../../components/page-layout';
 import ApolloClient from '../../lib/apollo/apollo-client';
-import { GET_SERVICES, GET_USERS, GET_APPOINTMENTS } from '../../lib/apollo/data-queries';
+import { GET_SERVICES, GET_USERS, GET_APPOINTMENTS, ADD_APPOINTMENT } from '../../lib/apollo/data-queries';
 import Loading from '../../components/loading';
 import { user, studioOpens, studioCloses } from '../../src/constants/index';
 
@@ -138,6 +139,37 @@ export default function ApppointmentPage({ services }) {
         setSelectedTime(e.target.value);
     }
 
+    const handleFormClear = (e) => {
+        setSelectedServices([]);
+        setSelectedStylist(data.users[0].id);
+        setSelectedDate("");
+        setSelectedTime("");
+    }
+
+    const handleBookAppointment = async (e) => {
+        e.preventDefault();
+
+        if (selectedServices.length > 0 && selectedStylist && selectedDate && selectedTime) {
+            let appointmentTime = new Date(`${selectedDate} ${selectedTime}`);
+
+            let newAppointment = {
+                stylist: selectedStylist,
+                client: user.id,
+                services: selectedServices,
+                time: appointmentTime.toISOString()
+            };
+
+            const { data } = await ApolloClient.mutate({
+                mutation: ADD_APPOINTMENT,
+                variables: {
+                    newAppointment: newAppointment
+                }
+            });
+        }
+
+        handleFormClear(e);
+    }
+
     useEffect(async () => {
         if (selectedStylist ?? "" != null) {
             const { data } = await ApolloClient.query({
@@ -167,7 +199,7 @@ export default function ApppointmentPage({ services }) {
                     <Form.Control as="select" multiple onChange={handleServicesChange} value={selectedServices}>
                         {services.map(service => {
                             return (
-                                <option key={service.id} value={service.id}>{service.name}</option>
+                                <option key={service.id.toString()} value={service.id.toString()}>{service.name}</option>
                             )
                         })}
                     </Form.Control>
@@ -196,6 +228,8 @@ export default function ApppointmentPage({ services }) {
                         })}
                     </Form.Control>
                 </Form.Group>
+                <Button variant="outline-secondary" type="reset" onClick={handleFormClear}>Clear</Button>{' '}
+                <Button variant="outline-primary" type="submit" onClick={handleBookAppointment}>Book</Button>{' '}
             </Form>
         </Layout>
     );

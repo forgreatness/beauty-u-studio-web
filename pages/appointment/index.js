@@ -118,6 +118,10 @@ export default function ApppointmentPage({ services }) {
         }
     } 
 
+    const DateToYYYYMMDDFormat = (date) => {
+        return `${date.getFullYear()}-${(date.getMonth() < 9) ? "0"+(date.getMonth() + 1) : date.getMonth()+1}-${(date.getDate() < 10) ? "0"+date.getDate() : date.getDate()}`;
+    }
+
     const handleServicesChange = (e) => {
         let selectedServices = Array.from(e.target.selectedOptions, option => option.value);
         setSelectedServices(selectedServices);
@@ -220,7 +224,7 @@ export default function ApppointmentPage({ services }) {
                 </Form.Group> */}
                 <Form.Group controlId="selectedDate">
                     <Form.Label>Date of Appointment (2 weeks)</Form.Label>
-                    <Form.Control type="date"></Form.Control>
+                    <Form.Control type="date" value={selectedDate} onChange={handleDateChange} min={DateToYYYYMMDDFormat(minAppointmentDate)} max={DateToYYYYMMDDFormat(maxAppointmentDate)}></Form.Control>
                 </Form.Group>
                 <Form.Group controlId="selectedSlot">
                     <Form.Label>Time Slot</Form.Label>
@@ -237,10 +241,6 @@ export default function ApppointmentPage({ services }) {
             </Form>
         </Layout>
     );
-}
-
-function DateToYYYYMMDDFormat(date) {
-    return `${date.getFullYear()}-${(date.getMonth() < 9) ? "0"+(date.getMonth() + 1) : date.getMonth()+1}-${(date.getDate() < 10) ? "0"+date.getDate() : date.getDate()}`;
 }
 
 export async function getStaticProps() {

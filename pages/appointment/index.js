@@ -7,12 +7,14 @@ import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import TextField from '@material-ui/core/TextField';
+import Select from '@material-ui/core/Select';
 
 import Layout from '../../components/page-layout';
 import ApolloClient from '../../lib/apollo/apollo-client';
 import { GET_SERVICES, GET_USERS, GET_APPOINTMENTS, ADD_APPOINTMENT } from '../../lib/apollo/data-queries';
 import Loading from '../../components/loading';
 import { user, studioOpens, studioCloses } from '../../src/constants/index';
+import { MenuItem } from '@material-ui/core';
 
 export default function ApppointmentPage({ services }) {
     const today = new Date();
@@ -234,7 +236,17 @@ export default function ApppointmentPage({ services }) {
                     onChange={handleDateChange}
                     value={selectedDate}
                 />
-                <Form.Group controlId="selectedSlot">
+                <FormControl fullWidth>
+                    <InputLabel id="select-time-slot-label">Time Slot</InputLabel>
+                    <Select labelId="select-time-slot-label" id="select-time-slot" value={selectedTime} onChange={handleTimeChange} label="Time">
+                        {timeSlots.map(slot => {
+                            return (
+                                <MenuItem value={slot} key={slot}>{slot}</MenuItem>
+                            )
+                        })}
+                    </Select>
+                </FormControl>
+                {/* <Form.Group controlId="selectedSlot">
                     <Form.Label>Time Slot</Form.Label>
                     <Form.Control as="select" onChange={handleTimeChange} value={selectedTime}>
                         {timeSlots.map(slot => {
@@ -243,7 +255,7 @@ export default function ApppointmentPage({ services }) {
                             )
                         })}
                     </Form.Control>
-                </Form.Group>
+                </Form.Group> */}
                 <Button variant="outline-secondary" type="reset" onClick={handleFormClear}>Clear</Button>{' '}
                 <Button variant="outline-primary" type="submit" onClick={handleBookAppointment}>Book</Button>{' '}
             </Form>

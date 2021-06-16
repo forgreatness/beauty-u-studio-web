@@ -134,7 +134,7 @@ export default function ApppointmentPage({ services }) {
     const handleDateChange = (e) => {
         var date = new Date(e.target.value + ' 00:00:00');
 
-        if (date >= minAppointmentDate && date <= maxAppointmentDate) {
+        if (date && date >= minAppointmentDate && date <= maxAppointmentDate) {
             setSelectedDate(e.target.value.replace("/", "-"));   
         }
     }
@@ -224,7 +224,7 @@ export default function ApppointmentPage({ services }) {
                 </Form.Group> */}
                 <Form.Group controlId="selectedDate">
                     <Form.Label>Date of Appointment (2 weeks)</Form.Label>
-                    <Form.Control type="date" value={selectedDate} onChange={handleDateChange} min={DateToYYYYMMDDFormat(minAppointmentDate)} max={DateToYYYYMMDDFormat(maxAppointmentDate)}></Form.Control>
+                    <Form.Control type="date" value={selectedDate} onChange={handleDateChange}></Form.Control>
                 </Form.Group>
                 <Form.Group controlId="selectedSlot">
                     <Form.Label>Time Slot</Form.Label>

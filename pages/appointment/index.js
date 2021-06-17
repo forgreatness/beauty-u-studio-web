@@ -134,6 +134,8 @@ export default function ApppointmentPage({ services }) {
     const handleDateChange = (e) => {
         var date = new Date(e.target.value + ' 00:00:00');
 
+        alert(e.target.type);
+
         if (date && date >= minAppointmentDate && date <= maxAppointmentDate) {
             setSelectedDate(e.target.value.replace("/", "-"));   
         }

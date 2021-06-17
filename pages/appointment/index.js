@@ -143,15 +143,8 @@ export default function ApppointmentPage({ services }) {
         }
 
         if (date != 'Invalid Date' && date >= minAppointmentDate && date <= maxAppointmentDate) {
-            setSelectedDate(e.target.value.replace("/", "-"));   
-        }
-    }
-
-    const handleDebug = (e) => {
-        const targetValue = e.target.value;
-
-        if (targetValue) {
-            setDebug(e.type + " " + targetValue);
+            targetValue.replace("/", "-");
+            setSelectedDate(targetValue);   
         }
     }
 

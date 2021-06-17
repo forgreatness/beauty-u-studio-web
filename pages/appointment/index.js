@@ -135,18 +135,16 @@ export default function ApppointmentPage({ services }) {
     const handleDateChange = (e) => {
         const targetValue = e.target.value;
 
-        var date = 'Invalid Date';
-
-        if (targetValue) {
-            date = new Date(targetValue + ' 00:00:00');
-            setDebug(e.type + " " + targetValue);
-        }
+        var date = new Date(targetValue + ' 00:00:00');
 
         if (date != 'Invalid Date' && date >= minAppointmentDate && date <= maxAppointmentDate) {
             targetValue.replace("/", "-");
             setSelectedDate(targetValue);   
         } else {
+            e.preventDefault();
             e.target.value = selectedDate;
+            e.target.blur();
+            setDebug(e.type + " " + e.target.value);
         }
     }
 

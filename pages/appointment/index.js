@@ -141,9 +141,7 @@ export default function ApppointmentPage({ services }) {
             targetValue.replace("/", "-");
             setSelectedDate(targetValue);   
         } else {
-            e.preventDefault();
-            e.target.value = selectedDate;
-            e.target.blur();
+            e.target.value = "";
             setDebug(e.type + " " + e.target.value);
         }
     }
@@ -234,7 +232,7 @@ export default function ApppointmentPage({ services }) {
                 </Form.Group> */}
                 <Form.Group controlId="selectedDate">
                     <Form.Label>Date of Appointment (2 weeks)</Form.Label>
-                    <Form.Control type="date" onBlur={handleDateChange} onChange={handleDateChange} min={DateToYYYYMMDDFormat(minAppointmentDate)} max={DateToYYYYMMDDFormat(maxAppointmentDate)}></Form.Control>
+                    <Form.Control type="date" onChange={handleDateChange} min={DateToYYYYMMDDFormat(minAppointmentDate)} max={DateToYYYYMMDDFormat(maxAppointmentDate)}></Form.Control>
                 </Form.Group>
                 <Form.Group controlId="selectedSlot">
                     <Form.Label>Time Slot</Form.Label>

@@ -133,13 +133,13 @@ export default function ApppointmentPage({ services }) {
     }
 
     const handleDateChange = (e) => {
-        // var date = new Date(e.target.value + ' 00:00:00');
+        const targetValue = e.target.value;
 
-        // if (date && date >= minAppointmentDate && date <= maxAppointmentDate) {
-        //     setSelectedDate(e.target.value.replace("/", "-"));   
-        // }
+        var date = new Date(targetValue + ' 00:00:00');
 
-        setDebug(e.type + e.targetvalue)
+        if (date && date >= minAppointmentDate && date <= maxAppointmentDate) {
+            setSelectedDate(e.target.value.replace("/", "-"));   
+        }
     }
 
     const handleTimeChange = (e) => {
@@ -228,7 +228,7 @@ export default function ApppointmentPage({ services }) {
                 </Form.Group> */}
                 <Form.Group controlId="selectedDate">
                     <Form.Label>Date of Appointment (2 weeks)</Form.Label>
-                    <Form.Control type="date" onChange={handleDateChange} onTouchStart={handleDateChange} onFocus={handleDateChange} min={DateToYYYYMMDDFormat(minAppointmentDate)} max={DateToYYYYMMDDFormat(maxAppointmentDate)}></Form.Control>
+                    <Form.Control type="date" value={selectedDate} onChange={handleDateChange} min={DateToYYYYMMDDFormat(minAppointmentDate)} max={DateToYYYYMMDDFormat(maxAppointmentDate)}></Form.Control>
                 </Form.Group>
                 <Form.Group controlId="selectedSlot">
                     <Form.Label>Time Slot</Form.Label>

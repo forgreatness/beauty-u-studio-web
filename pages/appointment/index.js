@@ -18,6 +18,7 @@ export default function ApppointmentPage({ services }) {
     const minAppointmentDate = new Date(today.getTime() + millisecondsPerDay);
     const maxAppointmentDate = new Date(today.getTime() + millisecondsPerDay * 15);
 
+    const [debug, setDebug] = useState("");
     const [selectedServices, setSelectedServices] = useState([]);
     const [selectedStylist, setSelectedStylist] = useState("");
     const [selectedDate, setSelectedDate] = useState("");
@@ -132,11 +133,13 @@ export default function ApppointmentPage({ services }) {
     }
 
     const handleDateChange = (e) => {
-        var date = new Date(e.target.value + ' 00:00:00');
+        // var date = new Date(e.target.value + ' 00:00:00');
 
-        if (date && date >= minAppointmentDate && date <= maxAppointmentDate) {
-            setSelectedDate(e.target.value.replace("/", "-"));   
-        }
+        // if (date && date >= minAppointmentDate && date <= maxAppointmentDate) {
+        //     setSelectedDate(e.target.value.replace("/", "-"));   
+        // }
+
+        setDebug(e.type + e.targetvalue)
     }
 
     const handleTimeChange = (e) => {
@@ -197,6 +200,7 @@ export default function ApppointmentPage({ services }) {
 
     return (
         <Layout>
+            <h2>{debug}</h2>
             <Form>
                 <Form.Group controlId="selectedServices">
                     <Form.Label>Pick 1 or more services to schedule</Form.Label>
@@ -224,7 +228,7 @@ export default function ApppointmentPage({ services }) {
                 </Form.Group> */}
                 <Form.Group controlId="selectedDate">
                     <Form.Label>Date of Appointment (2 weeks)</Form.Label>
-                    <Form.Control type="date" onChange={handleDateChange} min={DateToYYYYMMDDFormat(minAppointmentDate)} max={DateToYYYYMMDDFormat(maxAppointmentDate)}></Form.Control>
+                    <Form.Control type="date" onChange={handleDateChange} onTouchStart={handleDateChange} onFocus={handleDateChange} min={DateToYYYYMMDDFormat(minAppointmentDate)} max={DateToYYYYMMDDFormat(maxAppointmentDate)}></Form.Control>
                 </Form.Group>
                 <Form.Group controlId="selectedSlot">
                     <Form.Label>Time Slot</Form.Label>

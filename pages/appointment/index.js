@@ -146,7 +146,7 @@ export default function ApppointmentPage({ services }) {
         const targetValue = e.target.value;
 
         if (targetValue) {
-            setDebug(targetValue);
+            setDebug(e.type + " " + targetValue);
         }
     }
 

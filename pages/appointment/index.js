@@ -132,15 +132,20 @@ export default function ApppointmentPage({ services }) {
         setSelectedStylist(e.target.value);
     }
 
-    // const handleDateChange = (e) => {
-    //     const targetValue = e.target.value;
+    const handleDateChange = (e) => {
+        const targetValue = e.target.value;
 
-    //     var date = new Date(targetValue + ' 00:00:00');
+        var date = 'Invalid Date';
 
-    //     if (date && date >= minAppointmentDate && date <= maxAppointmentDate) {
-    //         setSelectedDate(e.target.value.replace("/", "-"));   
-    //     }
-    // }
+        if (targetValue) {
+            date = new Date(targetValue + ' 00:00:00');
+            setDebug(e.type + " " + targetValue);
+        }
+
+        if (date != 'Invalid Date' && date >= minAppointmentDate && date <= maxAppointmentDate) {
+            setSelectedDate(e.target.value.replace("/", "-"));   
+        }
+    }
 
     const handleDebug = (e) => {
         const targetValue = e.target.value;
@@ -236,7 +241,7 @@ export default function ApppointmentPage({ services }) {
                 </Form.Group> */}
                 <Form.Group controlId="selectedDate">
                     <Form.Label>Date of Appointment (2 weeks)</Form.Label>
-                    <Form.Control type="date" onChange={handleDebug} onTouchStart={handleDebug} onFocus={handleDebug} onInput={handleDebug} min={DateToYYYYMMDDFormat(minAppointmentDate)} max={DateToYYYYMMDDFormat(maxAppointmentDate)}></Form.Control>
+                    <Form.Control type="date" value={selectedDate} onFocus={handleDateChange} onChange={handleDateChange} min={DateToYYYYMMDDFormat(minAppointmentDate)} max={DateToYYYYMMDDFormat(maxAppointmentDate)}></Form.Control>
                 </Form.Group>
                 <Form.Group controlId="selectedSlot">
                     <Form.Label>Time Slot</Form.Label>

@@ -46,9 +46,9 @@ export default function ApppointmentPage({ services }) {
 
             // if the current appointment in iteration is on the same day as the selected date user choosed;
             if (onDate.getMonth() == appointmentDate.getMonth() && onDate.getDate() == appointmentDate.getDate()) {
-                var x = 0;
+                let x = 0;
 
-                while (x < i) {
+                while (x < appointmentsOnDate.length) {
                     if (appointmentDate < new Date(appointmentsOnDate[x].time)) {
                         appointmentsOnDate.splice(x, 0, appointments[i]);
                         break;

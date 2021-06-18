@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { gql, useQuery } from '@apollo/client';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 import Layout from '../components/page-layout';
 import styles from '../styles/homepage.module.css';
@@ -13,6 +13,7 @@ import CustomButton from '../components/custom_button';
 import { GET_SERVICES, GET_USERS, GET_HOMEPAGEDATA } from '../lib/apollo/data-queries';
 
 export default function Home() {
+  const studioSectionRef = useRef();
   const [currentMember, setSelectedMember] = useState(0);
   const [pageCover, setPageCover] = useState(0);
   const { loading, error, data } = useQuery(GET_HOMEPAGEDATA, {
@@ -49,6 +50,10 @@ export default function Home() {
     }
   }
 
+  const handleMoreContentArrow = (e) => {
+    studioSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+  }
+
   const handleSelectMember = (e) => {
     e.preventDefault;
 
@@ -73,12 +78,12 @@ export default function Home() {
           <div className={styles.arrow_begin}></div>
           <div className={styles.arrow_end}></div>
         </div>
-        <div className={`${styles.arrow} ${styles.more}`}>
+        <div className={`${styles.arrow} ${styles.more}`} onClick={handleMoreContentArrow}>
           <div className={styles.arrow_begin}></div>
           <div className={styles.arrow_end}></div>
         </div>
       </div>
-      <div className={styles.studio_section}>
+      <div ref={studioSectionRef} className={styles.studio_section}>
         <div className={`${styles.child} ${styles.description_section}`}>
           <h3>OUR STUDIO</h3>
           <div className={styles.description}>

@@ -140,9 +140,6 @@ export default function ApppointmentPage({ services }) {
         if (date != 'Invalid Date' && date >= minAppointmentDate && date <= maxAppointmentDate) {
             targetValue.replace("/", "-");
             setSelectedDate(targetValue);   
-        } else {
-            e.target.value = "";
-            setDebug(e.type + " " + e.target.value);
         }
     }
 
@@ -232,7 +229,7 @@ export default function ApppointmentPage({ services }) {
                 </Form.Group> */}
                 <Form.Group controlId="selectedDate">
                     <Form.Label>Date of Appointment (2 weeks)</Form.Label>
-                    <Form.Control type="date" onChange={handleDateChange} min={DateToYYYYMMDDFormat(minAppointmentDate)} max={DateToYYYYMMDDFormat(maxAppointmentDate)}></Form.Control>
+                    <Form.Control type="date" value={selectedDate} onChange={handleDateChange} min={DateToYYYYMMDDFormat(minAppointmentDate)} max={DateToYYYYMMDDFormat(maxAppointmentDate)}></Form.Control>
                 </Form.Group>
                 <Form.Group controlId="selectedSlot">
                     <Form.Label>Time Slot</Form.Label>

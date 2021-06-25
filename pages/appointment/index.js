@@ -1,6 +1,6 @@
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
-import { useQuery } from '@apollo/client';
+import { useQuery, useMutation, gql, useLazyQuery } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
 
 import Layout from '../../components/page-layout';
@@ -12,7 +12,6 @@ import { user, studioOpens, studioCloses } from '../../src/constants/index';
 export default function ApppointmentPage({ services }) {
     const today = new Date();
     today.setHours(0,0,0,0);
-    const timeSlots = [];
     const millisecondsPerDay = 8.64e+7;
     
     const minAppointmentDate = new Date(today.getTime() + millisecondsPerDay);
@@ -24,22 +23,26 @@ export default function ApppointmentPage({ services }) {
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedTime, setSelectedTime] = useState("");
     const [appointments, setAppointments] = useState([]);
+    const [availableTime, setAvailableTime] = useState([]);
+    const [addAppointment, { addAppointmentLoading }] = useMutation(ADD_APPOINTMENT);
     const { loading, error, data } = useQuery(GET_USERS, {
         variables: {
             role: "stylist"
         },
-        onCompleted: (data) => {
-            if (data.users) {
-                setSelectedStylist(data.users[0].id);
-            }
-        }
+        // onCompleted: (data) => {
+        //     if (data.users) {
+        //         setSelectedStylist(data.users[0].id);
+        //     }
+        // }
     }); //TODO: get stylists that can only perform the selected Service;
 
+
     // Calculate slots if we have all the data needed;
-    if (selectedServices.length > 0 && selectedStylist && selectedDate) {
+    if (selectedServices.length > 0 && selectedStylist && selectedDate && availableTime.length == 0) {
         // #1:filter all the appointments from our system to only use one from the selectedDate and order the filtered appointments by time;
         const onDate = new Date(selectedDate + " 00:00:00");
         let appointmentsOnDate = [];
+        let timeSlots = [];
 
         for (var i = 0; i < appointments.length; i++) {
             let appointmentDate = new Date(appointments[i].time);
@@ -117,6 +120,9 @@ export default function ApppointmentPage({ services }) {
                 nextAvailableTime.setMinutes(nextAvailableTime.getMinutes() + appointmentTime);             
             }
         }
+
+        setAvailableTime(timeSlots);
+        setSelectedTime(timeSlots[0]);
     } 
 
     const DateToYYYYMMDDFormat = (date) => {
@@ -149,9 +155,11 @@ export default function ApppointmentPage({ services }) {
 
     const handleFormClear = (e) => {
         setSelectedServices([]);
-        setSelectedStylist(data.users[0].id);
+        setSelectedStylist("");
         setSelectedDate("");
         setSelectedTime("");
+        setAppointments([]);
+        setAvailableTime([]);
     }
 
     const handleBookAppointment = async (e) => {
@@ -167,19 +175,67 @@ export default function ApppointmentPage({ services }) {
                 time: appointmentTime.toISOString()
             };
 
-            const { data } = await ApolloClient.mutate({
-                mutation: ADD_APPOINTMENT,
+            addAppointment({
                 variables: {
                     newAppointment: newAppointment
+                },
+                update: (cache, { data: { newAppointment } }) => {
+                    cache.modify({
+                        fields: {
+                            appointments(existingAppointments = []) {
+                                const newAppointmentRef = cache.writeFragment({
+                                    data: newAppointment,
+                                    fragment: gql`
+                                        fragment NewAppointment on Appointment {
+                                            __typename
+                                            id
+                                            stylist {
+                                                __typename
+                                                id
+                                                name
+                                                email
+                                                phone
+                                                photo
+                                                about
+                                            }
+                                            client {
+                                                __typename
+                                                id
+                                                name
+                                                email
+                                                phone
+                                                photo
+                                                about
+                                            }
+                                            services {
+                                                __typename
+                                                id
+                                                type
+                                                name
+                                                description
+                                                price
+                                                time
+                                                kind {
+                                                    type
+                                                }
+                                            }
+                                            time
+                                        }
+                                    `
+                                });
+                                return [...existingAppointments, newAppointmentRef];
+                            }
+                        }
+                    });
                 }
             });
-        }
 
-        handleFormClear(e);
+            handleFormClear(e);
+        }
     }
 
     useEffect(async () => {
-        if (selectedStylist ?? "" != null) {
+        if (selectedStylist) {
             const { data } = await ApolloClient.query({
                 query: GET_APPOINTMENTS,
                 variables: {
@@ -189,8 +245,8 @@ export default function ApppointmentPage({ services }) {
                     }
                 }
             });
-    
-            setAppointments(data.appointments);   
+
+            setAppointments(data.appointments);
         }
     }, [selectedStylist]);
 
@@ -216,11 +272,12 @@ export default function ApppointmentPage({ services }) {
                 <Form.Group controlId="selectedStylist">
                     <Form.Label>Choose Stylist</Form.Label>
                     <Form.Control as="select" onChange={handleStylistChange} value={selectedStylist}>
-                        {data.users.map(stylist => {
+                        {(selectedStylist ? [] : [<option value={selectedStylist}></option>]).concat
+                        (data.users.map(stylist => {
                             return (
                                 <option key={stylist.id} value={stylist.id}>{stylist.name}</option>
                             )
-                        })}
+                        }))}.
                     </Form.Control>
                 </Form.Group>
                 {/* <Form.Group controlId="selectedDate">
@@ -234,9 +291,9 @@ export default function ApppointmentPage({ services }) {
                 <Form.Group controlId="selectedSlot">
                     <Form.Label>Time Slot</Form.Label>
                     <Form.Control as="select" onChange={handleTimeChange} value={selectedTime}>
-                        {timeSlots.map(slot => {
+                        {availableTime.map(timeSlot => {
                             return (
-                                <option key={slot} value={slot}>{slot}</option>
+                                <option key={timeSlot} value={timeSlot}>{timeSlot}</option>
                             )
                         })}
                     </Form.Control>

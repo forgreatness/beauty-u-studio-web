@@ -1,6 +1,6 @@
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
-import { useQuery, useMutation, gql, useLazyQuery } from '@apollo/client';
+import { useQuery, useMutation, gql, useApolloClient } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
 
 import Layout from '../../components/page-layout';
@@ -10,6 +10,7 @@ import Loading from '../../components/loading';
 import { user, studioOpens, studioCloses } from '../../src/constants/index';
 
 export default function ApppointmentPage({ services }) {
+    const apolloClient = useApolloClient();
     const today = new Date();
     today.setHours(0,0,0,0);
     const millisecondsPerDay = 8.64e+7;
@@ -236,7 +237,7 @@ export default function ApppointmentPage({ services }) {
 
     useEffect(async () => {
         if (selectedStylist) {
-            const { data } = await ApolloClient.query({
+            const { data } = await apolloClient.query({
                 query: GET_APPOINTMENTS,
                 variables: {
                     query: {

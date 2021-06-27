@@ -19,6 +19,7 @@ export default function ApppointmentPage({ services }) {
     const maxAppointmentDate = new Date(today.getTime() + millisecondsPerDay * 15);
 
     const [debug, setDebug] = useState("");
+    const [calculateSlots, setCalculateSlots] = useState(false);
     const [selectedServices, setSelectedServices] = useState([]);
     const [selectedStylist, setSelectedStylist] = useState("");
     const [selectedDate, setSelectedDate] = useState("");
@@ -39,7 +40,7 @@ export default function ApppointmentPage({ services }) {
 
 
     // Calculate slots if we have all the data needed;
-    if (selectedServices.length > 0 && selectedStylist && selectedDate && availableTime.length == 0) {
+    if (selectedServices.length > 0 && selectedStylist && selectedDate && calculateSlots) {
         // #1:filter all the appointments from our system to only use one from the selectedDate and order the filtered appointments by time;
         const onDate = new Date(selectedDate + " 00:00:00");
         let appointmentsOnDate = [];
@@ -122,6 +123,7 @@ export default function ApppointmentPage({ services }) {
             }
         }
 
+        setCalculateSlots(false);
         setAvailableTime(timeSlots);
         setSelectedTime(timeSlots[0]);
     } 
@@ -132,6 +134,7 @@ export default function ApppointmentPage({ services }) {
 
     const handleServicesChange = (e) => {
         let selectedServices = Array.from(e.target.selectedOptions, option => option.value);
+        setCalculateSlots(true);
         setSelectedServices(selectedServices);
     }
 
@@ -146,6 +149,7 @@ export default function ApppointmentPage({ services }) {
 
         if (date != 'Invalid Date' && date >= minAppointmentDate && date <= maxAppointmentDate) {
             targetValue.replace("/", "-");
+            setCalculateSlots(true);
             setSelectedDate(targetValue);   
         }
     }
@@ -161,6 +165,7 @@ export default function ApppointmentPage({ services }) {
         setSelectedTime("");
         setAppointments([]);
         setAvailableTime([]);
+        setCalculateSlots(false);
     }
 
     const handleBookAppointment = async (e) => {
@@ -248,6 +253,7 @@ export default function ApppointmentPage({ services }) {
             });
 
             setAppointments(data.appointments);
+            setCalculateSlots(true);
         }
     }, [selectedStylist]);
 

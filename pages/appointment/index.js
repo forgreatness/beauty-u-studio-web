@@ -2,7 +2,10 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import { useQuery, useMutation, gql, useApolloClient } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
+import styles from '../../styles/appointmentpage.module.css';
 import Layout from '../../components/page-layout';
 import ApolloClient from '../../lib/apollo/apollo-client';
 import { GET_SERVICES, GET_USERS, GET_APPOINTMENTS, ADD_APPOINTMENT } from '../../lib/apollo/data-queries';
@@ -18,7 +21,6 @@ export default function ApppointmentPage({ services }) {
     const minAppointmentDate = new Date(today.getTime() + millisecondsPerDay);
     const maxAppointmentDate = new Date(today.getTime() + millisecondsPerDay * 15);
 
-    const [debug, setDebug] = useState("");
     const [calculateSlots, setCalculateSlots] = useState(false);
     const [selectedServices, setSelectedServices] = useState([]);
     const [selectedStylist, setSelectedStylist] = useState("");
@@ -42,7 +44,7 @@ export default function ApppointmentPage({ services }) {
     // Calculate slots if we have all the data needed;
     if (selectedServices.length > 0 && selectedStylist && selectedDate && calculateSlots) {
         // #1:filter all the appointments from our system to only use one from the selectedDate and order the filtered appointments by time;
-        const onDate = new Date(selectedDate + " 00:00:00");
+        const onDate = new Date(Date.parse(selectedDate));
         let appointmentsOnDate = [];
         let timeSlots = [];
 
@@ -70,7 +72,7 @@ export default function ApppointmentPage({ services }) {
 
         // #2 Calculate slots using the ordered appointmentsOnDate and the startTime and endTime of studio/stylist;
             // Condition for adding slots. Starting at last free time. If there is a gap between free time and the next appointment and the gap is bigger than services time;
-        let nextAvailableTime = new Date(`${selectedDate} ${studioOpens}`);
+        let nextAvailableTime = new Date(`${selectedDate.toDateString()} ${studioOpens}`);
         let nextUnavailableTime = new Date();
         let currentSlot = new Date();
         let newAppointmentTime = 0;
@@ -84,7 +86,7 @@ export default function ApppointmentPage({ services }) {
 
         for (let j = 0; j <= appointmentsOnDate.length; j++) {
             if (j == appointmentsOnDate.length) {
-                nextUnavailableTime.setTime(Date.parse(`${selectedDate} ${studioCloses}`));
+                nextUnavailableTime.setTime(Date.parse(`${selectedDate.toDateString()} ${studioCloses}`));
             } else {
                 // Date must be normalized to start at midnight;
                 nextUnavailableTime.setTime(Date.parse(appointmentsOnDate[j].time));
@@ -134,23 +136,18 @@ export default function ApppointmentPage({ services }) {
 
     const handleServicesChange = (e) => {
         let selectedServices = Array.from(e.target.selectedOptions, option => option.value);
-        setCalculateSlots(true);
         setSelectedServices(selectedServices);
+        setCalculateSlots(true);
     }
 
     const handleStylistChange = (e) => {
         setSelectedStylist(e.target.value);
     }
 
-    const handleDateChange = (e) => {
-        const targetValue = e.target.value;
-
-        var date = new Date(targetValue + ' 00:00:00');
-
+    const handleDateChange = (date) => {
         if (date != 'Invalid Date' && date >= minAppointmentDate && date <= maxAppointmentDate) {
-            targetValue.replace("/", "-");
+            setSelectedDate(date);   
             setCalculateSlots(true);
-            setSelectedDate(targetValue);   
         }
     }
 
@@ -172,7 +169,7 @@ export default function ApppointmentPage({ services }) {
         e.preventDefault();
 
         if (selectedServices.length > 0 && selectedStylist && selectedDate && selectedTime) {
-            let appointmentTime = new Date(`${selectedDate} ${selectedTime}`);
+            let appointmentTime = new Date(`${selectedDate.toDateString()} ${selectedTime}`);
 
             let newAppointment = {
                 stylist: selectedStylist,
@@ -264,10 +261,9 @@ export default function ApppointmentPage({ services }) {
 
     return (
         <Layout>
-            <h2>{debug}</h2>
             <Form>
                 <Form.Group controlId="selectedServices">
-                    <Form.Label>Pick 1 or more services to schedule</Form.Label>
+                    <Form.Label column="lg">Services</Form.Label>
                     <Form.Control as="select" multiple onChange={handleServicesChange} value={selectedServices}>
                         {services.map(service => {
                             return (
@@ -275,9 +271,12 @@ export default function ApppointmentPage({ services }) {
                             )
                         })}
                     </Form.Control>
+                    <Form.Text className="text-muted">
+                        Pick 1 or more services to schedule
+                    </Form.Text>
                 </Form.Group>
                 <Form.Group controlId="selectedStylist">
-                    <Form.Label>Choose Stylist</Form.Label>
+                    <Form.Label column="lg">Stylist</Form.Label>
                     <Form.Control as="select" onChange={handleStylistChange} value={selectedStylist}>
                         {(selectedStylist ? [] : [<option value={selectedStylist}></option>]).concat
                         (data.users.map(stylist => {
@@ -286,17 +285,21 @@ export default function ApppointmentPage({ services }) {
                             )
                         }))}.
                     </Form.Control>
+                    <Form.Text muted>
+                        Choose a stylist
+                    </Form.Text>
                 </Form.Group>
-                {/* <Form.Group controlId="selectedDate">
-                    <Form.Label>Date of Appointment (2 weeks)</Form.Label>
-                    <Form.Control type="date" value={selectedDate} onChange={handleDateChange} min={DateToYYYYMMDDFormat(minAppointmentDate)} max={DateToYYYYMMDDFormat(maxAppointmentDate)} ></Form.Control>
-                </Form.Group> */}
+
                 <Form.Group controlId="selectedDate">
-                    <Form.Label>Date of Appointment (2 weeks)</Form.Label>
-                    <Form.Control type="date" value={selectedDate} onChange={handleDateChange} min={DateToYYYYMMDDFormat(minAppointmentDate)} max={DateToYYYYMMDDFormat(maxAppointmentDate)}></Form.Control>
+                    <Form.Label column="lg">Date</Form.Label>
+                    <DatePicker 
+                    name="selectedDate" 
+                    placeholderText="Click to select a date" 
+                    selected={selectedDate} onChange={handleDateChange} 
+                    minDate={minAppointmentDate} maxDate={maxAppointmentDate} peekNextMonth showMonthDropdown dropdownMode="select"/>
                 </Form.Group>
                 <Form.Group controlId="selectedSlot">
-                    <Form.Label>Time Slot</Form.Label>
+                    <Form.Label column="lg">Time Slot</Form.Label>
                     <Form.Control as="select" onChange={handleTimeChange} value={selectedTime}>
                         {availableTime.map(timeSlot => {
                             return (

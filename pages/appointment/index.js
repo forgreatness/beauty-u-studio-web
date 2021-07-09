@@ -1,5 +1,9 @@
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import DropdownButton from 'react-bootstrap/DropdownButton';
+import Dropdown from 'react-bootstrap/Dropdown';
+import InputGroup from 'react-bootstrap/InputGroup';
+import Container from 'react-bootstrap/Container'
 import { useQuery, useMutation, gql, useApolloClient } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
@@ -17,10 +21,12 @@ export default function ApppointmentPage({ services }) {
     const today = new Date();
     today.setHours(0,0,0,0);
     const millisecondsPerDay = 8.64e+7;
+    var typeOfServices = [];
     
     const minAppointmentDate = new Date(today.getTime() + millisecondsPerDay);
     const maxAppointmentDate = new Date(today.getTime() + millisecondsPerDay * 15);
 
+    const [serviceTypeFilter, setServiceTypeFilter] = useState("");
     const [calculateSlots, setCalculateSlots] = useState(false);
     const [selectedServices, setSelectedServices] = useState([]);
     const [selectedStylist, setSelectedStylist] = useState("");
@@ -40,6 +46,106 @@ export default function ApppointmentPage({ services }) {
         // }
     }); //TODO: get stylists that can only perform the selected Service;
 
+    services.forEach(service => {
+        if (!typeOfServices.includes(service.type)) {
+          typeOfServices.push(service.type)
+        }
+    });
+
+    if (calculateSlots) {
+        // Calculate slots if we have all the data needed;
+        if (selectedServices.length > 0 && selectedStylist && selectedDate) {
+            // #1:filter all the appointments from our system to only use one from the selectedDate and order the filtered appointments by time;
+            const onDate = new Date(Date.parse(selectedDate));
+            let appointmentsOnDate = [];
+            let timeSlots = [];
+
+            for (var i = 0; i < appointments.length; i++) {
+                let appointmentDate = new Date(appointments[i].time);
+
+                // if the current appointment in iteration is on the same day as the selected date user choosed;
+                if (onDate.getMonth() == appointmentDate.getMonth() && onDate.getDate() == appointmentDate.getDate()) {
+                    let x = 0;
+
+                    while (x < appointmentsOnDate.length) {
+                        if (appointmentDate < new Date(appointmentsOnDate[x].time)) {
+                            appointmentsOnDate.splice(x, 0, appointments[i]);
+                            break;
+                        }
+
+                        x++;
+                    }
+
+                    if (x == i) {
+                        appointmentsOnDate.push(appointments[i]);
+                    }
+                }
+            }
+
+            // #2 Calculate slots using the ordered appointmentsOnDate and the startTime and endTime of studio/stylist;
+                // Condition for adding slots. Starting at last free time. If there is a gap between free time and the next appointment and the gap is bigger than services time;
+            let nextAvailableTime = new Date(`${selectedDate.toDateString()} ${studioOpens}`);
+            let nextUnavailableTime = new Date();
+            let currentSlot = new Date();
+            let newAppointmentTime = 0;
+
+                // Calculate newAppointmentTime; 
+            selectedServices.forEach(serviceId => {
+                let service = services.find(service => service.id == serviceId);
+
+                newAppointmentTime = newAppointmentTime + service.time;
+            });
+
+            for (let j = 0; j <= appointmentsOnDate.length; j++) {
+                if (j == appointmentsOnDate.length) {
+                    nextUnavailableTime.setTime(Date.parse(`${selectedDate.toDateString()} ${studioCloses}`));
+                } else {
+                    // Date must be normalized to start at midnight;
+                    nextUnavailableTime.setTime(Date.parse(appointmentsOnDate[j].time));
+                    nextUnavailableTime.setSeconds(0);
+                    nextUnavailableTime.setMilliseconds(0);
+                }
+
+                currentSlot.setTime(nextAvailableTime.getTime());
+
+                while (nextAvailableTime.setMinutes(nextAvailableTime.getMinutes() + newAppointmentTime) <= nextUnavailableTime.getTime()) {
+                    let meridiem = currentSlot.getHours() < 12 ? "AM" : "PM";
+                    let hour = currentSlot.getHours() < 13 ? `${currentSlot.getHours()}` : `${currentSlot.getHours() - 12}`;
+                    let minutes = currentSlot.getMinutes();
+        
+                    if (parseInt(hour) < 10) {
+                        hour = "0" + hour;
+                    }
+        
+                    if (parseInt(minutes) < 10) {
+                        minutes = "0" + minutes;
+                    }
+        
+                    timeSlots.push(hour + ":" + minutes + " " + meridiem);
+                    
+                    currentSlot.setHours(nextAvailableTime.getHours());
+                    currentSlot.setMinutes(nextAvailableTime.getMinutes());
+                };
+
+                if (j < appointmentsOnDate.length) {
+                    let appointmentTime = 0;
+                    appointmentsOnDate[j].services.forEach(service => {
+                        appointmentTime = appointmentTime + service.time;
+                    });
+                    nextAvailableTime.setTime(nextUnavailableTime);
+                    nextAvailableTime.setMinutes(nextAvailableTime.getMinutes() + appointmentTime);             
+                }
+            }
+
+            setCalculateSlots(false);
+            setAvailableTime(timeSlots);
+            setSelectedTime(timeSlots[0]); 
+        } else {
+            setCalculateSlots(false);
+            setAvailableTime([]);
+            setSelectedTime("");
+        }
+    }
 
     // Calculate slots if we have all the data needed;
     if (selectedServices.length > 0 && selectedStylist && selectedDate && calculateSlots) {
@@ -135,8 +241,19 @@ export default function ApppointmentPage({ services }) {
     }
 
     const handleServicesChange = (e) => {
-        let selectedServices = Array.from(e.target.selectedOptions, option => option.value);
-        setSelectedServices(selectedServices);
+        let newSelected = Array.from(e.target.selectedOptions, option => option.value);
+
+        const selected = selectedServices.filter(service => {
+            const serviceInfo = services.find(element => element.id.toString() == service);
+
+            if (!serviceTypeFilter || serviceInfo.type == serviceTypeFilter) {
+                return false;
+            }
+
+            return true;
+        });
+
+        setSelectedServices(selected.concat(newSelected));
         setCalculateSlots(true);
     }
 
@@ -237,6 +354,10 @@ export default function ApppointmentPage({ services }) {
         }
     }
 
+    const handleServiceTypeFilterSelect = (key, event) => {
+        setServiceTypeFilter(key);
+    }
+
     useEffect(async () => {
         if (selectedStylist) {
             const { data } = await apolloClient.query({
@@ -261,56 +382,70 @@ export default function ApppointmentPage({ services }) {
 
     return (
         <Layout>
-            <Form>
-                <Form.Group controlId="selectedServices">
-                    <Form.Label column="lg">Services</Form.Label>
-                    <Form.Control as="select" multiple onChange={handleServicesChange} value={selectedServices}>
-                        {services.map(service => {
-                            return (
-                                <option key={service.id.toString()} value={service.id.toString()}>{service.name}</option>
-                            )
-                        })}
-                    </Form.Control>
-                    <Form.Text className="text-muted">
-                        Pick 1 or more services to schedule
-                    </Form.Text>
-                </Form.Group>
-                <Form.Group controlId="selectedStylist">
-                    <Form.Label column="lg">Stylist</Form.Label>
-                    <Form.Control as="select" onChange={handleStylistChange} value={selectedStylist}>
-                        {(selectedStylist ? [] : [<option value={selectedStylist}></option>]).concat
-                        (data.users.map(stylist => {
-                            return (
-                                <option key={stylist.id} value={stylist.id}>{stylist.name}</option>
-                            )
-                        }))}.
-                    </Form.Control>
-                    <Form.Text muted>
-                        Choose a stylist
-                    </Form.Text>
-                </Form.Group>
+            <Container fluid="lg" className={styles.schedule_appointment_form}>
+                <Form>
+                    <h3>Schedule your appointment</h3>
+                    <Form.Group controlId="selectedServices">
+                        <Form.Label column="lg">Services</Form.Label>
+                        <InputGroup className="mb-3">
+                            <DropdownButton as={InputGroup.Prepend} variant="secondary" id="service-type-dropdown" title={(serviceTypeFilter) || "Service Type"}>
+                                <Dropdown.Header>Type of Service</Dropdown.Header>
+                                <Dropdown.Item active={(!serviceTypeFilter)} onSelect={handleServiceTypeFilterSelect} eventKey="">All</Dropdown.Item>
+                                {typeOfServices.map(type => {
+                                    return (
+                                        <Dropdown.Item active={serviceTypeFilter == type} onSelect={handleServiceTypeFilterSelect} eventKey={type}>{type}</Dropdown.Item>
+                                    )
+                                })}
+                            </DropdownButton>
+                            <Form.Control as="select" multiple onChange={handleServicesChange} value={selectedServices}>
+                                {services.filter(service => !serviceTypeFilter || serviceTypeFilter == service.type).map(service => {
+                                    return (
+                                        <option key={service.id.toString()} value={service.id.toString()}>{service.name}</option>
+                                    ) 
+                                })}
+                            </Form.Control>
+                        </InputGroup>
+                        <Form.Text className="text-muted">
+                            Select 1 or more services to schedule using <b>CTRL</b>
+                        </Form.Text>
+                    </Form.Group>
+                    <Form.Group controlId="selectedStylist">
+                        <Form.Label column="lg">Stylist</Form.Label>
+                        <Form.Control as="select" onChange={handleStylistChange} value={selectedStylist}>
+                            {(selectedStylist ? [] : [<option value={selectedStylist}></option>]).concat
+                            (data.users.map(stylist => {
+                                return (
+                                    <option key={stylist.id} value={stylist.id}>{stylist.name}</option>
+                                )
+                            }))}.
+                        </Form.Control>
+                        <Form.Text muted>
+                            Choose a stylist
+                        </Form.Text>
+                    </Form.Group>
 
-                <Form.Group controlId="selectedDate">
-                    <Form.Label column="lg">Date</Form.Label>
-                    <DatePicker 
-                    name="selectedDate" 
-                    placeholderText="Click to select a date" 
-                    selected={selectedDate} onChange={handleDateChange} 
-                    minDate={minAppointmentDate} maxDate={maxAppointmentDate} peekNextMonth showMonthDropdown dropdownMode="select"/>
-                </Form.Group>
-                <Form.Group controlId="selectedSlot">
-                    <Form.Label column="lg">Time Slot</Form.Label>
-                    <Form.Control as="select" onChange={handleTimeChange} value={selectedTime}>
-                        {availableTime.map(timeSlot => {
-                            return (
-                                <option key={timeSlot} value={timeSlot}>{timeSlot}</option>
-                            )
-                        })}
-                    </Form.Control>
-                </Form.Group>
-                <Button variant="outline-secondary" type="reset" onClick={handleFormClear}>Clear</Button>{' '}
-                <Button variant="outline-primary" type="submit" onClick={handleBookAppointment}>Book</Button>{' '}
-            </Form>
+                    <Form.Group controlId="selectedDate">
+                        <Form.Label column="lg">Date</Form.Label>
+                        <DatePicker 
+                        name="selectedDate" 
+                        placeholderText="Click to select a date" 
+                        selected={selectedDate} onChange={handleDateChange} 
+                        minDate={minAppointmentDate} maxDate={maxAppointmentDate} peekNextMonth showMonthDropdown dropdownMode="select"/>
+                    </Form.Group>
+                    <Form.Group controlId="selectedSlot">
+                        <Form.Label column="lg">Time Slot</Form.Label>
+                        <Form.Control as="select" onChange={handleTimeChange} value={selectedTime}>
+                            {availableTime.map(timeSlot => {
+                                return (
+                                    <option key={timeSlot} value={timeSlot}>{timeSlot}</option>
+                                )
+                            })}
+                        </Form.Control>
+                    </Form.Group>
+                    <Button variant="outline-secondary" type="reset" onClick={handleFormClear}>Clear</Button>{' '}
+                    <Button variant="outline-primary" type="submit" onClick={handleBookAppointment}>Book</Button>{' '}
+                </Form>
+            </Container>
         </Layout>
     );
 }

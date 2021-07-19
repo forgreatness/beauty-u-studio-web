@@ -2,3 +2,11 @@
     border: #666 solid 2px;
     padding: 10px 20px;
 }
+
+#select_date_label {
+    margin-right: 5px;
+}
+
+.form_group {
+    padding: 10px 0px;
+}

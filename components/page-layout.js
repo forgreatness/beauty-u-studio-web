@@ -15,7 +15,7 @@ export default function PageLayout({ children }) {
         }
 
         main {
-            margin-top: 64px;
+            margin: 64px 20px;
         }
 
         footer {

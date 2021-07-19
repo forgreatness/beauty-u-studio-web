@@ -3,7 +3,7 @@ import Button from 'react-bootstrap/Button';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import Dropdown from 'react-bootstrap/Dropdown';
 import InputGroup from 'react-bootstrap/InputGroup';
-import Container from 'react-bootstrap/Container'
+import Container from 'react-bootstrap/Container';
 import { useQuery, useMutation, gql, useApolloClient } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
@@ -385,7 +385,7 @@ export default function ApppointmentPage({ services }) {
             <Container fluid="lg" className={styles.schedule_appointment_form}>
                 <Form>
                     <h3>Schedule your appointment</h3>
-                    <Form.Group controlId="selectedServices">
+                    <Form.Group className={styles.form_group} controlId="selectedServices">
                         <Form.Label column="lg">Services</Form.Label>
                         <InputGroup className="mb-3">
                             <DropdownButton as={InputGroup.Prepend} variant="secondary" id="service-type-dropdown" title={(serviceTypeFilter) || "Service Type"}>
@@ -409,7 +409,7 @@ export default function ApppointmentPage({ services }) {
                             Select 1 or more services to schedule using <b>CTRL</b>
                         </Form.Text>
                     </Form.Group>
-                    <Form.Group controlId="selectedStylist">
+                    <Form.Group className={styles.form_group} controlId="selectedStylist">
                         <Form.Label column="lg">Stylist</Form.Label>
                         <Form.Control as="select" onChange={handleStylistChange} value={selectedStylist}>
                             {(selectedStylist ? [] : [<option value={selectedStylist}></option>]).concat
@@ -423,16 +423,15 @@ export default function ApppointmentPage({ services }) {
                             Choose a stylist
                         </Form.Text>
                     </Form.Group>
-
-                    <Form.Group controlId="selectedDate">
-                        <Form.Label column="lg">Date</Form.Label>
+                    <Form.Group className={styles.form_group} controlId="selectedDate">
+                        <Form.Label id={styles.select_date_label} column="lg">Date</Form.Label>
                         <DatePicker 
-                        name="selectedDate" 
-                        placeholderText="Click to select a date" 
-                        selected={selectedDate} onChange={handleDateChange} 
-                        minDate={minAppointmentDate} maxDate={maxAppointmentDate} peekNextMonth showMonthDropdown dropdownMode="select"/>
+                            name="selectedDate" 
+                            placeholderText="Click to select a date" 
+                            selected={selectedDate} onChange={handleDateChange} 
+                            minDate={minAppointmentDate} maxDate={maxAppointmentDate} peekNextMonth showMonthDropdown dropdownMode="select"/>
                     </Form.Group>
-                    <Form.Group controlId="selectedSlot">
+                    <Form.Group className={styles.form_group} controlId="selectedSlot">
                         <Form.Label column="lg">Time Slot</Form.Label>
                         <Form.Control as="select" onChange={handleTimeChange} value={selectedTime}>
                             {availableTime.map(timeSlot => {
@@ -461,9 +460,27 @@ export async function getStaticProps() {
         }
     }
 
+    var services = Array.from(data.services);
+    services.sort((a, b) => {
+        const serviceA = a.name.toUpperCase();
+        const serviceB = b.name.toUpperCase();
+
+        let compare = 0;
+
+        if (serviceA < serviceB) {
+            compare = -1;
+        }
+        
+        if (serviceA > serviceB) {
+            compare = 1;
+        }
+        
+        return compare;
+    });
+
     return {
         props: {
-            services: data.services
+            services: services
         }
     }
 }

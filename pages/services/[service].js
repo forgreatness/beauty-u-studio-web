@@ -44,8 +44,6 @@ export async function getStaticPaths() {
 };
 
 export async function getStaticProps({ params }) {
-    console.log(params);
-
     return { 
         props: { 
             service: params.service

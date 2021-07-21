@@ -17,7 +17,7 @@ export default React.forwardRef(({ className, href, serviceType, services }, ref
     }
 
     services.forEach(service => {
-        if (service.kind == null) {
+        if (service.kind == undefined) {
             if (servicesByKind.hasOwnProperty("Standard")) {
                 servicesByKind["Standard"].push(service);
             } else {

@@ -16,7 +16,7 @@ import { GET_SERVICES, GET_USERS, GET_APPOINTMENTS, ADD_APPOINTMENT } from '../.
 import Loading from '../../components/loading';
 import { user, studioOpens, studioCloses } from '../../src/constants/index';
 
-export default function ApppointmentPage({ services }) {
+export default function ApppointmentPage({ services, servicesByType }) {
     const apolloClient = useApolloClient();
     const today = new Date();
     today.setHours(0,0,0,0);
@@ -27,6 +27,7 @@ export default function ApppointmentPage({ services }) {
     const maxAppointmentDate = new Date(today.getTime() + millisecondsPerDay * 15);
 
     const [serviceTypeFilter, setServiceTypeFilter] = useState("");
+    const [servicesByKind, setServicesByKind] = useState({});
     const [calculateSlots, setCalculateSlots] = useState(false);
     const [selectedServices, setSelectedServices] = useState([]);
     const [selectedStylist, setSelectedStylist] = useState("");
@@ -236,10 +237,6 @@ export default function ApppointmentPage({ services }) {
         setSelectedTime(timeSlots[0]);
     } 
 
-    const DateToYYYYMMDDFormat = (date) => {
-        return `${date.getFullYear()}-${(date.getMonth() < 9) ? "0"+(date.getMonth() + 1) : date.getMonth()+1}-${(date.getDate() < 10) ? "0"+date.getDate() : date.getDate()}`;
-    }
-
     const handleServicesChange = (e) => {
         let newSelected = Array.from(e.target.selectedOptions, option => option.value);
 
@@ -375,6 +372,24 @@ export default function ApppointmentPage({ services }) {
         }
     }, [selectedStylist]);
 
+    useEffect(() => {
+        if (serviceTypeFilter) {
+            var newServicesByKind = {};
+
+            servicesByType[serviceTypeFilter].forEach(service => {
+                var kindFilter = (service.kind == undefined) ? "Standard" : service.kind.type;
+    
+                if (newServicesByKind.hasOwnProperty(kindFilter)) {
+                    newServicesByKind[kindFilter].push(service);
+                } else {
+                    newServicesByKind[kindFilter] = [service];
+                }
+            });
+    
+            setServicesByKind(newServicesByKind);
+        }
+    }, [serviceTypeFilter]);
+
     if (loading) return <Loading /> 
     if (error) {
       return <p>ERROR</p>
@@ -391,18 +406,25 @@ export default function ApppointmentPage({ services }) {
                             <DropdownButton as={InputGroup.Prepend} variant="secondary" id="service-type-dropdown" title={(serviceTypeFilter) || "Service Type"}>
                                 <Dropdown.Header>Type of Service</Dropdown.Header>
                                 <Dropdown.Item active={(!serviceTypeFilter)} onSelect={handleServiceTypeFilterSelect} eventKey="">All</Dropdown.Item>
-                                {typeOfServices.map(type => {
+                                {Object.getOwnPropertyNames(servicesByType).map(serviceType => {
                                     return (
-                                        <Dropdown.Item active={serviceTypeFilter == type} onSelect={handleServiceTypeFilterSelect} eventKey={type}>{type}</Dropdown.Item>
+                                        <Dropdown.Item active={serviceTypeFilter == serviceType} onSelect={handleServiceTypeFilterSelect} eventKey={serviceType}>{serviceType}</Dropdown.Item>
                                     )
                                 })}
                             </DropdownButton>
-                            <Form.Control as="select" multiple onChange={handleServicesChange} value={selectedServices}>
-                                {services.filter(service => !serviceTypeFilter || serviceTypeFilter == service.type).map(service => {
+                            <Form.Control as="select" htmlSize={10} multiple onChange={handleServicesChange} value={selectedServices}>
+                                {serviceTypeFilter ? 
+                                Object.entries(servicesByKind).map(key => {
                                     return (
-                                        <option key={service.id.toString()} value={service.id.toString()}>{service.name}</option>
-                                    ) 
-                                })}
+                                        <optgroup label={key[0]}>
+                                            {key[1].map(service => {
+                                                return (
+                                                    <option key={service.id.toString()} value={service.id.toString()}>{service.name} - {service.time}'minutes || ${service.price.toFixed(2)}</option>
+                                                )
+                                            })}
+                                        </optgroup>
+                                    )
+                                    }) : services.map(service => <option key={service.id.toString()} value={service.id.toString()}>{service.name} - {service.time}'minutes || ${service.price.toFixed(2)}</option>)}
                             </Form.Control>
                         </InputGroup>
                         <Form.Text className="text-muted">
@@ -478,9 +500,19 @@ export async function getStaticProps() {
         return compare;
     });
 
+    var servicesByType = {};
+    services.forEach(service => {
+        if (servicesByType.hasOwnProperty(service.type)) {
+            servicesByType[service.type].push(service);
+        } else {
+            servicesByType[service.type] = [service];
+        }
+    });
+
     return {
         props: {
-            services: services
+            services: services,
+            servicesByType: servicesByType
         }
     }
 }

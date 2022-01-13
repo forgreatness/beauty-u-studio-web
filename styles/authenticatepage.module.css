@@ -1,0 +1,42 @@
+.auth_page_container {
+    height: 100vh;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+}
+
+.auth_form_container {
+    border: 3px solid white;
+    padding: 20px 30px;
+    max-width: 40%;
+    width: 40%;
+    min-width: 400px;
+}
+
+.change_form_text {
+    cursor: pointer;
+}
+
+.home {
+    display: block;
+    position: absolute;
+    top: 5%;
+    left: 3%;
+    width: min(100%, 200px);
+}
+
+.home > img {
+    filter: brightness(0);
+    height: auto;
+    width: 100%;
+    object-fit: contain;
+}
+
+.signup_action_container {
+    margin: 30px 0px;
+}
+
+

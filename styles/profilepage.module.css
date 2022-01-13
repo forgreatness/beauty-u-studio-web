@@ -1,0 +1,94 @@
+.profilePage {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-content: flex-start;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+}
+
+.profile {
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px 5px rgba(0, 0, 0, 0.2);
+    background-color: lavender;
+    padding: 20px 20px;
+    box-sizing: content-box;
+    vertical-align: top;
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: 300px;
+}
+
+.profilePicture {
+    display: inline-block;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    margin: 30px 0px;
+    object-fit: cover;
+    box-sizing: content-box;
+}
+
+.profileAligner {
+    display: inline-block;
+    text-align: start;
+}
+
+.icon {
+    margin-right: 10px;
+    font-size: 30px;
+    color: black;
+}
+
+.profileContact {
+    list-style-type: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+.profileContact a {
+    text-decoration: none;
+    font-weight: 600;
+}
+
+#appointmentContent {
+    padding: 20px 40px;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.appointmentList {
+    display: flex;
+    overflow-x: auto;
+    gap: 20px;
+    scrollbar-width: thin;
+    scrollbar-color: black;
+    padding-bottom: 5px;
+}
+
+.appointmentList::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.appointmentList::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+.appointmentList::-webkit-scrollbar-thumb {
+    background-color: lightslategray;
+    border-radius: 20px;
+    border: 1px solid black;
+    background-clip: content-box;
+}
+
+.appointmentList::-webkit-scrollbar-thumb:hover {
+    background-color: lavender;
+}
+
+.appointmentDetail {
+    
+}
+
+

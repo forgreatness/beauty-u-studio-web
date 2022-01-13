@@ -15,12 +15,15 @@ export default function PageLayout({ children }) {
         }
 
         main {
-            margin: 64px 20px;
+            margin: 0px 20px;
+            position: relative;
+            top: 64px;
+            padding: 10px 10px;
         }
 
         footer {
             position: absolute;
-            bottom: -300px;
+            bottom: -400px;
             width: 100%;
             height: 300px;
         }

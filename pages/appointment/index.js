@@ -21,7 +21,6 @@ export default function ApppointmentPage({ services, servicesByType }) {
     const today = new Date();
     today.setHours(0,0,0,0);
     const millisecondsPerDay = 8.64e+7;
-    var typeOfServices = [];
     
     const minAppointmentDate = new Date(today.getTime() + millisecondsPerDay);
     const maxAppointmentDate = new Date(today.getTime() + millisecondsPerDay * 15);
@@ -46,12 +45,6 @@ export default function ApppointmentPage({ services, servicesByType }) {
         //     }
         // }
     }); //TODO: get stylists that can only perform the selected Service;
-
-    services.forEach(service => {
-        if (!typeOfServices.includes(service.type)) {
-          typeOfServices.push(service.type)
-        }
-    });
 
     if (calculateSlots) {
         // Calculate slots if we have all the data needed;
@@ -471,7 +464,7 @@ export default function ApppointmentPage({ services, servicesByType }) {
     );
 }
 
-export async function getStaticProps() {
+export async function getServerSideProps() {
     const { data } = await ApolloClient.query({
         query: GET_SERVICES
     });

@@ -196,7 +196,7 @@ export async function getServerSideProps(context) {
         }
 
     } catch (err) {
-        // Redirect the user to login page
+        // If user is already authenticated but is having errors communicating with backend services then we can just show user profile page with no data.
     }
 
     return {

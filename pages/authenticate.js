@@ -19,7 +19,7 @@ import { useRouter } from 'next/router';
 
 import ApolloClient from '../lib/apollo/apollo-client.js';
 import styles from '../styles/authenticatepage.module.css';
-import { SIGN_IN, GET_APPOINTMENTS } from '../lib/apollo/data-queries.js';
+import { SIGN_IN } from '../lib/apollo/data-queries.js';
 
 export default function AuthenticatePage() {
     const [isDefaultForm, setIsDefaultForm] = useState(true);
@@ -280,16 +280,16 @@ export default function AuthenticatePage() {
             <Container component="main" maxWidth="xxl" className={styles.auth_page_container}>
                 <Box component="form" className={styles.auth_form_container}>
                     <h4 className="">SIGN IN</h4>
-                    <TextField fullWidth autoFocus error={signInUsernameError} autoComplete="email" id="username" label="Username" variant="outlined" helperText={signInUsernameError ? signInUsernameError : "your email address"} value={signInUsername} onChange={handleSignInUsernameChange} margin="normal" required />
+                    <TextField fullWidth autoFocus error={(signInUsernameError) ? true : false} autoComplete="email" id="username" label="Username" variant="outlined" helperText={signInUsernameError ? signInUsernameError : "your email address"} value={signInUsername} onChange={handleSignInUsernameChange} margin="normal" required />
                     <FormControl margin="normal" fullWidth variant="outlined">
-                        <InputLabel error={signInPasswordError} required htmlFor="password">Password</InputLabel>
+                        <InputLabel error={(signInPasswordError) ? true : false} required htmlFor="password">Password</InputLabel>
                         <OutlinedInput
                             autoComplete="current-password"
                             id="password"
                             type={signInShowPassword ? 'text' : 'password'}
                             value={signInPassword}
                             onChange={handleSignInPasswordChange}
-                            error={(signInPasswordError)}
+                            error={(signInPasswordError) ? true : false}
                             label="Password"
                             required
                             endAdornment={
@@ -304,7 +304,7 @@ export default function AuthenticatePage() {
                                 </InputAdornment>
                             }
                         />
-                        <FormHelperText error={signInPasswordError}>{signInPasswordError ? signInPasswordError : ""}</FormHelperText>
+                        <FormHelperText error={(signInPasswordError) ? true : false}>{signInPasswordError ? signInPasswordError : ""}</FormHelperText>
                     </FormControl>
                     <Link
                         component="button"
@@ -328,9 +328,9 @@ export default function AuthenticatePage() {
             <Container component="main" maxWidth="xxl" className={styles.auth_page_container}>
                 <Box component="form" className={styles.auth_form_container}>
                     <h4 className="">SIGN UP</h4>
-                    <TextField autoFocus fullWidth required variant="outlined" margin="normal" autoComplete="name" label="Name" id="signUpName" placeholder="Katie Anderson" helperText={signUpNameError || ''} error={signUpNameError} value={signUpName} onChange={handleSignUpNameChange} />
-                    <TextField fullWidth required variant="outlined" margin="normal" autoComplete="email" label="Email" placeholder="example@gmail.com" id="signUpEmail" helperText={signUpEmailError || ''} error={signUpEmailError} value={signUpEmail} onChange={handleSignUpEmailChange} />
-                    <TextField fullWidth required variant="outlined" margin="normal" autoComplete="phone" label="Phone Number" placeholder="800-333-3333" id="signUpPhone" helperText={signUpPhoneError || ''} error={signUpPhoneError} value={signUpPhone} onChange={handleSignUpPhoneChange} />
+                    <TextField autoFocus fullWidth required variant="outlined" margin="normal" autoComplete="name" label="Name" id="signUpName" placeholder="Katie Anderson" helperText={signUpNameError || ''} error={(signUpNameError) ? true : false} value={signUpName} onChange={handleSignUpNameChange} />
+                    <TextField fullWidth required variant="outlined" margin="normal" autoComplete="email" label="Email" placeholder="example@gmail.com" id="signUpEmail" helperText={signUpEmailError || ''} error={(signUpEmailError) ? true : false} value={signUpEmail} onChange={handleSignUpEmailChange} />
+                    <TextField fullWidth required variant="outlined" margin="normal" autoComplete="phone" label="Phone Number" placeholder="800-333-3333" id="signUpPhone" helperText={signUpPhoneError || ''} error={(signUpPhoneError) ? true : false} value={signUpPhone} onChange={handleSignUpPhoneChange} />
                     <TextField fullWidth required varaint="outlined" margin="normal" autoComplete="password" label="Password" id="signUpPassword" 
                         InputProps={{
                             endAdornment: (
@@ -345,7 +345,7 @@ export default function AuthenticatePage() {
                                 </InputAdornment>
                             )
                         }}
-                        helperText={signUpPasswordError || ''} error={signUpPasswordError} value={signUpPassword} 
+                        helperText={signUpPasswordError || ''} error={(signUpPasswordError) ? true : false} value={signUpPassword} 
                         onChange={handleSignUpPasswordChange} type={signUpShowPassword ? 'text' : 'password'} />
                     <Stack className={styles.signup_action_container} direction="row" alignItems="center" justifyContent="flex-end" spacing={2 }>
                         <Button onClick={handleSignUpClear} style={{"color": "black", "borderColor": "black"}} variant="outlined" startIcon={<RefreshIcon />}>Reset</Button>
@@ -357,13 +357,13 @@ export default function AuthenticatePage() {
     }
 
     return (
-        <React.Fragment>
+        [
             <Link href="/" passHref>
                 <a className={styles.home}>
                     <img className={styles.logo} src="/images/BeautyUStudio-logo.png" alt="BeautyUStudio Home Link" />
                 </a>
-            </Link>
-            {isDefaultForm ? signInForm() : signUpForm()}
-        </React.Fragment>
-    )
+            </Link>,
+            (isDefaultForm) ? signInForm() : signUpForm()
+        ]
+    );
 }

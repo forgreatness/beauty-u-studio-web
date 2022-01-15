@@ -1,6 +1,6 @@
 .auth_page_container {
     height: 100vh;
-    display: flex;
+    display: flex !important;
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: center;
@@ -12,8 +12,7 @@
     border: 3px solid white;
     padding: 20px 30px;
     max-width: 40%;
-    width: 40%;
-    min-width: 400px;
+    min-width: 350px;
 }
 
 .change_form_text {

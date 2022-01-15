@@ -23,7 +23,7 @@ import { SIGN_IN } from '../lib/apollo/data-queries.js';
 
 export default function AuthenticatePage() {
     const [isDefaultForm, setIsDefaultForm] = useState(true);
-    
+
     const [signInUsername, setSignInUsername] = useState("");
     const [signInPassword, setSignInPassword] = useState("");
     const [signInShowPassword, setSignInShowPassword] = useState(false);
@@ -79,7 +79,7 @@ export default function AuthenticatePage() {
         setSignInShowPassword(false);
     }
 
-    
+
     const handleSignInSubmit = async () => {
         let isValid = true;
 
@@ -265,7 +265,7 @@ export default function AuthenticatePage() {
     // Utility functions
     function calNumOfDigits(str) {
         let count = 0;
-        
+
         for (let ch of str) {
             if (ch >= "0" && ch <= "9") {
                 count++;
@@ -331,7 +331,7 @@ export default function AuthenticatePage() {
                     <TextField autoFocus fullWidth required variant="outlined" margin="normal" autoComplete="name" label="Name" id="signUpName" placeholder="Katie Anderson" helperText={signUpNameError || ''} error={(signUpNameError) ? true : false} value={signUpName} onChange={handleSignUpNameChange} />
                     <TextField fullWidth required variant="outlined" margin="normal" autoComplete="email" label="Email" placeholder="example@gmail.com" id="signUpEmail" helperText={signUpEmailError || ''} error={(signUpEmailError) ? true : false} value={signUpEmail} onChange={handleSignUpEmailChange} />
                     <TextField fullWidth required variant="outlined" margin="normal" autoComplete="phone" label="Phone Number" placeholder="800-333-3333" id="signUpPhone" helperText={signUpPhoneError || ''} error={(signUpPhoneError) ? true : false} value={signUpPhone} onChange={handleSignUpPhoneChange} />
-                    <TextField fullWidth required varaint="outlined" margin="normal" autoComplete="password" label="Password" id="signUpPassword" 
+                    <TextField fullWidth required varaint="outlined" margin="normal" autoComplete="password" label="Password" id="signUpPassword"
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
@@ -345,7 +345,7 @@ export default function AuthenticatePage() {
                                 </InputAdornment>
                             )
                         }}
-                        helperText={signUpPasswordError || ''} error={(signUpPasswordError) ? true : false} value={signUpPassword} 
+                        helperText={signUpPasswordError || ''} error={(signUpPasswordError) ? true : false} value={signUpPassword}
                         onChange={handleSignUpPasswordChange} type={signUpShowPassword ? 'text' : 'password'} />
                     <Stack className={styles.signup_action_container} direction="row" alignItems="center" justifyContent="flex-end" spacing={2 }>
                         <Button onClick={handleSignUpClear} style={{"color": "black", "borderColor": "black"}} variant="outlined" startIcon={<RefreshIcon />}>Reset</Button>

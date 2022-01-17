@@ -280,7 +280,7 @@ export default function AuthenticatePage() {
             <Container component="main" maxWidth="xxl" className={styles.auth_page_container}>
                 <Box component="form" className={styles.auth_form_container}>
                     <h4 className="">SIGN IN</h4>
-                    <TextField fullWidth autoFocus error={(signInUsernameError) ? true : false} autoComplete="email" id="username" label="Username" variant="outlined" helperText={signInUsernameError ? signInUsernameError : "your email address"} value={signInUsername} onChange={handleSignInUsernameChange} margin="normal" required />
+                    <TextField fullWidth error={(signInUsernameError) ? true : false} autoComplete="email" id="username" label="Username" variant="outlined" helperText={signInUsernameError ? signInUsernameError : "your email address"} value={signInUsername} onChange={handleSignInUsernameChange} margin="normal" required />
                     <FormControl margin="normal" fullWidth variant="outlined">
                         <InputLabel error={(signInPasswordError) ? true : false} required htmlFor="password">Password</InputLabel>
                         <OutlinedInput

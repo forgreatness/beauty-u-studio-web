@@ -8,6 +8,7 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import Stack from '@mui/material/Stack';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import { useQuery, useMutation, useApolloClient } from '@apollo/client';
 
 import styles from '../styles/profilepage.module.css';
 import Layout from '../components/page-layout.js';
@@ -20,37 +21,65 @@ import client from '../lib/apollo/apollo-client.js';
 * If the user is a client: they should only be able to see their contact information, and past bookings, and upcoming bookings
 * If the user is a stylist: they should be able to see their work schedule, their upcoming appointments, pass appointments, upcoming bookings and past bookings
 */
-export default function ProfilePage({ userDetails, clientAppointments, userAppointments }) {
+export default function ProfilePage({ userDetails }) {
+    const apolloClient = useApolloClient();
     const [profileImage, setProfileImage] = useState("/images/profile_icon.png");
     const [clientAppointmentsTimeframe, setClientAppointmentsTimeframe] = useState('UPCOMING');
     const [upcomingClientAppointments, setUpcomingClientAppointments] = useState([]);
     const [previousClientAppointments, setPreviousClientAppointments] = useState([]);
     const [clients, setClients] = useState([]);
 
+    const userAppointments = useQuery(GET_APPOINTMENTS, {
+        variables: {
+            query: {
+                client: userDetails.id
+            }
+        }
+    });
+
     const handleClientAppointmentsTimeframeChange = (e, newValue) => {
         setClientAppointmentsTimeframe(newValue);
     }
 
-    useEffect(() => {
+    useEffect(async () => {
         if (userDetails.photo) {
             setProfileImage("data:image/png;base64, " + userDetails.photo);
         }
 
-        let previousClients = [];
-        let upcomingClients = [];
+        if (userDetails.role.toLowerCase() == 'stylist') {
+            try {
+                const { data } = await apolloClient.query({
+                    query: GET_APPOINTMENTS, 
+                    variables: {
+                        query: {
+                            stylist: userDetails.id
+                        }
+                    }
+                });
 
-        clientAppointments.forEach(appointment => {
-            let when = new Date(appointment.time);
+                if (!data) {
+                    throw new Error("No clients appointment");
+                }
 
-            if (when < Date.now()) {
-                previousClients.push(appointment);
-            } else {
-                upcommingClients.push(appointment);
+                let previousClients = [];
+                let upcomingClients = [];
+
+                data.appointments.forEach(appointment => {
+                    let when = new Date(appointment.time);
+        
+                    if (when < Date.now()) {
+                        previousClients.push(appointment);
+                    } else {
+                        upcommingClients.push(appointment);
+                    }
+                });
+
+                setUpcomingClientAppointments(upcomingClients);
+                setPreviousClientAppointments(previousClients);
+            } catch (err) {
+                console.log(err);
             }
-        });
-
-        setUpcomingClientAppointments(upcomingClients);
-        setPreviousClientAppointments(previousClients);
+        }
     }, []);
 
     useEffect(() => {
@@ -60,6 +89,14 @@ export default function ProfilePage({ userDetails, clientAppointments, userAppoi
             setClients(previousClientAppointments);
         }
     }, clientAppointmentsTimeframe);
+
+    useEffect(() => {
+        if (clientAppointmentsTimeframe == "UPCOMING") {
+            setClients(upcomingClientAppointments);
+        } else {
+            setClients(previousClientAppointments);
+        }
+    }, [upcomingClientAppointments, previousClientAppointments])
 
     return (
         <Layout>
@@ -108,7 +145,8 @@ export default function ProfilePage({ userDetails, clientAppointments, userAppoi
 }
 
 export async function getServerSideProps(context) {
-    const authToken = context.req.cookies.token;
+    const cookies = context.req.headers.cookie;
+    const authToken = cookies.split('token=')[1];
     let redirect = false;
 
     // We can look at the token to see what type of account this is so that we can present the right data to the profile page
@@ -118,7 +156,6 @@ export async function getServerSideProps(context) {
     // If account = stylist
     // -----> Get their work schedule
     // -----> Get their sheduled appointments
-    // -----> Get their personal bookings
 
     const payload = Jwt.decode(authToken);
 
@@ -159,51 +196,19 @@ export async function getServerSideProps(context) {
         });
 
         userDetails = userDetails.data.user;
-
-        userAppointments = await ApolloClient.query({
-            query: GET_APPOINTMENTS,
-            variables: {
-                query: {
-                    client: payload.id
-                }
-            },
-            context: {
-                headers: {
-                    Authorization: `Bearer ${authToken}`
-                }
-            }
-        });
-
-        userAppointments = userAppointments.data.appointments;
-
-
-        if (payload.role.toLowerCase() == 'stylist') {
-            clientAppointments = await ApolloClient.query({
-                query: GET_APPOINTMENTS,
-                variables: {
-                    query: {
-                        stylist: payload.id
-                    }
-                },
-                context: {
-                    headers: {
-                        Authorization: `Bearer ${authToken}`
-                    }
-                }
-            });
-
-            clientAppointments = clientAppointments.data.appointments;
-        }
-
     } catch (err) {
         // If user is already authenticated but is having errors communicating with backend services then we can just show user profile page with no data.
+        // User can only get to this point with a valid token
+        // Which mean we can only arrive here with 2 reason. Either the token is valid but user has already been removed or blocked.
+        // The other is if the backend service is down which mean we should let the user know that application is down.
+        // If the first then we should tell user that their account is block and the token should be remove from application.
+
+        // To implement this we must know what type of error we are getting, which is detailed from the backend service. Get the backend to inform us. 
     }
 
     return {
         props: {
-            userDetails,
-            clientAppointments,
-            userAppointments
+            userDetails: userDetails
         }
     }
 }

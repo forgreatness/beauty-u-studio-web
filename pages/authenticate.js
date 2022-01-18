@@ -15,6 +15,8 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import FormHelperText from '@mui/material/FormHelperText';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 import { useRouter } from 'next/router';
 
 import ApolloClient from '../lib/apollo/apollo-client.js';
@@ -22,8 +24,7 @@ import styles from '../styles/authenticatepage.module.css';
 import { SIGN_IN } from '../lib/apollo/data-queries.js';
 
 export default function AuthenticatePage() {
-    const [isDefaultForm, setIsDefaultForm] = useState(true);
-
+    const [formType, setFormType] = useState("login");
     const [signInUsername, setSignInUsername] = useState("");
     const [signInPassword, setSignInPassword] = useState("");
     const [signInShowPassword, setSignInShowPassword] = useState(false);
@@ -43,11 +44,14 @@ export default function AuthenticatePage() {
 
     const router = useRouter();
 
-    // Change the form type
-    const handleFormChange = (e) => {
-        e.preventDefault();
+    // Request change form type
+    const handleFormTypeChange = (e, newValue) => {
+        setFormType(newValue);
+    }
 
-        setIsDefaultForm(!isDefaultForm);
+    // Request password change link
+    const handleSignInPasswordRequest = (e) => {
+        e.preventDefault();
     }
 
     // SignIn event handlers
@@ -80,7 +84,9 @@ export default function AuthenticatePage() {
     }
 
 
-    const handleSignInSubmit = async () => {
+    const handleSignInSubmit = async (e) => {
+        e.preventDefault();
+
         let isValid = true;
 
         if (!signInUsername) {
@@ -277,82 +283,76 @@ export default function AuthenticatePage() {
 
     function signInForm() {
         return (
-            <Container component="main" maxWidth="xxl" className={styles.auth_page_container}>
-                <Box component="form" className={styles.auth_form_container}>
-                    <h4 className="">SIGN IN</h4>
-                    <TextField fullWidth error={(signInUsernameError) ? true : false} autoComplete="email" id="username" label="Username" variant="outlined" helperText={signInUsernameError ? signInUsernameError : "your email address"} value={signInUsername} onChange={handleSignInUsernameChange} margin="normal" required />
-                    <FormControl margin="normal" fullWidth variant="outlined">
-                        <InputLabel error={(signInPasswordError) ? true : false} required htmlFor="password">Password</InputLabel>
-                        <OutlinedInput
-                            autoComplete="current-password"
-                            id="password"
-                            type={signInShowPassword ? 'text' : 'password'}
-                            value={signInPassword}
-                            onChange={handleSignInPasswordChange}
-                            error={(signInPasswordError) ? true : false}
-                            label="Password"
-                            required
-                            endAdornment={
-                                <InputAdornment position="end">
-                                    <IconButton
-                                        aria-label="toggle password visibility"
-                                        onClick={handleSignInShowPasswordChange}
-                                        onMouseDown={handleMouseDownPassword}
-                                        edge="end">
-                                            {signInShowPassword ? <Visibility /> : <VisibilityOff />}
-                                    </IconButton>
-                                </InputAdornment>
-                            }
-                        />
-                        <FormHelperText error={(signInPasswordError) ? true : false}>{signInPasswordError ? signInPasswordError : ""}</FormHelperText>
-                    </FormControl>
-                    <Link
-                        component="button"
-                        variant="body2"
-                        underline="hover"
-                        onClick={handleFormChange}
-                        >
-                        Don't have an account?
-                    </Link>
-                    <Stack direction="row" alignItems="center" justifyContent="flex-end" spacing={2 }>
-                        <Button onClick={handleSignInClear} style={{"color": "black", "borderColor": "black"}} variant="outlined" startIcon={<RefreshIcon />}>Reset</Button>
-                        <Button onClick={handleSignInSubmit} style={{"color": "black", "borderColor": "black"}} variant="outlined" endIcon={<EastOutlinedIcon />}>Enter</Button>
-                    </Stack>
-                </Box>
-            </Container>
+            [
+                <TextField fullWidth error={(signInUsernameError) ? true : false} autoComplete="email" id="username" label="Username" variant="outlined" helperText={signInUsernameError ? signInUsernameError : "your email address"} value={signInUsername} onChange={handleSignInUsernameChange} margin="normal" required />,
+                <FormControl margin="normal" fullWidth variant="outlined">
+                    <InputLabel error={(signInPasswordError) ? true : false} required htmlFor="password">Password</InputLabel>
+                    <OutlinedInput
+                        autoComplete="current-password"
+                        id="password"
+                        type={signInShowPassword ? 'text' : 'password'}
+                        value={signInPassword}
+                        onChange={handleSignInPasswordChange}
+                        error={(signInPasswordError) ? true : false}
+                        label="Password"
+                        required
+                        endAdornment={
+                            <InputAdornment position="end">
+                                <IconButton
+                                    aria-label="toggle password visibility"
+                                    onClick={handleSignInShowPasswordChange}
+                                    onMouseDown={handleMouseDownPassword}
+                                    edge="end">
+                                        {signInShowPassword ? <Visibility /> : <VisibilityOff />}
+                                </IconButton>
+                            </InputAdornment>
+                        }
+                    />
+                    <FormHelperText error={(signInPasswordError) ? true : false}>{signInPasswordError ? signInPasswordError : ""}</FormHelperText>
+                </FormControl>,
+                <Link
+                    component="button"
+                    variant="body2"
+                    underline="hover"
+                    onClick={handleSignInPasswordRequest}
+                    >
+                    Forgot Password?
+                </Link>,
+                <Stack direction="row" alignItems="center" justifyContent="flex-end" spacing={2 }>
+                    <Button onClick={handleSignInClear} style={{"color": "black", "borderColor": "black"}} variant="outlined" startIcon={<RefreshIcon />}>Reset</Button>
+                    <Button onClick={handleSignInSubmit} style={{"color": "black", "borderColor": "black"}} variant="outlined" endIcon={<EastOutlinedIcon />}>Enter</Button>
+                </Stack>
+            ]
         );
     }
 
     function signUpForm() {
         return (
-            <Container component="main" maxWidth="xxl" className={styles.auth_page_container}>
-                <Box component="form" className={styles.auth_form_container}>
-                    <h4 className="">SIGN UP</h4>
-                    <TextField autoFocus fullWidth required variant="outlined" margin="normal" autoComplete="name" label="Name" id="signUpName" placeholder="Katie Anderson" helperText={signUpNameError || ''} error={(signUpNameError) ? true : false} value={signUpName} onChange={handleSignUpNameChange} />
-                    <TextField fullWidth required variant="outlined" margin="normal" autoComplete="email" label="Email" placeholder="example@gmail.com" id="signUpEmail" helperText={signUpEmailError || ''} error={(signUpEmailError) ? true : false} value={signUpEmail} onChange={handleSignUpEmailChange} />
-                    <TextField fullWidth required variant="outlined" margin="normal" autoComplete="phone" label="Phone Number" placeholder="800-333-3333" id="signUpPhone" helperText={signUpPhoneError || ''} error={(signUpPhoneError) ? true : false} value={signUpPhone} onChange={handleSignUpPhoneChange} />
-                    <TextField fullWidth required varaint="outlined" margin="normal" autoComplete="password" label="Password" id="signUpPassword"
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <IconButton
-                                        aria-label="toggle password visibility"
-                                        onClick={handleSignUpShowPasswordChange}
-                                        onMouseDown={handleMouseDownPassword}
-                                        edge="end">
-                                            {signUpShowPassword ? <Visibility /> : <VisibilityOff />}
-                                    </IconButton>
-                                </InputAdornment>
-                            )
-                        }}
-                        helperText={signUpPasswordError || ''} error={(signUpPasswordError) ? true : false} value={signUpPassword}
-                        onChange={handleSignUpPasswordChange} type={signUpShowPassword ? 'text' : 'password'} />
-                    <Stack className={styles.signup_action_container} direction="row" alignItems="center" justifyContent="flex-end" spacing={2 }>
-                        <Button onClick={handleSignUpClear} style={{"color": "black", "borderColor": "black"}} variant="outlined" startIcon={<RefreshIcon />}>Reset</Button>
-                        <Button onClick={handleSignUpSubmit} style={{"color": "black", "borderColor": "black"}} variant="outlined" endIcon={<EastOutlinedIcon />}>Enter</Button>
-                    </Stack>
-                </Box>
-            </Container>
+            [
+                <TextField autoFocus fullWidth required variant="outlined" margin="normal" autoComplete="name" label="Name" id="signUpName" placeholder="Katie Anderson" helperText={signUpNameError || ''} error={(signUpNameError) ? true : false} value={signUpName} onChange={handleSignUpNameChange} />,
+                <TextField fullWidth required variant="outlined" margin="normal" autoComplete="email" label="Email" placeholder="example@gmail.com" id="signUpEmail" helperText={signUpEmailError || ''} error={(signUpEmailError) ? true : false} value={signUpEmail} onChange={handleSignUpEmailChange} />,
+                <TextField fullWidth required variant="outlined" margin="normal" autoComplete="phone" label="Phone Number" placeholder="800-333-3333" id="signUpPhone" helperText={signUpPhoneError || ''} error={(signUpPhoneError) ? true : false} value={signUpPhone} onChange={handleSignUpPhoneChange} />,
+                <TextField fullWidth required varaint="outlined" margin="normal" autoComplete="password" label="Password" id="signUpPassword"
+                    InputProps={{
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <IconButton
+                                    aria-label="toggle password visibility"
+                                    onClick={handleSignUpShowPasswordChange}
+                                    onMouseDown={handleMouseDownPassword}
+                                    edge="end">
+                                        {signUpShowPassword ? <Visibility /> : <VisibilityOff />}
+                                </IconButton>
+                            </InputAdornment>
+                        )
+                    }}
+                    helperText={signUpPasswordError || ''} error={(signUpPasswordError) ? true : false} value={signUpPassword}
+                    onChange={handleSignUpPasswordChange} type={signUpShowPassword ? 'text' : 'password'} />,
+                <Stack className={styles.signup_action_container} direction="row" alignItems="center" justifyContent="flex-end" spacing={2 }>
+                    <Button onClick={handleSignUpClear} style={{"color": "black", "borderColor": "black"}} variant="outlined" startIcon={<RefreshIcon />}>Reset</Button>
+                    <Button onClick={handleSignUpSubmit} style={{"color": "black", "borderColor": "black"}} variant="outlined" endIcon={<EastOutlinedIcon />}>Enter</Button>
+                </Stack>
+            ]
         )
     }
 
@@ -363,7 +363,15 @@ export default function AuthenticatePage() {
                     <img className={styles.logo} src="/images/BeautyUStudio-logo.png" alt="BeautyUStudio Home Link" />
                 </a>
             </Link>,
-            (isDefaultForm) ? signInForm() : signUpForm()
+            <Container component="main" maxWidth="xxl" className={styles.auth_page_container}>
+                <Box component="form" className={styles.auth_form_container} onSubmit={handleSignInSubmit}>
+                    <Tabs value={formType} onChange={handleFormTypeChange} textColor="primary" indicatorColor="primary" aria-label="select the form type to authenticate">
+                        <Tab value="login" label="SIGN IN" />
+                        <Tab value="register" label="SIGN UP" />
+                    </Tabs>
+                    {formType == "login" ? signInForm() : signUpForm()}
+                </Box>  
+            </Container>
         ]
     );
 }

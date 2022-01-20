@@ -177,12 +177,10 @@ export async function getServerSideProps(context) {
         }
     }
 
-    let userDetails = {};
-    let clientAppointments = [];
-    let userAppointments = [];
-    let workSchedule;
-
     try {
+        let userDetails = {};
+        let workSchedule;
+
         userDetails = await ApolloClient.query({
             query: GET_USER,
             variables: {
@@ -196,6 +194,12 @@ export async function getServerSideProps(context) {
         });
 
         userDetails = userDetails.data.user;
+
+        return {
+            props: {
+                userDetails: userDetails
+            }
+        }
     } catch (err) {
         // If user is already authenticated but is having errors communicating with backend services then we can just show user profile page with no data.
         // User can only get to this point with a valid token
@@ -204,11 +208,5 @@ export async function getServerSideProps(context) {
         // If the first then we should tell user that their account is block and the token should be remove from application.
 
         // To implement this we must know what type of error we are getting, which is detailed from the backend service. Get the backend to inform us. 
-    }
-
-    return {
-        props: {
-            userDetails: userDetails
-        }
     }
 }

@@ -1,7 +1,9 @@
 .auth_page_container {
-    height: 100vh;
+    padding-top: 100px;
+    width: 100%;
+    min-height: 100vh;
+    flex-direction: column;
     display: flex !important;
-    flex-direction: row;
     flex-wrap: nowrap;
     justify-content: center;
     align-items: center;
@@ -9,10 +11,13 @@
 }
 
 .auth_form_container {
-    border: 3px solid white;
-    padding: 20px 30px;
-    max-width: 40%;
-    min-width: 350px;
+    max-width: 500px;
+    min-width: 300px;
+    max-height: 500px;
+}
+
+.auth_form {
+    width: 100%;
 }
 
 .change_form_text {

@@ -89,7 +89,7 @@ export default function ProfilePage({ userDetails }) {
         } else {
             setClients(previousClientAppointments);
         }
-    }, clientAppointmentsTimeframe);
+    }, [clientAppointmentsTimeframe]);
 
     useEffect(() => {
         if (clientAppointmentsTimeframe == "UPCOMING") {

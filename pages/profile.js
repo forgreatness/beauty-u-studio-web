@@ -9,6 +9,7 @@ import Stack from '@mui/material/Stack';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import { useQuery, useMutation, useApolloClient } from '@apollo/client';
+import Cookie from 'cookie';
 
 import styles from '../styles/profilepage.module.css';
 import Layout from '../components/page-layout.js';
@@ -145,39 +146,40 @@ export default function ProfilePage({ userDetails }) {
 }
 
 export async function getServerSideProps(context) {
-    const cookies = context.req.headers.cookie;
-    const authToken = cookies.split('token=')[1];
-    let redirect = false;
+    try {
+        const cookies = Cookie.parse(context.req.headers.cookie);
+        const authToken = cookies.token;
 
-    // We can look at the token to see what type of account this is so that we can present the right data to the profile page
-    // Decode the token to get the payload
-    // Then get all information related to the user
-    // If account = client -> just get appointments which they have booked
-    // If account = stylist
-    // -----> Get their work schedule
-    // -----> Get their sheduled appointments
+        let redirect = false;
 
-    const payload = Jwt.decode(authToken);
+        // We can look at the token to see what type of account this is so that we can present the right data to the profile page
+        // Decode the token to get the payload
+        // Then get all information related to the user
+        // If account = client -> just get appointments which they have booked
+        // If account = stylist
+        // -----> Get their work schedule
+        // -----> Get their sheduled appointments
 
-    if (!payload) {
-        redirect = true;
-    } else {
-        if (Date.now() > payload.exp * 1000) {
+        const payload = Jwt.decode(authToken);
+
+        if (!payload) {
             redirect = true;
-        }
-    }
-
-    // Redirect user to login if user is not yet authenticated
-    if (redirect) {
-        return {
-            redirect: {
-                destination: '/authenticate',
-                permanent: false
+        } else {
+            if (Date.now() > payload.exp * 1000) {
+                redirect = true;
             }
         }
-    }
 
-    try {
+        // Redirect user to login if user is not yet authenticated
+        if (redirect) {
+            return {
+                redirect: {
+                    destination: '/authenticate',
+                    permanent: false
+                }
+            }
+        }
+
         let userDetails = {};
         let workSchedule;
 

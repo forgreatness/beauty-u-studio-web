@@ -17,13 +17,17 @@ import Stack from '@mui/material/Stack';
 import FormHelperText from '@mui/material/FormHelperText';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useRouter } from 'next/router';
 
 import ApolloClient from '../lib/apollo/apollo-client.js';
 import styles from '../styles/authenticatepage.module.css';
-import { SIGN_IN } from '../lib/apollo/data-queries.js';
+import { SIGN_IN, SIGN_UP } from '../lib/apollo/data-queries.js';
 
 export default function AuthenticatePage() {
+    const [submitForm, setSubmitForm] = useState(false);
+
     const [formType, setFormType] = useState("login");
     const [signInUsername, setSignInUsername] = useState("");
     const [signInPassword, setSignInPassword] = useState("");
@@ -41,6 +45,7 @@ export default function AuthenticatePage() {
     const [signUpPasswordError, setSignUpPasswordError] = useState("");
     const [signUpPhoneError, setSignUpPhoneError] = useState("");
     const [signUpShowPassword, setSignUpShowPassword] = useState(false);
+    const [signUpError, setSignUpError] = useState("");
 
     const router = useRouter();
 
@@ -85,8 +90,8 @@ export default function AuthenticatePage() {
 
 
     const handleSignInSubmit = async (e) => {
-        console.log("hi");
         e.preventDefault();
+        setSubmitForm(true);
 
         let isValid = true;
 
@@ -111,6 +116,7 @@ export default function AuthenticatePage() {
         }
 
         if (!isValid) {
+            setSignInError('Input must match the specified criteria')
             return;
         }
 
@@ -125,11 +131,10 @@ export default function AuthenticatePage() {
             });
 
             // if login sucessfull save the token and reroute to profile page, else display page error saying login unsucessful
-            if (data.token) {
+            if (data?.token) {
                 document.cookie = 'token=' + data.token;
             } else {
-                setSignInError('Login unsuccesful');
-                return;
+                throw new Error('Login unsuccesful');
             }
 
             router.push('/profile');
@@ -151,7 +156,10 @@ export default function AuthenticatePage() {
         setSignUpShowPassword(false);
     }
 
-    const handleSignUpSubmit = () => {
+    const handleSignUpSubmit = async (e) => {
+        e.preventDefault();
+        setSubmitForm(true);
+
         let isValid = true;
 
         if (!signUpName) {
@@ -214,7 +222,33 @@ export default function AuthenticatePage() {
         }
 
         if (!isValid) {
+            setSignUpError('Account info needs to match the specified criteria');
             return;
+        }
+
+        try {
+            const { data } = await ApolloClient.mutate({
+                mutation: SIGN_UP,
+                variables: {
+                    newUser: {
+                        name: signUpName,
+                        email: signUpEmail,
+                        phone: signUpPhone.split('-').join(''),
+                        password: signUpPassword,
+                        role: "client"
+                    }
+                },
+            });
+
+            if (data?.token) {
+                document.cookie = 'token=' + data.token;
+            } else {
+                throw new Error('No token returned')
+            }
+
+            router.push('/profile');
+        } catch(err) {
+            setSignUpError("Sign Up Not Successful");
         }
     }
 
@@ -281,6 +315,10 @@ export default function AuthenticatePage() {
 
         return count;
     }
+
+    useEffect(() => {
+        setSubmitForm(false);
+    }, [signInError, signUpError]);
 
     function signInForm() {
         return (
@@ -364,7 +402,13 @@ export default function AuthenticatePage() {
                     </Tabs>
                     {formType == "login" ? signInForm() : signUpForm()}
                 </div>
-            </Container>
+            </Container>,
+            <Backdrop
+                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                open={submitForm}
+            >
+                <CircularProgress color="inherit" />
+            </Backdrop>
         ]
     );
 }

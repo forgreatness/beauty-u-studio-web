@@ -23,6 +23,7 @@ import client from '../lib/apollo/apollo-client.js';
 * If the user is a stylist: they should be able to see their work schedule, their upcoming appointments, pass appointments, upcoming bookings and past bookings
 */
 export default function ProfilePage({ userDetails }) {
+    console.log(userDetails);
     const apolloClient = useApolloClient();
     const [profileImage, setProfileImage] = useState("/images/profile_icon.png");
     const [clientAppointmentsTimeframe, setClientAppointmentsTimeframe] = useState('UPCOMING');
@@ -147,6 +148,7 @@ export default function ProfilePage({ userDetails }) {
 
 export async function getServerSideProps(context) {
     try {
+        console.log(context.req.headers.cookie);
         const cookies = Cookie.parse(context.req.headers.cookie);
         const authToken = cookies.token;
 
@@ -203,6 +205,7 @@ export async function getServerSideProps(context) {
             }
         }
     } catch (err) {
+        console.log(err);
         // If user is already authenticated but is having errors communicating with backend services then we can just show user profile page with no data.
         // User can only get to this point with a valid token
         // Which mean we can only arrive here with 2 reason. Either the token is valid but user has already been removed or blocked.

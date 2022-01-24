@@ -148,9 +148,10 @@ export default function ProfilePage({ userDetails }) {
 
 export async function getServerSideProps(context) {
     try {
-        console.log(context.req.headers.cookie);
         const cookies = Cookie.parse(context.req.headers.cookie);
         const authToken = cookies.token;
+
+        console.log("Got a token", authToken);
 
         let redirect = false;
 
@@ -182,6 +183,8 @@ export async function getServerSideProps(context) {
             }
         }
 
+        console.log("token is validated");
+
         let userDetails = {};
         let workSchedule;
 
@@ -192,10 +195,13 @@ export async function getServerSideProps(context) {
             },
             context: {
                 headers: {
-                    Authorization: `Bearer ${authToken}`
-                }
-            }
+                    Authorization: `Bearer ${authToken}`,
+                    Accept: 'application/json'
+                },
+            },
         });
+
+        console.log("Got some user info", userDetails);
 
         userDetails = userDetails.data.user;
 

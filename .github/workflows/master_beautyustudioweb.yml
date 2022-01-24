@@ -26,15 +26,12 @@ jobs:
           npm install
           npm run build --if-present
           npm run test --if-present
-          
-      - name: Zip Artifact for Deployment
-        run: zip -r release.zip ./* .next .env
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
         with:
           name: node-app
-          path: release.zip
+          path: .
 
   deploy:
     runs-on: ubuntu-latest
@@ -48,9 +45,6 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: node-app
-          
-      - name: unzip artifact for deployment
-        run: unzip release.zip
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
@@ -58,5 +52,5 @@ jobs:
         with:
           app-name: 'beautyustudioweb'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_9324AA9228384D2B88BEFAB576BE7A37 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E66F2A9E99454FC6912FE47D911B937E }}
           package: .

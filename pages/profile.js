@@ -195,8 +195,8 @@ export async function getServerSideProps(context) {
             },
             context: {
                 headers: {
-                    Authorization: `Bearer ${authToken}`,
-                    Accept: 'application/json'
+                    authorization: `Bearer ${authToken}`,
+                    accept: 'application/json'
                 },
             },
         });

@@ -209,6 +209,9 @@ export async function getServerSideProps(context) {
         }
     } catch (err) {
         console.log(err);
+        return {
+            notfound: true
+        }
         // If user is already authenticated but is having errors communicating with backend services then we can just show user profile page with no data.
         // User can only get to this point with a valid token
         // Which mean we can only arrive here with 2 reason. Either the token is valid but user has already been removed or blocked.

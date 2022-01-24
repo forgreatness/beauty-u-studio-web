@@ -185,10 +185,7 @@ export async function getServerSideProps(context) {
 
         console.log("token is validated");
 
-        let userDetails = {};
-        let workSchedule;
-
-        userDetails = await ApolloClient.query({
+        const userDetails = await ApolloClient.query({
             query: GET_USER,
             variables: {
                 userId: payload.id

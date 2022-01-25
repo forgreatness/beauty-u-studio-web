@@ -200,11 +200,9 @@ export async function getServerSideProps(context) {
 
         console.log("Got some user info", userDetails);
 
-        userDetails = userDetails.data.user;
-
         return {
             props: {
-                userDetails: userDetails
+                userDetails: userDetails.data.user
             }
         }
     } catch (err) {

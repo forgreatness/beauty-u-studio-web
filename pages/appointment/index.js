@@ -471,7 +471,7 @@ export async function getServerSideProps() {
 
     if (!data) {
         return {
-            notfound: true
+            notFound: true
         }
     }
 

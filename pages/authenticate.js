@@ -133,13 +133,13 @@ export default function AuthenticatePage() {
             // if login sucessfull save the token and reroute to profile page, else display page error saying login unsucessful
             if (data?.token) {
                 document.cookie = 'token=' + data.token;
-            } else {
-                throw new Error('Login unsuccesful');
-            }
 
-            router.push('/profile');
+                router.push('/profile');
+            } else {
+                throw 'Login unsuccesful';
+            }
         } catch (error) {
-            setSignInError('Login unsuccessful');
+            setSignInError(error);
         }
     }
 

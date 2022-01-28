@@ -8,7 +8,7 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import Stack from '@mui/material/Stack';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import { useQuery, useMutation, useApolloClient } from '@apollo/client';
+import { useQuery, useMutation, useApolloClient, from } from '@apollo/client';
 import Cookie from 'cookie';
 
 import styles from '../styles/profilepage.module.css';
@@ -16,14 +16,12 @@ import Layout from '../components/page-layout.js';
 import ApolloClient from '../lib/apollo/apollo-client.js';
 import { GET_USER, GET_APPOINTMENTS } from '../lib/apollo/data-queries.js';
 import AppointmentDetail from '../components/appointment_details';
-import client from '../lib/apollo/apollo-client.js';
 
 /* Purpose 
 * If the user is a client: they should only be able to see their contact information, and past bookings, and upcoming bookings
 * If the user is a stylist: they should be able to see their work schedule, their upcoming appointments, pass appointments, upcoming bookings and past bookings
 */
 export default function ProfilePage({ userDetails }) {
-    console.log(userDetails);
     const apolloClient = useApolloClient();
     const [profileImage, setProfileImage] = useState("/images/profile_icon.png");
     const [clientAppointmentsTimeframe, setClientAppointmentsTimeframe] = useState('UPCOMING');
@@ -151,8 +149,6 @@ export async function getServerSideProps(context) {
         const cookies = Cookie.parse(context.req.headers.cookie);
         const authToken = cookies.token;
 
-        console.log("Got a token", authToken);
-
         let redirect = false;
 
         // We can look at the token to see what type of account this is so that we can present the right data to the profile page
@@ -183,8 +179,6 @@ export async function getServerSideProps(context) {
             }
         }
 
-        console.log("token is validated");
-
         const userDetails = await ApolloClient.query({
             query: GET_USER,
             variables: {
@@ -192,13 +186,14 @@ export async function getServerSideProps(context) {
             },
             context: {
                 headers: {
-                    authorization: `Bearer ${authToken}`,
-                    accept: 'application/json'
+                    authorization: `Bearer ${authToken}`
                 },
             },
         });
 
-        console.log("Got some user info", userDetails);
+        if (!userDetails) {
+            throw 'Unable to obtain profile information';
+        }
 
         return {
             props: {

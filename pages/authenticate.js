@@ -127,7 +127,8 @@ export default function AuthenticatePage() {
                 variables: {
                     email: signInUsername,
                     password: signInPassword
-                }
+                },
+                fetchPolicy: "no-cache"
             });
 
             // if login sucessfull save the token and reroute to profile page, else display page error saying login unsucessful
@@ -238,6 +239,7 @@ export default function AuthenticatePage() {
                         role: "client"
                     }
                 },
+                fetchPolicy: "no-cache"
             });
 
             if (data?.token) {

@@ -20,6 +20,7 @@ import Tab from '@mui/material/Tab';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useRouter } from 'next/router';
+import Cookie from 'cookie';
 
 import ApolloClient from '../lib/apollo/apollo-client.js';
 import styles from '../styles/authenticatepage.module.css';
@@ -413,4 +414,23 @@ export default function AuthenticatePage() {
             </Backdrop>
         ]
     );
+}
+
+export async function getServerSideProps(context) {
+    const cookies = Cookie.parse(context.req.headers?.cookie ?? '');
+    const authToken = cookies?.token;
+
+    if (authToken) {
+        return {
+            redirect: {
+                source: '/authenticate',
+                destination: '/profile',
+                permanent: false
+            }
+        }
+    }
+
+    return {
+        props: {}
+    }
 }

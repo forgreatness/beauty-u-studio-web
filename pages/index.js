@@ -1,6 +1,13 @@
 import Link from 'next/link';
 import { gql, useQuery } from '@apollo/client';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import Cookie from 'cookie';
+import Collapse from '@mui/material/Collapse';
+import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import Container from '@mui/material/Container';
 
 import Layout from '../components/page-layout';
 import styles from '../styles/homepage.module.css';
@@ -14,23 +21,13 @@ import { GET_SERVICES, GET_USERS, GET_HOMEPAGEDATA } from '../lib/apollo/data-qu
 
 export default function Home() {
   const studioSectionRef = useRef();
+  const [showAppError, setShowAppError] = useState(false);
+  const [appError, setAppError] = useState('');
   const [currentMember, setSelectedMember] = useState(0);
   const [pageCover, setPageCover] = useState(0);
   const { loading, error, data } = useQuery(GET_HOMEPAGEDATA, {
     variables: {
       userRole: "stylist"
-    }
-  });
-  var typeOfServices = [];
-
-  if (loading) return <Loading /> 
-  if (error) {
-    return <p>ERROR</p>
-  }
-
-  data.services.forEach(service => {
-    if (!typeOfServices.includes(service.type)) {
-      typeOfServices.push(service.type)
     }
   });
 
@@ -64,6 +61,28 @@ export default function Home() {
         setSelectedMember(i);
       }
     });
+  }
+
+  useEffect(() => {
+    const cookies = Cookie.parse(document?.cookie ?? '');
+
+    if (cookies?.error) {
+      setAppError(cookies.error);
+      setShowAppError(true);
+    }
+  }, []);
+
+  let typeOfServices = [];
+
+  data.services.forEach(service => {
+    if (!typeOfServices.includes(service.type)) {
+      typeOfServices.push(service.type)
+    }
+  });
+
+  if (loading) return <Loading /> 
+  if (error) {
+    return <p>ERROR</p>
   }
 
   return (
@@ -139,6 +158,30 @@ export default function Home() {
           )}
         </div>
       </div>
+      <Container maxWidth="xs" className={styles.error_alert}>
+        <Collapse in={showAppError}>
+          <Alert
+            severity="error"
+            action={
+              <IconButton
+                aria-label="close"
+                color="inherit"
+                size="small"
+                onClick={() => {
+                  setAppError('');
+                  setShowAppError(false);
+                }}
+              >
+                <CloseIcon fontSize="inherit" />
+              </IconButton>
+            }
+            sx={{ mb: 2 }}
+          >
+            <AlertTitle>Error</AlertTitle>
+            {appError}
+          </Alert>
+        </Collapse>
+      </Container>  
     </Layout>
   )
 }

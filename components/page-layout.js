@@ -15,7 +15,6 @@ export default function PageLayout({ children }) {
         }
 
         main {
-            margin: 0px 20px;
             position: relative;
             top: 64px;
             padding: 10px 10px;

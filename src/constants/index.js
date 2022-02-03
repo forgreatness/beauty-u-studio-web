@@ -70,3 +70,7 @@ export const user = {
 
 export const studioOpens = "08:00:00";
 export const studioCloses =  "17:00:00";
+
+export const INFO_TYPE = {
+    "suspended": "Your account is suspended"
+}

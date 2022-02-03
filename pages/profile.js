@@ -146,8 +146,8 @@ export default function ProfilePage({ userDetails }) {
 
 export async function getServerSideProps(context) {
     try {
-        const cookies = Cookie.parse(context.req.headers.cookie);
-        const authToken = cookies.token;
+        const cookies = Cookie.parse(context.req.headers?.cookie ?? '');
+        const authToken = cookies?.token;
 
         let redirect = false;
 
@@ -170,7 +170,15 @@ export async function getServerSideProps(context) {
         }
 
         // Redirect user to login if user is not yet authenticated
+        // The user is at this point if token is invalid, expired, or does not exist
         if (redirect) {
+            // Remove any token that existed before so the user can authenticate with a different credential
+            // The user is at this point if token is invalid, expired, or does not exist
+            context.res.setHeader(
+                "Set-Cookie", [
+                `token=; Max-Age=0`]
+            );
+
             return {
                 redirect: {
                     destination: '/authenticate',
@@ -191,8 +199,14 @@ export async function getServerSideProps(context) {
             },
         });
 
+        console.log(userDetails);
+
         if (!userDetails) {
-            throw 'Unable to obtain profile information';
+            throw new Error('User does not exist');
+        } else {
+            if (userDetails.data.user.status.toLowerCase() == 'suspended') {
+                throw new Error('User is suspended');
+            }
         }
 
         return {
@@ -201,16 +215,59 @@ export async function getServerSideProps(context) {
             }
         }
     } catch (err) {
-        console.log(err);
-        return {
-            notFound: true
-        }
-        // If user is already authenticated but is having errors communicating with backend services then we can just show user profile page with no data.
-        // User can only get to this point with a valid token
-        // Which mean we can only arrive here with 2 reason. Either the token is valid but user has already been removed or blocked.
-        // The other is if the backend service is down which mean we should let the user know that application is down.
-        // If the first then we should tell user that their account is block and the token should be remove from application.
+        const reason = err.message;
 
-        // To implement this we must know what type of error we are getting, which is detailed from the backend service. Get the backend to inform us. 
+        if (reason.toLowerCase() == 'user is suspended') {
+            return {
+                redirect: {
+                    source: '/profile',
+                    destination: '/info/suspended',
+                    permanent: true
+                }
+            }
+        } else {
+            if (reason.toLowerCase() == 'user does not exist' || reason.toLowerCase() == 'no user found') {
+                context.res.setHeader(
+                    "Set-Cookie", [
+                    `token=; Max-Age=0`]
+                );
+
+                return {
+                    redirect: {
+                        source: '/profile',
+                        destination: '/authenticate',
+                        permanent: false
+                    }
+                }
+            } else if (err.networkError && err.networkError.length > 0) {
+                context.res.setHeader(
+                    "Set-Cookie", [
+                    `token=; Max-Age=0`,
+                    `error=Network connection error; Max-Age=15`]
+                );
+
+                return {
+                    redirect: {
+                        source: '/profile',
+                        destination: '/authenticate',
+                        permanent: false
+                    }
+                }
+            } else {
+                context.res.setHeader(
+                    "Set-Cookie", [
+                    `token=; Max-Age=0`,
+                    `error=${err.message}; Max-Age=15`]
+                );
+
+                return {
+                    redirect: {
+                        source: '/profile',
+                        destination: '/',
+                        permanent: false
+                    }
+                }
+            }
+        }
     }
 }

@@ -25,9 +25,24 @@ export default function Home() {
   const [appError, setAppError] = useState('');
   const [currentMember, setSelectedMember] = useState(0);
   const [pageCover, setPageCover] = useState(0);
+  const [typeOfServices, setTypeOfServices] = useState([]);
   const { loading, error, data } = useQuery(GET_HOMEPAGEDATA, {
     variables: {
       userRole: "stylist"
+    },
+    onCompleted: (data) => {
+      console.log("do i get here");
+      if (data?.services) {
+        let serviceType = [];
+
+        data.services.forEach(service => {
+          if (!serviceType.includes(service.type)) {
+            serviceType.push(service.type)
+          }
+        });
+
+        setTypeOfServices(serviceType);
+      }
     }
   });
 
@@ -72,13 +87,13 @@ export default function Home() {
     }
   }, []);
 
-  let typeOfServices = [];
+  // let typeOfServices = [];
 
-  data.services.forEach(service => {
-    if (!typeOfServices.includes(service.type)) {
-      typeOfServices.push(service.type)
-    }
-  });
+  // data.services.forEach(service => {
+  //   if (!typeOfServices.includes(service.type)) {
+  //     typeOfServices.push(service.type)
+  //   }
+  // });
 
   if (loading) return <Loading /> 
   if (error) {

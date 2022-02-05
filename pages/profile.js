@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import Jwt from 'jsonwebtoken';
 import Box from '@mui/material/Box';
+import Collapse from '@mui/material/Collapse';
+import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 import Container from '@mui/material/Container';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
-import Stack from '@mui/material/Stack';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import { useQuery, useMutation, useApolloClient, from } from '@apollo/client';
@@ -21,18 +24,26 @@ import AppointmentDetail from '../components/appointment_details';
 * If the user is a client: they should only be able to see their contact information, and past bookings, and upcoming bookings
 * If the user is a stylist: they should be able to see their work schedule, their upcoming appointments, pass appointments, upcoming bookings and past bookings
 */
-export default function ProfilePage({ userDetails }) {
+export default function ProfilePage({ userDetails, error }) {
     const apolloClient = useApolloClient();
     const [profileImage, setProfileImage] = useState("/images/profile_icon.png");
     const [clientAppointmentsTimeframe, setClientAppointmentsTimeframe] = useState('UPCOMING');
     const [upcomingClientAppointments, setUpcomingClientAppointments] = useState([]);
     const [previousClientAppointments, setPreviousClientAppointments] = useState([]);
+    const [applicationError, setApplicationError] = useState("");
+    const [showAppError, setShowAppError] = useState(false);
     const [clients, setClients] = useState([]);
 
     const userAppointments = useQuery(GET_APPOINTMENTS, {
         variables: {
             query: {
-                client: userDetails.id
+                client: userDetails?.id
+            }
+        },
+        onError: (err) => {
+            if (err) {
+                setApplicationError("Unable to fetch data");
+                setShowAppError(true);
             }
         }
     });
@@ -42,17 +53,23 @@ export default function ProfilePage({ userDetails }) {
     }
 
     useEffect(async () => {
-        if (userDetails.photo) {
+        if (error) {
+            setApplicationError(error);
+            setShowAppError(true);
+            return;
+        }
+
+        if (userDetails?.photo) {
             setProfileImage("data:image/png;base64, " + userDetails.photo);
         }
 
-        if (userDetails.role.toLowerCase() == 'stylist') {
+        if ((userDetails?.role ?? '').toLowerCase() == 'stylist') {
             try {
                 const { data } = await apolloClient.query({
                     query: GET_APPOINTMENTS, 
                     variables: {
                         query: {
-                            stylist: userDetails.id
+                            stylist: userDetails?.id
                         }
                     }
                 });
@@ -77,7 +94,8 @@ export default function ProfilePage({ userDetails }) {
                 setUpcomingClientAppointments(upcomingClients);
                 setPreviousClientAppointments(previousClients);
             } catch (err) {
-                console.log(err);
+                setApplicationError("Unable to fetch data");
+                setShowAppError(true);
             }
         }
     }, []);
@@ -105,18 +123,18 @@ export default function ProfilePage({ userDetails }) {
                     <div className={styles.profileAligner}>
                         <img className={styles.profilePicture} alt="user image" src={profileImage} />
                         <div className={styles.profileInfo}>
-                            <h2>{userDetails.name}</h2>
+                            <h2>{userDetails?.name}</h2>
                             <ul className={styles.profileContact}>
                                 <li>
-                                    <a href={"mailto:" + userDetails.email}>
+                                    <a href={"mailto:" + userDetails?.email}>
                                         <EmailIcon className={styles.icon} />
-                                        {userDetails.email}
+                                        {userDetails?.email}
                                     </a>
                                 </li>
                                 <li>
-                                    <a href={"tel:" + userDetails.phone}>
+                                    <a href={"tel:" + userDetails?.phone}>
                                         <PhoneIcon className={styles.icon} />
-                                        {userDetails.phone}
+                                        {userDetails?.phone}
                                     </a>
                                 </li>
                             </ul>
@@ -140,6 +158,29 @@ export default function ProfilePage({ userDetails }) {
                     </div>
                 </div>
             </div>
+            <Container maxWidth="xs" className={styles.error_alert}>
+                <Collapse in={showAppError}>
+                    <Alert
+                        severity="error"
+                        action={
+                        <IconButton
+                            aria-label="close"
+                            color="inherit"
+                            size="small"
+                            onClick={() => {
+                            setShowAppError(false);
+                            }}
+                        >
+                            <CloseIcon fontSize="inherit" />
+                        </IconButton>
+                        }
+                        sx={{ mb: 2 }}
+                    >
+                        <AlertTitle>Error</AlertTitle>
+                        {applicationError}
+                    </Alert>
+                </Collapse>
+            </Container>  
         </Layout>
     );
 }
@@ -197,9 +238,8 @@ export async function getServerSideProps(context) {
                     authorization: `Bearer ${authToken}`
                 },
             },
+            fetchPolicy: "no-cache"
         });
-
-        console.log(userDetails);
 
         if (!userDetails) {
             throw new Error('User does not exist');
@@ -222,50 +262,32 @@ export async function getServerSideProps(context) {
                 redirect: {
                     source: '/profile',
                     destination: '/info/suspended',
-                    permanent: true
+                    permanent: false
+                }
+            }
+        } else if (reason.toLowerCase() == 'user does not exist' || reason.toLowerCase() == 'no user found') {
+            context.res.setHeader(
+                "Set-Cookie", [
+                `token=; Max-Age=0`]
+            );
+
+            return {
+                redirect: {
+                    source: '/profile',
+                    destination: '/authenticate',
+                    permanent: false
+                }
+            }
+        } else if (err.networkError && err.networkError.length > 0) {
+            return {
+                props: {
+                    error: "Network Error"
                 }
             }
         } else {
-            if (reason.toLowerCase() == 'user does not exist' || reason.toLowerCase() == 'no user found') {
-                context.res.setHeader(
-                    "Set-Cookie", [
-                    `token=; Max-Age=0`]
-                );
-
-                return {
-                    redirect: {
-                        source: '/profile',
-                        destination: '/authenticate',
-                        permanent: false
-                    }
-                }
-            } else if (err.networkError && err.networkError.length > 0) {
-                context.res.setHeader(
-                    "Set-Cookie", [
-                    `token=; Max-Age=0`,
-                    `error=Network connection error; Max-Age=15`]
-                );
-
-                return {
-                    redirect: {
-                        source: '/profile',
-                        destination: '/authenticate',
-                        permanent: false
-                    }
-                }
-            } else {
-                context.res.setHeader(
-                    "Set-Cookie", [
-                    `token=; Max-Age=0`,
-                    `error=${err.message}; Max-Age=15`]
-                );
-
-                return {
-                    redirect: {
-                        source: '/profile',
-                        destination: '/',
-                        permanent: false
-                    }
+            return {
+                props: {
+                    error: "Unknown Error"
                 }
             }
         }

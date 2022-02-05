@@ -23,7 +23,6 @@ const useLongPress = (onLongPress, onClick, onLongPressConfirm, onLongPressRelea
 
     const clear = useCallback(
         (event, shouldTriggerClick = true) => {
-            console.log(event.type);
             onLongPressRelease(event);
 
             if (longPressTriggered && (event.type == 'mouseup' || event.type == 'touchend')) {

@@ -2,13 +2,17 @@
 /* @jsx jsx */
 import { jsx, css } from '@emotion/react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import React, { useState, useEffect } from 'react';
 
 import * as Constants from '../src/constants/index';
 
-export default function Navbar() {
+export default function Navbar(props) {
     const [scrolled, hasScrolled] = useState(false);
     const [menuClicked, hasClicked] = useState(false);
+    const [profileImage, setProfileImage] = useState("/images/profile_icon.png");
+    const router = useRouter();
 
     const styles = css`
         height: 64px;
@@ -19,6 +23,24 @@ export default function Navbar() {
         background: white;
         z-index: 2;
         vertical-align: middle;
+
+        .profile_action {
+            float: right;
+            height: 100%;
+            display: inline-flex;
+            justify-context: center;
+            align-items: center;
+            align-context: center;
+            padding: 10px 10px;
+        }
+
+        .profile_action:hover {
+            cursor: pointer;
+        }
+
+        .profile_action:hover svg {
+            color: navy;
+        }
 
         .signin {
             display: inline-flex;
@@ -204,6 +226,12 @@ export default function Navbar() {
     `;
 
     useEffect(() => {
+        if (props.userDetail?.photo) {
+            setProfileImage("data:image/png;base64, " + props.userDetail.photo);
+        }
+    }, []);
+
+    useEffect(() => {
         window.onscroll = () => {
             if (window.pageYOffset !== 0) {
                 hasScrolled(true);
@@ -238,10 +266,25 @@ export default function Navbar() {
                 </Link>
             </div>
             <div className="nav">
-                <div className="signin">
-                    <img src={Constants.ICONS.signin} alt="Sign-In icon" />
-                    <b>Sign-In</b>
-                </div>
+                {(props.userDetail)
+                    ? (
+                    <div className="profile_action" onClick={e => {
+                        e.preventDefault();
+                        router.push('/profile');
+                    }}>
+                        <AccountCircleIcon aria-label="account action"/>
+                    </div>
+                    ) 
+                    : (
+                        <div className="signin" onClick={e => {
+                            e.preventDefault();
+                            router.push('/authenticate');
+                        }}>
+                            <img src={Constants.ICONS.signin} alt="Sign-In icon" />
+                            <b>Sign-In</b>
+                        </div>
+                    )
+                }
                 <Link href="/services" passHref>
                     <a>Services</a>
                 </Link>

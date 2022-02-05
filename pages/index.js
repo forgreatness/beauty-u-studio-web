@@ -31,7 +31,6 @@ export default function Home() {
       userRole: "stylist"
     },
     onCompleted: (data) => {
-      console.log("do i get here");
       if (data?.services) {
         let serviceType = [];
 

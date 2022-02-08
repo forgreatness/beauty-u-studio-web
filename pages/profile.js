@@ -87,13 +87,14 @@ export default function ProfilePage({ userDetails, error }) {
                     if (when < Date.now()) {
                         previousClients.push(appointment);
                     } else {
-                        upcommingClients.push(appointment);
+                        upcomingClients.push(appointment);
                     }
                 });
 
                 setUpcomingClientAppointments(upcomingClients);
                 setPreviousClientAppointments(previousClients);
             } catch (err) {
+                console.log(err);
                 setApplicationError("Unable to fetch data");
                 setShowAppError(true);
             }
@@ -117,7 +118,7 @@ export default function ProfilePage({ userDetails, error }) {
     }, [upcomingClientAppointments, previousClientAppointments])
 
     return (
-        <Layout>
+        <Layout userDetail={userDetails}>
             <div className={styles.profilePage}>
                 <div className={styles.profile}>
                     <div className={styles.profileAligner}>
@@ -189,44 +190,14 @@ export async function getServerSideProps(context) {
     try {
         const cookies = Cookie.parse(context.req.headers?.cookie ?? '');
         const authToken = cookies?.token;
-
-        let redirect = false;
-
-        // We can look at the token to see what type of account this is so that we can present the right data to the profile page
-        // Decode the token to get the payload
-        // Then get all information related to the user
-        // If account = client -> just get appointments which they have booked
-        // If account = stylist
-        // -----> Get their work schedule
-        // -----> Get their sheduled appointments
-
         const payload = Jwt.decode(authToken);
-
-        if (!payload) {
-            redirect = true;
-        } else {
-            if (Date.now() > payload.exp * 1000) {
-                redirect = true;
-            }
-        }
 
         // Redirect user to login if user is not yet authenticated
         // The user is at this point if token is invalid, expired, or does not exist
-        if (redirect) {
-            // Remove any token that existed before so the user can authenticate with a different credential
-            // The user is at this point if token is invalid, expired, or does not exist
-            context.res.setHeader(
-                "Set-Cookie", [
-                `token=; Max-Age=0`]
-            );
-
-            return {
-                redirect: {
-                    destination: '/authenticate',
-                    permanent: false
-                }
-            }
+        if (!payload || Date.now() > payload.exp * 1000) {
+            throw new Error('Invalid token');
         }
+
 
         const userDetails = await ApolloClient.query({
             query: GET_USER,
@@ -256,6 +227,7 @@ export async function getServerSideProps(context) {
         }
     } catch (err) {
         const reason = err.message;
+        console.log(err);
 
         if (reason.toLowerCase() == 'user is suspended') {
             return {
@@ -265,7 +237,7 @@ export async function getServerSideProps(context) {
                     permanent: false
                 }
             }
-        } else if (reason.toLowerCase() == 'user does not exist' || reason.toLowerCase() == 'no user found') {
+        } else if (reason.toLowerCase() == 'user does not exist' || reason.toLowerCase() == 'no user found' || reason.toLowerCase() == "invalid token") {
             context.res.setHeader(
                 "Set-Cookie", [
                 `token=; Max-Age=0`]

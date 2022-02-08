@@ -32,6 +32,11 @@ export default function Navbar(props) {
             align-items: center;
             align-context: center;
             padding: 10px 10px;
+            width: 100px;
+        }
+
+        .profile_action > svg {
+            flex: 1;
         }
 
         .profile_action:hover {
@@ -184,6 +189,11 @@ export default function Navbar(props) {
             }
 
             .nav > .signin {
+                height: 64px;
+                float: none;
+            }
+
+            .nav > .profile_action {
                 height: 64px;
                 float: none;
             }

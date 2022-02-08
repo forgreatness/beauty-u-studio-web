@@ -7,16 +7,18 @@ import Container from 'react-bootstrap/Container';
 import { useQuery, useMutation, gql, useApolloClient } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
+import Cookie from 'cookie';
 import 'react-datepicker/dist/react-datepicker.css';
+import Jwt from 'jsonwebtoken';
 
 import styles from '../../styles/appointmentpage.module.css';
 import Layout from '../../components/page-layout';
 import ApolloClient from '../../lib/apollo/apollo-client';
-import { GET_SERVICES, GET_USERS, GET_APPOINTMENTS, ADD_APPOINTMENT } from '../../lib/apollo/data-queries';
+import { GET_SERVICES, GET_USERS, GET_APPOINTMENTS, ADD_APPOINTMENT, GET_USER } from '../../lib/apollo/data-queries';
 import Loading from '../../components/loading';
-import { user, studioOpens, studioCloses } from '../../src/constants/index';
+import { studioOpens, studioCloses } from '../../src/constants/index';
 
-export default function ApppointmentPage({ services, servicesByType }) {
+export default function ApppointmentPage({ services, servicesByType, user }) {
     const apolloClient = useApolloClient();
     const today = new Date();
     today.setHours(0,0,0,0);
@@ -389,7 +391,7 @@ export default function ApppointmentPage({ services, servicesByType }) {
     }
 
     return (
-        <Layout>
+        <Layout userDetail={user}>
             <Container fluid="lg" className={styles.schedule_appointment_form}>
                 <Form>
                     <h3>Schedule your appointment</h3>
@@ -464,48 +466,113 @@ export default function ApppointmentPage({ services, servicesByType }) {
     );
 }
 
-export async function getServerSideProps() {
-    const { data } = await ApolloClient.query({
-        query: GET_SERVICES
-    });
+export async function getServerSideProps(context) {
+    try {
+        const cookies = Cookie.parse(context.req.headers?.cookie ?? '');
+        const token = cookies?.token;
+        const payload = Jwt.decode(token);
 
-    if (!data) {
-        return {
-            notFound: true
+        if (!payload || Date.now() > payload.exp *1000) {
+            throw new Error('bad token');
         }
-    }
 
-    var services = Array.from(data.services);
-    services.sort((a, b) => {
-        const serviceA = a.name.toUpperCase();
-        const serviceB = b.name.toUpperCase();
+        const user = await ApolloClient.query({
+            query: GET_USER,
+            variables: {
+                userId: payload.id
+            },
+            context: {
+                headers: {
+                    authorization: `Bearer ${token}`
+                },
+            },
+            fetchPolicy: "no-cache"
+        });
 
-        let compare = 0;
-
-        if (serviceA < serviceB) {
-            compare = -1;
-        }
-        
-        if (serviceA > serviceB) {
-            compare = 1;
-        }
-        
-        return compare;
-    });
-
-    var servicesByType = {};
-    services.forEach(service => {
-        if (servicesByType.hasOwnProperty(service.type)) {
-            servicesByType[service.type].push(service);
+        if (!user) {
+            throw new Error("User doesn't exist");
         } else {
-            servicesByType[service.type] = [service];
+            if (user?.data?.user?.status == "suspended") {
+                throw new Error("Account Suspended");
+            }
         }
-    });
 
-    return {
-        props: {
-            services: services,
-            servicesByType: servicesByType
+        const { data } = await ApolloClient.query({
+            query: GET_SERVICES
+        });
+
+        if (!data) {
+            throw new Error('No service found');
+        }
+
+        let services = Array.from(data.services);
+        services.sort((a, b) => {
+            const serviceA = a.name.toUpperCase();
+            const serviceB = b.name.toUpperCase();
+    
+            let compare = 0;
+    
+            if (serviceA < serviceB) {
+                compare = -1;
+            }
+            
+            if (serviceA > serviceB) {
+                compare = 1;
+            }
+            
+            return compare;
+        });
+    
+        let servicesByType = {};
+        services.forEach(service => {
+            if (servicesByType.hasOwnProperty(service.type)) {
+                servicesByType[service.type].push(service);
+            } else {
+                servicesByType[service.type] = [service];
+            }
+        });
+
+        return {
+            props: {
+                services: services,
+                servicesByType: servicesByType,
+                user: user.data.user
+            }
+        };
+    } catch (err) {
+        const reason = err?.message.toLowerCase();
+        console.log(reason);
+
+        if (reason == 'bad token') {
+            context.res.setHeader(
+                "Set-Cookie", [
+                `token=; Max-Age=0`
+                ]
+            );
+
+            return {
+                redirect: {
+                    source: '/appointment',
+                    destination: '/authenticate',
+                    permanent: false
+                }
+            };
+        } else if (reason == "account suspended") {
+            return {
+                redirect: {
+                    source: '/appointment',
+                    destination: '/info/suspended',
+                    permanent: false
+                }
+            }
+        } else {
+            return {
+                redirect: {
+                    source: '/appointment',
+                    destination: '/',
+                    permanent: false
+                }
+            }
         }
     }
 }

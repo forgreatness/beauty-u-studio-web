@@ -2,21 +2,12 @@
 /* @jsx jsx */
 import { jsx, css } from '@emotion/react';
 import Head from 'next/head';
-import Cookie from 'cookie';
-import { useApolloClient } from '@apollo/client';
-import Jwt from 'jsonwebtoken';
-import { useState } from 'react';
 
 import Navbar from './navbar';
 import Footbar from './footbar';
-import { useEffect } from 'react';
-import { GET_USER  } from '../lib/apollo/data-queries';
 import { Error } from '@mui/icons-material';
 
 export default function PageLayout(props) {
-    const apolloClient = useApolloClient();
-    const [userDetail, setUserDetail] = useState();
-
     const styles = css`
         .layout {
             max-width: 36rem;
@@ -38,35 +29,6 @@ export default function PageLayout(props) {
         }
     `;
 
-    useEffect(async () => {
-        const cookies = Cookie.parse(document?.cookie ?? '');
-
-        const payload = Jwt.decode(cookies?.token);
-
-        if (!payload || Date.now() > payload.exp * 1000) {
-            return;
-        }
-
-        if (cookies?.token) {
-            try {
-                const user = await apolloClient.query({
-                    query: GET_USER,
-                    variables: {
-                        userId: payload.id
-                    }
-                });
-
-                if (!user) {
-                    throw new Error('User detail does not exist')
-                }
-
-                setUserDetail(user.data.user);
-            } catch (err) {
-
-            }
-        }
-    }, []);
-
     return (
         <div css={styles} className="layout">
             <Head>
@@ -76,7 +38,7 @@ export default function PageLayout(props) {
                 <meta name="og:type" content="website" />
             </Head>
             <header>
-                <Navbar userDetail={userDetail}/>
+                <Navbar userDetail={props.userDetail}/>
             </header>
             <main>
                 {props.children}

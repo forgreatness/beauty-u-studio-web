@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { gql, useQuery } from '@apollo/client';
+import { gql, useQuery, useApolloClient } from '@apollo/client';
 import React, { useState, useRef, useEffect } from 'react';
 import Cookie from 'cookie';
 import Collapse from '@mui/material/Collapse';
@@ -8,6 +8,7 @@ import AlertTitle from '@mui/material/AlertTitle';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Container from '@mui/material/Container';
+import Jwt from 'jsonwebtoken';
 
 import Layout from '../components/page-layout';
 import styles from '../styles/homepage.module.css';
@@ -20,12 +21,14 @@ import CustomButton from '../components/custom_button';
 import { GET_SERVICES, GET_USERS, GET_HOMEPAGEDATA } from '../lib/apollo/data-queries';
 
 export default function Home() {
+  const apolloClient = useApolloClient();
   const studioSectionRef = useRef();
   const [showAppError, setShowAppError] = useState(false);
   const [appError, setAppError] = useState('');
   const [currentMember, setSelectedMember] = useState(0);
   const [pageCover, setPageCover] = useState(0);
   const [typeOfServices, setTypeOfServices] = useState([]);
+  const [user, setUser] = useState();
   const { loading, error, data } = useQuery(GET_HOMEPAGEDATA, {
     variables: {
       userRole: "stylist"
@@ -77,22 +80,43 @@ export default function Home() {
     });
   }
 
-  useEffect(() => {
-    const cookies = Cookie.parse(document?.cookie ?? '');
+  useEffect(async () => {
+    try {
+      const cookies = Cookie.parse(document?.cookie ?? '');
 
-    if (cookies?.error) {
-      setAppError(cookies.error);
-      setShowAppError(true);
+      if (cookies?.error) {
+        setAppError(cookies.error);
+        setShowAppError(true);
+      }
+
+      const authToken = cookies.token;
+      const payload = Jwt.decode(authToken);
+  
+      if (!payload || Date.now() > payload.exp * 1000) {
+        throw new Error('Invalid token');
+      }
+
+      let userDetail = localStorage.getItem("user");
+
+      if (!userDetail) {
+        userDetail = await apolloClient.query({
+          query: userDetail,
+          variables: {
+            userId: payload.id
+          }
+        });
+      }
+
+      if (!userDetail) {
+        throw new Error('User not sign in');
+      }
+      
+      setUser(userDetail);
+    } catch(err) {
+      const reason = err.message;
+      return;
     }
   }, []);
-
-  // let typeOfServices = [];
-
-  // data.services.forEach(service => {
-  //   if (!typeOfServices.includes(service.type)) {
-  //     typeOfServices.push(service.type)
-  //   }
-  // });
 
   if (loading) return <Loading /> 
   if (error) {
@@ -100,7 +124,7 @@ export default function Home() {
   }
 
   return (
-    <Layout>
+    <Layout userDetail={user}>
       <div className={styles.homepage_cover}>
         <img alt="Image of BeautyUStudio clients and services" src={Constants.HOMEPAGE_COVER[pageCover]} />
         <div className={`${styles.arrow} ${styles.prev}`} onClick={handlePrevArrow}>

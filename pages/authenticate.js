@@ -21,10 +21,11 @@ import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useRouter } from 'next/router';
 import Cookie from 'cookie';
+import Jwt from 'jsonwebtoken';
 
 import ApolloClient from '../lib/apollo/apollo-client.js';
 import styles from '../styles/authenticatepage.module.css';
-import { SIGN_IN, SIGN_UP } from '../lib/apollo/data-queries.js';
+import { GET_USER, SIGN_IN, SIGN_UP } from '../lib/apollo/data-queries.js';
 
 export default function AuthenticatePage() {
     const [submitForm, setSubmitForm] = useState(false);
@@ -132,14 +133,34 @@ export default function AuthenticatePage() {
                 fetchPolicy: "no-cache"
             });
 
-            // if login sucessfull save the token and reroute to profile page, else display page error saying login unsucessful
-            if (data?.token) {
-                document.cookie = 'token=' + data.token;
+            const token = data?.token;
+            const payload = Jwt.decode(token);
 
-                router.push('/profile');
-            } else {
-                throw 'Login unsuccesful';
+            if (!payload || Date.now() > payload.exp * 1000) {
+                throw 'Login unsuccessful';
             }
+            
+            const user = await ApolloClient.query({
+                query: GET_USER,
+                variables: {
+                    userId: payload?.id
+                },
+                context: {
+                    headers: {
+                        authorization: `Bearer ${token}`
+                    }
+                }
+            });
+
+            if (!user) {
+                throw 'Login unsucessful';
+            }
+
+            // if login sucessfull save the token, save userDetails and reroute to profile page, else display page error saying login unsucessful
+            document.cookie = 'token=' + token;
+            localStorage.setItem("user", user.data.user);
+
+            router.push('/profile');
         } catch (error) {
             setSignInError(error);
         }
@@ -243,11 +264,32 @@ export default function AuthenticatePage() {
                 fetchPolicy: "no-cache"
             });
 
-            if (data?.token) {
-                document.cookie = 'token=' + data.token;
-            } else {
-                throw new Error('No token returned')
+            const token = data?.token;
+            const payload = Jwt.decode(token);
+
+            if (!payload || Date.now() > payload.exp * 1000) {
+                throw 'Sign Up Unsucessful';
             }
+
+            const user = await ApolloClient.query({
+                query: GET_USER,
+                variables: {
+                    userId: payload?.id
+                },
+                context: {
+                    headers: {
+                        authorization: `Bearer ${token}`
+                    }
+                }
+            });
+
+            if (!user) {
+                throw 'Login unsucessful';
+            }
+
+            // if login sucessfull save the token, save userDetails and reroute to profile page, else display page error saying login unsucessful
+            document.cookie = 'token=' + token;
+            localStorage.setItem("user", user.data.user);
 
             router.push('/profile');
         } catch(err) {

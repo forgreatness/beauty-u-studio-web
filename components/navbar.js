@@ -4,6 +4,17 @@ import { jsx, css } from '@emotion/react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import Avatar from '@mui/material/Avatar';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import SettingsIcon from '@mui/icons-material/Settings';
+import LogoutIcon from '@mui/icons-material/Logout';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer'
+import EventIcon from '@mui/icons-material/Event';
 import React, { useState, useEffect } from 'react';
 
 import * as Constants from '../src/constants/index';
@@ -12,7 +23,7 @@ export default function Navbar(props) {
     const [scrolled, hasScrolled] = useState(false);
     const [menuClicked, hasClicked] = useState(false);
     const [profileImage, setProfileImage] = useState("/images/profile_icon.png");
-    const router = useRouter();
+    const [anchorE1, setAnchorE1] = useState(null);
 
     const styles = css`
         height: 64px;
@@ -21,7 +32,7 @@ export default function Navbar(props) {
         width: 100%;
         overflow: auto;
         background: white;
-        z-index: 2;
+        z-index: 10;
         vertical-align: middle;
 
         .profile_action {
@@ -235,6 +246,17 @@ export default function Navbar(props) {
         }
     `;
 
+    const open = Boolean(anchorE1);
+    const router = useRouter();
+
+    const handleClick = (e) => {
+        setAnchorE1(e.currentTarget);
+    }
+
+    const handleClose = () => {
+        setAnchorE1(null);
+    }
+
     useEffect(() => {
         if (props.userDetail?.photo) {
             setProfileImage("data:image/png;base64, " + props.userDetail.photo);
@@ -278,12 +300,11 @@ export default function Navbar(props) {
             <div className="nav">
                 {(props.userDetail)
                     ? (
-                    <div className="profile_action" onClick={e => {
-                        e.preventDefault();
-                        router.push('/profile');
-                    }}>
-                        <AccountCircleIcon aria-label="account action"/>
-                    </div>
+                        <Tooltip title="Account Menu">
+                            <div className="profile_action" onClick={handleClick}>
+                                <AccountCircleIcon aria-label="account action" aria-controls={open ? 'account-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined}/>
+                            </div>
+                        </Tooltip>
                     ) 
                     : (
                         <div className="signin" onClick={e => {
@@ -325,6 +346,53 @@ export default function Navbar(props) {
                     </div>
                 </div>
             </div>
+            <Menu
+                id="account-menu"
+                anchorEl={anchorE1}
+                open={open}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                transformOrigin={{ vertical: "top", horizontal: "right"}}
+                onClose={handleClose}
+                onClick={handleClose}
+                sx={{
+                    '& .MuiMenuItem-root': {
+                        justifyContent: 'flex-start',
+                        gap: '10px'
+                    },
+                    '& .MuiAvatar-root': {
+                        bgcolor: 'black'
+                    }
+                }}
+            >
+                <MenuItem>
+                    <Avatar /> Profile
+                </MenuItem>
+                <MenuItem>
+                    <Avatar>
+                        <EventIcon   />
+                    </Avatar>
+                    Add Appointments
+                </MenuItem>
+                <MenuItem>
+                    <Avatar>
+                        <LocalOfferIcon />
+                    </Avatar>
+                    Add Promotions
+                </MenuItem>
+                <MenuItem>
+                    <Avatar>
+                        <SettingsIcon />
+                    </Avatar>
+                    Settings
+                </MenuItem>
+                <Divider />
+                <MenuItem>
+                    <ListItemIcon>
+                        <LogoutIcon fontSize="medium" />
+                    </ListItemIcon>
+                    Sign Out
+                </MenuItem>
+            </Menu>
         </nav>
     );
 }

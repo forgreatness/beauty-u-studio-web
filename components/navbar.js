@@ -16,7 +16,11 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer'
 import EventIcon from '@mui/icons-material/Event';
 import React, { useState, useEffect } from 'react';
+import { useApolloClient } from '@apollo/client';
+import CircularProgress from '@mui/material/CircularProgress';
+import Backdrop from '@mui/material/Backdrop';
 
+import { removeAllCookies } from '../lib/utility/cookie';
 import * as Constants from '../src/constants/index';
 
 export default function Navbar(props) {
@@ -24,6 +28,7 @@ export default function Navbar(props) {
     const [menuClicked, hasClicked] = useState(false);
     const [profileImage, setProfileImage] = useState("/images/profile_icon.png");
     const [anchorE1, setAnchorE1] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     const styles = css`
         height: 64px;
@@ -248,6 +253,7 @@ export default function Navbar(props) {
 
     const open = Boolean(anchorE1);
     const router = useRouter();
+    const apolloClient = useApolloClient();
 
     const handleClick = (e) => {
         setAnchorE1(e.currentTarget);
@@ -281,118 +287,147 @@ export default function Navbar(props) {
         hasClicked(menuClicked => !menuClicked);
     }
 
+    const handleSignOut = () => {
+        localStorage.clear();
+        removeAllCookies();
+        apolloClient.clearStore();
+
+        if (router.pathname == '/') {
+            router.reload();
+        } else {
+            router.replace("/");            
+        }
+    }
+
+    const handleNavigation = (path) => {
+        setLoading(true);
+        if (router.pathname == path) {
+            router.reload();
+        } else {
+            router.push(path);
+        }
+    }
+
     return (
-        <nav css={styles}>
-            <div className={(menuClicked) ? 'menu-icon clicked' : 'menu-icon'} onClick={handleMenuClick}>
-                <div className="bar1"></div>
-                <div className="bar2"></div>
-                <div className="bar3"></div>
-            </div>
-            <div className="home">
-                <Link href="/" passHref>
-                    <a>
-                        <img 
-                            alt="BeautyUStudio Home Link" 
-                            src="/images/BeautyUStudio-logo.png" />
-                    </a>
-                </Link>
-            </div>
-            <div className="nav">
-                {(props.userDetail)
-                    ? (
-                        <Tooltip title="Account Menu">
-                            <div className="profile_action" onClick={handleClick}>
-                                <AccountCircleIcon aria-label="account action" aria-controls={open ? 'account-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined}/>
-                            </div>
-                        </Tooltip>
-                    ) 
-                    : (
-                        <div className="signin" onClick={e => {
-                            e.preventDefault();
-                            router.push('/authenticate');
-                        }}>
-                            <img src={Constants.ICONS.signin} alt="Sign-In icon" />
-                            <b>Sign-In</b>
-                        </div>
-                    )
-                }
-                <Link href="/services" passHref>
-                    <a>Services</a>
-                </Link>
-                <Link href="/appointment" passHref>
-                    <a>Appointment</a>
-                </Link>
-                <Link href="/about" passHref>
-                    <a>About Us</a>
-                </Link>
-                <div className="footer">
+        [
+            <nav css={styles}>
+                <div className={(menuClicked) ? 'menu-icon clicked' : 'menu-icon'} onClick={handleMenuClick}>
+                    <div className="bar1"></div>
+                    <div className="bar2"></div>
+                    <div className="bar3"></div>
+                </div>
+                <div className="home">
                     <Link href="/" passHref>
-                        <a className="footer_home">
+                        <a onClick={() => handleNavigation("/")}>
                             <img 
                                 alt="BeautyUStudio Home Link" 
                                 src="/images/BeautyUStudio-logo.png" />
                         </a>
                     </Link>
-                    <div className="social-media">
-                        <a href=""> 
-                            <img alt="BeautyUStudio Facebook Page" src={Constants.ICONS.facebook} />
-                        </a>
-                        <a href="https://www.instagram.com/beautyu_byyen/?hl=en" target="_blank"> 
-                            <img alt="BeautyUStudio Instagram Page" src={Constants.ICONS.instagram} />
-                        </a>
-                        <a href=""> 
-                            <img alt="BeautyUStudio Twitter Page" src={Constants.ICONS.twitter} />
-                        </a>
+                </div>
+                <div className="nav">
+                    {(props.userDetail)
+                        ? (
+                            <Tooltip title="Account Menu">
+                                <div className="profile_action" onClick={handleClick}>
+                                    <AccountCircleIcon aria-label="account action" aria-controls={open ? 'account-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined}/>
+                                </div>
+                            </Tooltip>
+                        ) 
+                        : (
+                            <div className="signin" onClick={e => {
+                                e.preventDefault();
+                                router.push('/authenticate');
+                            }}>
+                                <img src={Constants.ICONS.signin} alt="Sign-In icon" />
+                                <b>Sign-In</b>
+                            </div>
+                        )
+                    }
+                    <Link href="/services" passHref>
+                        <a onClick={(_) => handleNavigation("/services")}>Services</a>
+                    </Link>
+                    <Link href="/appointment" passHref>
+                        <a onClick={(_) => handleNavigation("/appointment")}>Appointment</a>
+                    </Link>
+                    <Link href="/about" passHref>
+                        <a onClick={(_) => handleNavigation("/about")}>About Us</a>
+                    </Link>
+                    <div className="footer">
+                        <Link href="/" passHref>
+                            <a className="footer_home">
+                                <img 
+                                    alt="BeautyUStudio Home Link" 
+                                    src="/images/BeautyUStudio-logo.png" />
+                            </a>
+                        </Link>
+                        <div className="social-media">
+                            <a href=""> 
+                                <img alt="BeautyUStudio Facebook Page" src={Constants.ICONS.facebook} />
+                            </a>
+                            <a href="https://www.instagram.com/beautyu_byyen/?hl=en" target="_blank"> 
+                                <img alt="BeautyUStudio Instagram Page" src={Constants.ICONS.instagram} />
+                            </a>
+                            <a href=""> 
+                                <img alt="BeautyUStudio Twitter Page" src={Constants.ICONS.twitter} />
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <Menu
-                id="account-menu"
-                anchorEl={anchorE1}
-                open={open}
-                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                transformOrigin={{ vertical: "top", horizontal: "right"}}
-                onClose={handleClose}
-                onClick={handleClose}
-                sx={{
-                    '& .MuiMenuItem-root': {
-                        justifyContent: 'flex-start',
-                        gap: '10px'
-                    },
-                    '& .MuiAvatar-root': {
-                        bgcolor: 'black'
-                    }
-                }}
+                <Menu
+                    id="account-menu"
+                    anchorEl={anchorE1}
+                    open={open}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                    transformOrigin={{ vertical: "top", horizontal: "right"}}
+                    onClose={handleClose}
+                    onClick={handleClose}
+                    sx={{
+                        '& .MuiMenuItem-root': {
+                            justifyContent: 'flex-start',
+                            gap: '10px'
+                        },
+                        '& .MuiAvatar-root': {
+                            bgcolor: 'black'
+                        }
+                    }}
+                >
+                    <MenuItem onClick={(_) => handleNavigation("/profile")}>
+                        <Avatar /> Profile
+                    </MenuItem>
+                    <MenuItem>
+                        <Avatar>
+                            <EventIcon   />
+                        </Avatar>
+                        Add Appointments
+                    </MenuItem>
+                    <MenuItem>
+                        <Avatar>
+                            <LocalOfferIcon />
+                        </Avatar>
+                        Add Promotions
+                    </MenuItem>
+                    <MenuItem>
+                        <Avatar>
+                            <SettingsIcon />
+                        </Avatar>
+                        Settings
+                    </MenuItem>
+                    <Divider />
+                    <MenuItem onClick={handleSignOut}>
+                        <ListItemIcon>
+                            <LogoutIcon fontSize="medium" />
+                        </ListItemIcon>
+                        Sign Out
+                    </MenuItem>
+                </Menu>
+            </nav>,
+            <Backdrop
+                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                open={loading}
             >
-                <MenuItem>
-                    <Avatar /> Profile
-                </MenuItem>
-                <MenuItem>
-                    <Avatar>
-                        <EventIcon   />
-                    </Avatar>
-                    Add Appointments
-                </MenuItem>
-                <MenuItem>
-                    <Avatar>
-                        <LocalOfferIcon />
-                    </Avatar>
-                    Add Promotions
-                </MenuItem>
-                <MenuItem>
-                    <Avatar>
-                        <SettingsIcon />
-                    </Avatar>
-                    Settings
-                </MenuItem>
-                <Divider />
-                <MenuItem>
-                    <ListItemIcon>
-                        <LogoutIcon fontSize="medium" />
-                    </ListItemIcon>
-                    Sign Out
-                </MenuItem>
-            </Menu>
-        </nav>
+                <CircularProgress color="inherit" />
+            </Backdrop>
+        ]
     );
 }

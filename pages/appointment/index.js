@@ -4,6 +4,14 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 import Dropdown from 'react-bootstrap/Dropdown';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Container from 'react-bootstrap/Container';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+import Collapse from '@mui/material/Collapse';
+import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import Snackbar from '@mui/material/Snackbar';
 import { useQuery, useMutation, gql, useApolloClient } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
@@ -27,6 +35,10 @@ export default function ApppointmentPage({ services, servicesByType, user }) {
     const minAppointmentDate = new Date(today.getTime() + millisecondsPerDay);
     const maxAppointmentDate = new Date(today.getTime() + millisecondsPerDay * 15);
 
+    const [appError, setAppError] = useState("");
+    const [showAppError, setShowAppError] = useState(false);
+    const [showBookedMessage, setShowBookedMessage] = useState(false);
+    const [onLoading, setOnLoading] = useState(false);
     const [serviceTypeFilter, setServiceTypeFilter] = useState("");
     const [servicesByKind, setServicesByKind] = useState({});
     const [calculateSlots, setCalculateSlots] = useState(false);
@@ -61,18 +73,17 @@ export default function ApppointmentPage({ services, servicesByType, user }) {
 
                 // if the current appointment in iteration is on the same day as the selected date user choosed;
                 if (onDate.getMonth() == appointmentDate.getMonth() && onDate.getDate() == appointmentDate.getDate()) {
-                    let x = 0;
+                    let isAdded = false;
 
-                    while (x < appointmentsOnDate.length) {
+                    for (let x = 0; x < appointmentsOnDate.length; x++) {
                         if (appointmentDate < new Date(appointmentsOnDate[x].time)) {
                             appointmentsOnDate.splice(x, 0, appointments[i]);
+                            isAdded = true;
                             break;
                         }
-
-                        x++;
                     }
 
-                    if (x == i) {
+                    if (!isAdded) {
                         appointmentsOnDate.push(appointments[i]);
                     }
                 }
@@ -143,95 +154,6 @@ export default function ApppointmentPage({ services, servicesByType, user }) {
         }
     }
 
-    // Calculate slots if we have all the data needed;
-    if (selectedServices.length > 0 && selectedStylist && selectedDate && calculateSlots) {
-        // #1:filter all the appointments from our system to only use one from the selectedDate and order the filtered appointments by time;
-        const onDate = new Date(Date.parse(selectedDate));
-        let appointmentsOnDate = [];
-        let timeSlots = [];
-
-        for (var i = 0; i < appointments.length; i++) {
-            let appointmentDate = new Date(appointments[i].time);
-
-            // if the current appointment in iteration is on the same day as the selected date user choosed;
-            if (onDate.getMonth() == appointmentDate.getMonth() && onDate.getDate() == appointmentDate.getDate()) {
-                let x = 0;
-
-                while (x < appointmentsOnDate.length) {
-                    if (appointmentDate < new Date(appointmentsOnDate[x].time)) {
-                        appointmentsOnDate.splice(x, 0, appointments[i]);
-                        break;
-                    }
-
-                    x++;
-                }
-
-                if (x == i) {
-                    appointmentsOnDate.push(appointments[i]);
-                }
-            }
-        }
-
-        // #2 Calculate slots using the ordered appointmentsOnDate and the startTime and endTime of studio/stylist;
-            // Condition for adding slots. Starting at last free time. If there is a gap between free time and the next appointment and the gap is bigger than services time;
-        let nextAvailableTime = new Date(`${selectedDate.toDateString()} ${studioOpens}`);
-        let nextUnavailableTime = new Date();
-        let currentSlot = new Date();
-        let newAppointmentTime = 0;
-
-            // Calculate newAppointmentTime; 
-        selectedServices.forEach(serviceId => {
-            let service = services.find(service => service.id == serviceId);
-
-            newAppointmentTime = newAppointmentTime + service.time;
-        });
-
-        for (let j = 0; j <= appointmentsOnDate.length; j++) {
-            if (j == appointmentsOnDate.length) {
-                nextUnavailableTime.setTime(Date.parse(`${selectedDate.toDateString()} ${studioCloses}`));
-            } else {
-                // Date must be normalized to start at midnight;
-                nextUnavailableTime.setTime(Date.parse(appointmentsOnDate[j].time));
-                nextUnavailableTime.setSeconds(0);
-                nextUnavailableTime.setMilliseconds(0);
-            }
-
-            currentSlot.setTime(nextAvailableTime.getTime());
-
-            while (nextAvailableTime.setMinutes(nextAvailableTime.getMinutes() + newAppointmentTime) <= nextUnavailableTime.getTime()) {
-                let meridiem = currentSlot.getHours() < 12 ? "AM" : "PM";
-                let hour = currentSlot.getHours() < 13 ? `${currentSlot.getHours()}` : `${currentSlot.getHours() - 12}`;
-                let minutes = currentSlot.getMinutes();
-    
-                if (parseInt(hour) < 10) {
-                    hour = "0" + hour;
-                }
-    
-                if (parseInt(minutes) < 10) {
-                    minutes = "0" + minutes;
-                }
-    
-                timeSlots.push(hour + ":" + minutes + " " + meridiem);
-                
-                currentSlot.setHours(nextAvailableTime.getHours());
-                currentSlot.setMinutes(nextAvailableTime.getMinutes());
-            };
-
-            if (j < appointmentsOnDate.length) {
-                let appointmentTime = 0;
-                appointmentsOnDate[j].services.forEach(service => {
-                    appointmentTime = appointmentTime + service.time;
-                });
-                nextAvailableTime.setTime(nextUnavailableTime);
-                nextAvailableTime.setMinutes(nextAvailableTime.getMinutes() + appointmentTime);             
-            }
-        }
-
-        setCalculateSlots(false);
-        setAvailableTime(timeSlots);
-        setSelectedTime(timeSlots[0]);
-    } 
-
     const handleServicesChange = (e) => {
         let newSelected = Array.from(e.target.selectedOptions, option => option.value);
 
@@ -245,16 +167,22 @@ export default function ApppointmentPage({ services, servicesByType, user }) {
             return true;
         });
 
+        setAvailableTime([]);
+        setSelectedTime("");
         setSelectedServices(selected.concat(newSelected));
         setCalculateSlots(true);
     }
 
     const handleStylistChange = (e) => {
+        setAvailableTime([]);
+        setSelectedTime("");
         setSelectedStylist(e.target.value);
     }
 
     const handleDateChange = (date) => {
         if (date != 'Invalid Date' && date >= minAppointmentDate && date <= maxAppointmentDate) {
+            setAvailableTime([]);
+            setSelectedTime("");
             setSelectedDate(date);   
             setCalculateSlots(true);
         }
@@ -274,75 +202,98 @@ export default function ApppointmentPage({ services, servicesByType, user }) {
         setCalculateSlots(false);
     }
 
+    const handleCloseBookedMessage = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+
+        setShowBookedMessage(false);
+    }
+
     const handleBookAppointment = async (e) => {
         e.preventDefault();
 
         if (selectedServices.length > 0 && selectedStylist && selectedDate && selectedTime) {
+            setOnLoading(true);
             let appointmentTime = new Date(`${selectedDate.toDateString()} ${selectedTime}`);
 
             let newAppointment = {
                 stylist: selectedStylist,
                 client: user.id,
                 services: selectedServices,
-                time: appointmentTime.toISOString()
+                time: appointmentTime.toISOString(),
+                status: "Requested"
             };
 
-            addAppointment({
-                variables: {
-                    newAppointment: newAppointment
-                },
-                update: (cache, { data: { newAppointment } }) => {
-                    cache.modify({
-                        fields: {
-                            appointments(existingAppointments = []) {
-                                const newAppointmentRef = cache.writeFragment({
-                                    data: newAppointment,
-                                    fragment: gql`
-                                        fragment NewAppointment on Appointment {
-                                            __typename
-                                            id
-                                            stylist {
+            try {
+                let response = await addAppointment({
+                    variables: {
+                        newAppointment: newAppointment
+                    },
+                    update: (cache, { data: { newAppointment } }) => {
+                        cache.modify({
+                            fields: {
+                                appointments(existingAppointments = []) {
+                                    const newAppointmentRef = cache.writeFragment({
+                                        data: newAppointment,
+                                        fragment: gql`
+                                            fragment NewAppointment on Appointment {
                                                 __typename
                                                 id
-                                                name
-                                                email
-                                                phone
-                                                photo
-                                                about
-                                            }
-                                            client {
-                                                __typename
-                                                id
-                                                name
-                                                email
-                                                phone
-                                                photo
-                                                about
-                                            }
-                                            services {
-                                                __typename
-                                                id
-                                                type
-                                                name
-                                                description
-                                                price
-                                                time
-                                                kind {
-                                                    type
+                                                stylist {
+                                                    __typename
+                                                    id
+                                                    name
+                                                    email
+                                                    phone
+                                                    photo
+                                                    about
                                                 }
+                                                client {
+                                                    __typename
+                                                    id
+                                                    name
+                                                    email
+                                                    phone
+                                                    photo
+                                                    about
+                                                }
+                                                services {
+                                                    __typename
+                                                    id
+                                                    type
+                                                    name
+                                                    description
+                                                    price
+                                                    time
+                                                    kind {
+                                                        type
+                                                    }
+                                                }
+                                                time
+                                                status
                                             }
-                                            time
-                                        }
-                                    `
-                                });
-                                return [...existingAppointments, newAppointmentRef];
+                                        `
+                                    });
+                                    return [...existingAppointments, newAppointmentRef];
+                                }
                             }
-                        }
-                    });
-                }
-            });
+                        });
+                    }
+                });
 
-            handleFormClear(e);
+                if (!response?.data?.newAppointment) {
+                    throw new Error('Unable to create new Appointment');
+                }
+
+                setShowBookedMessage(true);
+            } catch (err) {
+                setAppError(err.message);
+                setShowAppError(true);
+            } finally {
+                setOnLoading(false);
+                handleFormClear(e);
+            }
         }
     }
 
@@ -356,7 +307,7 @@ export default function ApppointmentPage({ services, servicesByType, user }) {
                 query: GET_APPOINTMENTS,
                 variables: {
                     query: {
-                        stylist: selectedStylist.toString(),
+                        stylist: selectedStylist,
                         client: user.id
                     }
                 }
@@ -442,9 +393,10 @@ export default function ApppointmentPage({ services, servicesByType, user }) {
                     </Form.Group>
                     <Form.Group className={styles.form_group} controlId="selectedDate">
                         <Form.Label id={styles.select_date_label} column="lg">Date</Form.Label>
-                        <DatePicker 
+                        <DatePicker
                             name="selectedDate" 
-                            placeholderText="Click to select a date" 
+                            placeholderText="Click to select a date"
+                            autoComplete='off'
                             selected={selectedDate} onChange={handleDateChange} 
                             minDate={minAppointmentDate} maxDate={maxAppointmentDate} peekNextMonth showMonthDropdown dropdownMode="select"/>
                     </Form.Group>
@@ -458,10 +410,45 @@ export default function ApppointmentPage({ services, servicesByType, user }) {
                             })}
                         </Form.Control>
                     </Form.Group>
-                    <Button variant="outline-secondary" type="reset" onClick={handleFormClear}>Clear</Button>{' '}
-                    <Button variant="outline-primary" type="submit" onClick={handleBookAppointment}>Book</Button>{' '}
+                    <div id={styles.form_action}>
+                        <Button variant="outline-secondary" type="reset" onClick={handleFormClear}>Clear</Button>{' '}
+                        <Button variant="outline-primary" type="submit" onClick={handleBookAppointment}>Book</Button>{' '}
+                    </div>
                 </Form>
             </Container>
+            <Backdrop
+                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                open={onLoading}>
+                <CircularProgress color="inherit" />
+            </Backdrop>
+            <Snackbar open={showBookedMessage} autoHideDuration={6000} onClose={handleCloseBookedMessage}>
+                <Alert onClose={handleCloseBookedMessage} severity="success" sx={{ width: '100%' }}>
+                Your appointment have been requested, we will notify you via your contact once confirmed
+                </Alert>
+            </Snackbar>
+            <Container maxWidth="xs" className={styles.error_alert}>
+                <Collapse in={showAppError}>
+                    <Alert
+                        severity="error"
+                        action={
+                        <IconButton
+                            aria-label="close"
+                            color="inherit"
+                            size="small"
+                            onClick={() => {
+                            setAppError('');
+                            setShowAppError(false);
+                            }}
+                        >
+                            <CloseIcon fontSize="inherit" />
+                        </IconButton>
+                        }
+                        sx={{ mb: 2 }} >
+                        <AlertTitle>Error</AlertTitle>
+                        {appError}
+                    </Alert>
+                </Collapse>
+            </Container>  
         </Layout>
     );
 }

@@ -1,6 +1,7 @@
 .schedule_appointment_form {
     border: #666 solid 2px;
     padding: 10px 20px;
+    overflow: auto;
 }
 
 #select_date_label {
@@ -9,4 +10,21 @@
 
 .form_group {
     padding: 10px 0px;
+}
+
+#form_action button {
+    margin-right: 5px;
+}
+
+#form_action {
+    display: inline-block;
+    float: right;
+}
+
+.error_alert {
+    position: fixed;
+    bottom: 0px;
+    right: 0px;
+    z-index: 10;
+    max-width: 20%;
 }

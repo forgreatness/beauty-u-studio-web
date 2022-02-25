@@ -5,6 +5,7 @@
     align-content: flex-start;
     align-items: flex-start;
     flex-wrap: nowrap;
+    min-height: 500px;
 }
 
 .profile {
@@ -18,6 +19,9 @@
     flex-grow: 0;
     flex-shrink: 0;
     flex-basis: 300px;
+    position: sticky;
+    top: 80px;
+    left: 20px;
 }
 
 .profilePicture {
@@ -87,8 +91,23 @@
     background-color: lavender;
 }
 
-.appointmentDetail {
-    
+.appointmentsTypeHeading {
+    text-decoration: underline;
+}
+
+#requestedHeading {
+    text-decoration-color: #eeea07;
+    text-decoration-thickness: 3px;
+}
+
+#confirmedHeading {
+    text-decoration-color: #1867df;
+    text-decoration-thickness: 3px;
+}
+
+#cancelledHeading {
+    text-decoration-color: orange;
+    text-decoration-thickness: 3px;
 }
 
 .error_alert {

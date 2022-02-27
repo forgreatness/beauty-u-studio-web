@@ -27,7 +27,7 @@ import { GET_SERVICES, GET_USERS, GET_APPOINTMENTS, ADD_APPOINTMENT, GET_USER } 
 import Loading from '../../components/loading';
 import { studioOpens, studioCloses } from '../../src/constants/index';
 
-export default function ApppointmentPage({ services, servicesByType, user }) {
+export default function ApppointmentPage({ services, servicesByType, user, emailJS }) {
     const apolloClient = useApolloClient();
     const today = new Date();
     today.setHours(0,0,0,0);
@@ -304,11 +304,11 @@ export default function ApppointmentPage({ services, servicesByType, user }) {
                     newAppointmentServicesMsg += ','
                 });
 
-                const emailResponse = await EmailJS.send(process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID, process.env.NEXT_PUBLIC_EMAILJS_APPOINTMENT_REQUEST_TEMPLATE_ID, {
+                const emailResponse = await EmailJS.send(emailJS.serviceID, emailJS.appointmentRequestTemplateID, {
                     stylist: newAppointment.stylist.name,
                     message: `${newAppointment.client.name} has requested an appointment for ${newAppointmentServicesMsg} on ${appointmentTime.toDateString()} at ${appointmentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`,
                     send_to: newAppointment.stylist.email,
-                }, process.env.NEXT_PUBLIC_EMAILJS_USER_ID);
+                }, emailJS.userID);
 
                 if ((emailResponse?.status ?? "") != 200) {
                     throw new Error ('Unable to notify the stylist of requested appointment');
@@ -585,7 +585,12 @@ export async function getServerSideProps(context) {
             props: {
                 services: services,
                 servicesByType: servicesByType,
-                user: user.data.user
+                user: user.data.user,
+                emailJS: {
+                    "serviceID": process.env.EMAILJS_SERVICE_ID,
+                    "appointmentRequestTemplateID": process.env.EMAILJS_APPOINTMENT_REQUEST_TEMPLATE_ID,
+                    "userID": process.env.EMAILJS_USER_ID
+                }
             }
         };
     } catch (err) {

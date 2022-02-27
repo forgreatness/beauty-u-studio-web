@@ -40,6 +40,7 @@ export default function ApppointmentPage({ services, servicesByType, user }) {
     const [showAppError, setShowAppError] = useState(false);
     const [showBookedMessage, setShowBookedMessage] = useState(false);
     const [onLoading, setOnLoading] = useState(false);
+    const [onLoadingNotification, setOnLoadingNotification] = useState("");
     const [serviceTypeFilter, setServiceTypeFilter] = useState("");
     const [servicesByKind, setServicesByKind] = useState({});
     const [calculateSlots, setCalculateSlots] = useState(false);
@@ -175,6 +176,7 @@ export default function ApppointmentPage({ services, servicesByType, user }) {
     }
 
     const handleStylistChange = (e) => {
+        setOnLoadingNotification("Getting Available Time Slots");
         setOnLoading(true);
         setAvailableTime([]);
         setSelectedTime("");
@@ -372,6 +374,7 @@ export default function ApppointmentPage({ services, servicesByType, user }) {
             setAppError(err.message);
             setShowAppError(true);
         } finally {
+            setOnLoadingNotification("");
             setOnLoading(false);
         }
     }, [selectedStylist]);
@@ -478,6 +481,7 @@ export default function ApppointmentPage({ services, servicesByType, user }) {
                 sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
                 open={onLoading}>
                 <CircularProgress color="inherit" />
+                <span>&nbsp;{onLoadingNotification}</span> 
             </Backdrop>
             <Snackbar open={showBookedMessage} autoHideDuration={6000} onClose={handleCloseBookedMessage}>
                 <Alert onClose={handleCloseBookedMessage} severity="success" sx={{ width: '100%' }}>

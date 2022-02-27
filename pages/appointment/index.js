@@ -18,6 +18,7 @@ import DatePicker from 'react-datepicker';
 import Cookie from 'cookie';
 import 'react-datepicker/dist/react-datepicker.css';
 import Jwt from 'jsonwebtoken';
+import EmailJS from '@emailjs/browser';
 
 import styles from '../../styles/appointmentpage.module.css';
 import Layout from '../../components/page-layout';
@@ -174,6 +175,7 @@ export default function ApppointmentPage({ services, servicesByType, user }) {
     }
 
     const handleStylistChange = (e) => {
+        setOnLoading(true);
         setAvailableTime([]);
         setSelectedTime("");
         setSelectedStylist(e.target.value);
@@ -286,8 +288,33 @@ export default function ApppointmentPage({ services, servicesByType, user }) {
                     throw new Error('Unable to create new Appointment');
                 }
 
+                newAppointment = response.data.newAppointment;
+                let newAppointmentServicesMsg = "";
+
+                newAppointment.services.forEach((service, index) => {
+                    if (index == newAppointment.services.length-1 && index != 0) {
+                        newAppointmentServicesMsg += " and";
+                    }
+
+                    newAppointmentServicesMsg += ` ${service.name}`;
+                    newAppointmentServicesMsg += ` ${service.type}`;
+                    newAppointmentServicesMsg += (service?.kind?.type) ? ` ${service.kind.type}` : "";
+                    newAppointmentServicesMsg += ','
+                });
+
+                const emailResponse = await EmailJS.send(process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID, process.env.NEXT_PUBLIC_EMAILJS_APPOINTMENT_REQUEST_TEMPLATE_ID, {
+                    stylist: newAppointment.stylist.name,
+                    message: `${newAppointment.client.name} has requested an appointment for ${newAppointmentServicesMsg} on ${appointmentTime.toDateString()} at ${appointmentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`,
+                    send_to: newAppointment.stylist.email,
+                }, process.env.NEXT_PUBLIC_EMAILJS_USER_ID);
+
+                if ((emailResponse?.status ?? "") != 200) {
+                    throw new Error ('Unable to notify the stylist of requested appointment');
+                }
+
                 setShowBookedMessage(true);
             } catch (err) {
+                console.log(err);
                 setAppError(err.message);
                 setShowAppError(true);
             } finally {
@@ -302,19 +329,50 @@ export default function ApppointmentPage({ services, servicesByType, user }) {
     }
 
     useEffect(async () => {
-        if (selectedStylist) {
-            const { data } = await apolloClient.query({
-                query: GET_APPOINTMENTS,
-                variables: {
-                    query: {
-                        stylist: selectedStylist,
-                        client: user.id
-                    }
-                }
-            });
+        try {
+            if (selectedStylist) {
+                const { data } = await apolloClient.query({
+                    query: GET_APPOINTMENTS,
+                    variables: {
+                        query: {
+                            stylist: selectedStylist,
+                            client: user.id
+                        }
+                    },
+                    fetchPolicy: 'network-only'
+                });
 
-            setAppointments(data.appointments);
-            setCalculateSlots(true);
+                if (!(data?.appointments)) {
+                    throw new Error('unable to request stylist and client existing schedule');
+                }
+
+                // We want only appointments in the future
+                // We want only appointments which are confirmed
+                // We want appointments which are requested when:
+                // The stylist is the client of that appointment
+                // The user is the client of that appointment
+                let occupiedAppointments = [];
+
+                data.appointments.forEach(appointment => {
+                    if (new Date(appointment.time) > Date.now()) {
+                        if (appointment.status.toLowerCase() == "confirmed") {
+                            occupiedAppointments.push(appointment);
+                        } else if (appointment.status.toLowerCase() == "requested") {
+                            if (user.id == appointment.client.id || selectedStylist == appointment.client.id) {
+                                occupiedAppointments.push(appointment);
+                            }
+                        }
+                    }
+                });
+    
+                setAppointments(occupiedAppointments);
+                setCalculateSlots(true);
+            }
+        } catch (err) {
+            setAppError(err.message);
+            setShowAppError(true);
+        } finally {
+            setOnLoading(false);
         }
     }, [selectedStylist]);
 
@@ -528,7 +586,6 @@ export async function getServerSideProps(context) {
         };
     } catch (err) {
         const reason = err?.message.toLowerCase();
-        console.log(reason);
 
         if (reason == 'bad token') {
             context.res.setHeader(

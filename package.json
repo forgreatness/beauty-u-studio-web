@@ -12,10 +12,10 @@
   "dependencies": {
     "@apollo/client": "^3.3.12",
     "@emailjs/browser": "^3.4.0",
-    "@emotion/react": "^11.7.1",
-    "@emotion/styled": "^11.6.0",
+    "@emotion/react": "^11.8.1",
+    "@emotion/styled": "^11.8.1",
     "@mui/icons-material": "^5.2.4",
-    "@mui/material": "^5.2.4",
+    "@mui/material": "^5.4.4",
     "bootstrap": "^5.0.1",
     "cookie": "^0.4.1",
     "dotenv": "^8.2.0",

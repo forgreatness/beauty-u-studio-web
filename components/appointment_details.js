@@ -37,7 +37,7 @@ export default function AppointmentDetail(props) {
 
     const buttonStyle = {
         "&.MuiButton-root": {
-            color: "blue"
+            color: "blue",
         },
         "&.MuiButton-root:hover": {
             cursor: "pointer",
@@ -57,6 +57,15 @@ export default function AppointmentDetail(props) {
             border: "none",
             background: "black",
         },
+        "&.MuiButton-complete": {
+            background: "#1b5e20",
+            border: "none",
+            color: "white"
+        },
+        "&.MuiButton-noshow": {
+            color: "#d84315",
+            fontWeight: "bold"
+        }
       };
       
 
@@ -75,25 +84,30 @@ export default function AppointmentDetail(props) {
     }, []);
 
     function appointmentActions(type) {
-        if (type.toLowerCase() == "requested") {
+        if (type.toLocaleLowerCase() == "requested") {
             return (
                 [
-                    <Button sx={buttonStyle} variant="decline">DECLINE</Button>,
-                    <Button sx={buttonStyle} variant="confirm" onClick={() => props.onConfirmAppointment(props.appointment, props.requestPosition)}>CONFIRM</Button>
+                    <Button sx={buttonStyle} variant="decline" size="small" onClick={() => props.onRemoveAppointment(props.appointment, props.filteredIndex)}>DECLINE</Button>,
+                    <Button sx={buttonStyle} variant="confirm" size="small" onClick={() => props.onUpdateAppointment(props.appointment, props.filteredIndex, "Confirmed")}>CONFIRM</Button>
                 ]
             );
-        } else if (type.toLowerCase() == "confirmed") {
+        } else if (type.toLocaleLowerCase() == "confirmed") {
             return (
                 [
-                    <Button sx={buttonStyle} variant="cancel" onClick={() => props.onCancellingAppointment(props.appointment, props.requestPosition)}>CANCEL</Button> 
+                    <Button sx={buttonStyle} variant="cancel" size="small" onClick={() => props.onUpdateAppointment(props.appointment, props.filteredIndex, "Cancelled")}>CANCEL</Button> 
                 ]
             )
+        } else if (type.toLocaleLowerCase() == 'recent') {
+            return ([
+                <Button sx={buttonStyle} variant="noshow" size="small" onClick={() => props.onUpdateAppointment(props.appointment, props.filteredIndex, "No Show")}>NO SHOW</Button>,
+                <Button sx={buttonStyle} variant="complete" size="small" onClick={() => props.onUpdateAppointment(props.appointment, props.filteredIndex, "Completed")}>COMPLETED</Button>,
+            ]);
         }
     }
 
     return (
         <div css={styles}>
-            <h3>{(props.isClient) ? props.appointment.stylist.name : props.appointment.client.name}</h3>
+            <h3>{(props?.isClient) ? props.appointment.stylist.name : props.appointment.client.name}</h3>
             <Stack direction="row" spacing={2}>
                 <div>
                     <p>

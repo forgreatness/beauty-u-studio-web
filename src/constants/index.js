@@ -78,7 +78,8 @@ export const INFO_TYPE = {
 export const StatusColor = {
     Requested: "#eeea07",
     Confirmed: "#1867df",
-    Cancelled: "orange",
-    "No Show": "",
-    "Completed":  ""
+    Cancelled: "#e68a00",
+    "No Show": "#cc3300",
+    "Completed":  "#009933",
+    "Recent": "black"
 }

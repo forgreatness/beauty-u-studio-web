@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Dongle&display=swap');
 .profilePage {
     display: flex;
     flex-direction: row;
@@ -6,6 +7,7 @@
     align-items: flex-start;
     flex-wrap: nowrap;
     min-height: 500px;
+    margin-bottom: 50px;
 }
 
 .profile {
@@ -37,6 +39,10 @@
 .profileAligner {
     display: inline-block;
     text-align: start;
+}
+
+.profileHeader {
+    text-align: center;
 }
 
 .icon {
@@ -110,9 +116,86 @@
     text-decoration-thickness: 3px;
 }
 
+#completedHeading {
+    text-decoration-color: #009933;
+    text-decoration-thickness: 3px;
+}
+
+#recentHeading {
+    text-decoration-color: black;
+    text-decoration-thickness: 3px;
+}
+
+#noShowHeading {
+    text-decoration-color: #cc3300;
+    text-decoration-thickness: 3px;
+}
+
 .error_alert {
     position: fixed;
     bottom: 0px;
     right: 0px;
     z-index: 10;
+}
+
+#user_appointments {
+    display: flex;
+    height: 100vh;
+    align-items: flex-start;
+    align-content: flex-start;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+#user_appointments_list {
+    flex-grow: 2;
+    flex-wrap: nowrap;
+    height: 100%;
+}
+
+#user_appointments_filter {
+    flex-basis: 250px;
+    flex-shrink: 1;
+    flex-grow: 0;
+}
+
+.header {
+    font-family: 'Dongle', sans-serif;
+    color: #5e35b1;
+    text-align: center;
+}
+
+#appointments_filter_subheader {
+    font-weight: bold;
+    font-size: 20px ;
+    color: #eceff1;
+    text-align: center;
+}
+
+.appointments_filter_option {
+    color: white;
+}
+
+#user_appointments_container {
+    height: calc(100% - 150px);
+    background-color: #424242;
+    padding: 10px 10px;
+    overflow: auto;
+    box-shadow: -5px 5px 5px black;;
+    border-radius: 5px;
+}
+
+#select_filter_info {
+    color: white;
+    text-align: center;
+}
+
+#select_filter_info {
+    height: 100%;
+}
+
+.filtered_section {
+    background-color: white;
+    padding: 5px 5px;
+    margin: 10px;
 }

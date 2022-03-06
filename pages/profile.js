@@ -9,6 +9,13 @@ import CloseIcon from '@mui/icons-material/Close';
 import Container from '@mui/material/Container';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
+import List from '@mui/material/List';
+import ListSubheader from '@mui/material/ListSubheader';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+import { indigo, brown, blueGrey, grey } from '@mui/material/colors';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import { useQuery, useMutation, useApolloClient, from } from '@apollo/client';
@@ -17,8 +24,10 @@ import Cookie from 'cookie';
 import styles from '../styles/profilepage.module.css';
 import Layout from '../components/page-layout.js';
 import ApolloClient from '../lib/apollo/apollo-client.js';
-import { GET_USER, GET_APPOINTMENTS, UPDATE_APPOINTMENT } from '../lib/apollo/data-queries.js';
+import { GET_USER, GET_APPOINTMENTS, UPDATE_APPOINTMENT, REMOVE_APPOINTMENT } from '../lib/apollo/data-queries.js';
 import AppointmentDetail from '../components/appointment_details';
+import UserAppointmentDetail from '../components//user_appointment_detail';
+import { StatusColor } from '../src/constants/index';
 
 /* Purpose 
 * If the user is a client: they should only be able to see their contact information, and past bookings, and upcoming bookings
@@ -26,31 +35,14 @@ import AppointmentDetail from '../components/appointment_details';
 */
 export default function ProfilePage({ userDetails, error }) {
     const apolloClient = useApolloClient();
-    const [updateAppointment, { _ }] = useMutation(UPDATE_APPOINTMENT);
-    //     {
-    //     update: (cache, { data: { updatedAppointment } }) => {
-    //         cache.modify({
-    //             id: cache.identify(updatedAppointment),
-    //             fields: {
-    //                 client(_) {
-    //                     return cache.identify(updatedAppointment.client);
-    //                 },
-    //                 stylist(_) {
-    //                     return cache.identify(updatedAppointment.stylist);
-    //                 },
-    //                 services(_) {
-    //                     return updatedAppointment.services.map(service => cache.identify(service));
-    //                 },
-    //                 time(_) {
-    //                     return updatedAppointment.time;
-    //                 },
-    //                 status(_) {
-    //                     return updatedAppointment.status;
-    //                 }
-    //             }
-    //         });
-    //     }
-    // });
+    const [updateAppointment] = useMutation(UPDATE_APPOINTMENT);
+    const [removeAppointment] = useMutation(REMOVE_APPOINTMENT, {
+        update: (cache, { data: { removedAppointment } }) => {
+            cache.evict({
+                id: cache.identify(removedAppointment)
+            });
+        }
+    });
 
     const [profileImage, setProfileImage] = useState("/images/profile_icon.png");
     const [clientAppointmentsTimeframe, setClientAppointmentsTimeframe] = useState('UPCOMING');
@@ -62,26 +54,18 @@ export default function ProfilePage({ userDetails, error }) {
     const [recentAppointments, setRecentAppointments] = useState([]);
     const [noShowAppointments, setNoShowAppointments] = useState([]);
     const [completedAppointments, setCompletedAppoinments] = useState([]);
-
-    // const userAppointments = useQuery(GET_APPOINTMENTS, {
-    //     variables: {
-    //         query: {
-    //             client: userDetails?.id
-    //         }
-    //     },
-    //     onError: (err) => {
-    //         if (err) {
-    //             setApplicationError("Unable to fetch data");
-    //             setShowAppError(true);
-    //         }
-    //     }
-    // });
+    const [filteredUserAppointments, setFilteredUserAppointments] = useState();
+    const [userAppointmentFilters, setUserAppointmentFilters] = useState();
+    const [onLoading, setOnLoading] = useState(false);
+    const [onLoadingNotification, setOnLoadingNotification] = useState("");
 
     const handleClientAppointmentsTimeframeChange = (e, newValue) => {
         setClientAppointmentsTimeframe(newValue);
     }
 
     useEffect(async () => {
+        setOnLoading(true);
+
         if (error) {
             setApplicationError(error);
             setShowAppError(true);
@@ -92,15 +76,30 @@ export default function ProfilePage({ userDetails, error }) {
             setProfileImage("data:image/png;base64, " + userDetails.photo);
         }
 
-        if ((userDetails?.role ?? '').toLowerCase() == 'stylist') {
-            try {
+        try {
+            const userAppointments = await apolloClient.query({
+                query: GET_APPOINTMENTS,
+                variables: {
+                    query: {
+                        client: userDetails.id
+                    }
+                }
+            });
+
+            if (!userAppointments?.data?.appointments) throw new Error("Unable to get user Appointments");
+
+            let filteredUserAppointments = filterAppointments(userAppointments.data.appointments);
+
+            setFilteredUserAppointments(filteredUserAppointments);
+
+            if ((userDetails?.role ?? '').toLowerCase() == 'stylist') {
                 const { data } = await apolloClient.query({
                     query: GET_APPOINTMENTS, 
                     variables: {
                         query: {
                             stylist: userDetails?.id
                         }
-                    }
+                    },
                 });
 
                 if (!data) {
@@ -113,27 +112,23 @@ export default function ProfilePage({ userDetails, error }) {
                 setConfirmedAppointments(filteredAppointments.confirmed);
                 setCancelledAppointments(filteredAppointments.cancelled);
                 setRecentAppointments(filteredAppointments.recent);
-                setNoShowAppointments(filteredAppointments.noShow);
+                setNoShowAppointments(filteredAppointments["no show"]);
                 setCompletedAppoinments(filteredAppointments.completed);
-            } catch (err) {
-                console.log(err);
-                setApplicationError("Unable to fetch data");
-                setShowAppError(true);
             }
+        } catch (err) {
+            console.log(err);
+            setApplicationError("Unable get user and clients appointments");
+            setShowAppError(true);
         }
+        setOnLoading(false);
     }, []);
 
     // When status of an appointment changed. Couple of things we need to do:
     // 1) Update the local state. This should re-render the UI automatically
     // 2) update the cache to reflect this change
     // 3) Update the database
-    const handleConfirmAppointment = async (appointment, index) => {
+    const handleUpdateClientAppointment = async (appointment, index, newStatus) => {
         try {
-            if (appointment.status.toLowerCase() != "requested") {
-                return;
-            }
-
-            // Update remote state (backend) and cache if backend is configured to return an object of that type
             let response = await updateAppointment({
                 variables: {
                     appointmentID: appointment.id,
@@ -142,53 +137,139 @@ export default function ProfilePage({ userDetails, error }) {
                         client: appointment.client.id,
                         services: appointment.services.map(service => service.id),
                         time: appointment.time,
-                        status: "Confirmed"
-                    }
-                },
-            });
-
-            // Update local state
-            let allRequested = JSON.parse(JSON.stringify(requestedAppointments));
-            let allConfirmed = JSON.parse(JSON.stringify(confirmedAppointments));
-            allConfirmed.splice(findSortedIndex(allConfirmed, response.data.updatedAppointment), 0, response.data.updatedAppointment);
-            allRequested.splice(index, 1);
-            setRequestedAppointments(allRequested);
-            setConfirmedAppointments(allConfirmed);
-        } catch (err) {
-            setApplicationError("There was a problem confirming the appointment");
-            showAppError(true);
-        }
-    }
-
-    const handleCancelAppointment = async (appointment, index) => {
-        try {
-            if (appointment.status.toLowerCase() != "confirmed") {
-                return;
-            }
-
-            let response = await updateAppointment({
-                variables: {
-                    appointmentID: appointment.id,
-                    updatedAppointment: {
-                        stylist: appointment.stylist.id,
-                        client: appointment.client.id,
-                        services: appointment.services.map(service => service.id),
-                        time: appointment.time,
-                        status: "Cancelled"
+                        status: newStatus
                     }
                 }
             });
 
-            let allConfirmed = JSON.parse(JSON.stringify(confirmedAppointments));
-            let allCancelled = JSON.parse(JSON.stringify(cancelledAppointments));
-            allConfirmed.splice(index, 1);
-            allCancelled.splice(findSortedIndex(allCancelled, response.data.updatedAppointment), 0, response.data.updatedAppointment);
-            setConfirmedAppointments(allConfirmed);
-            setCancelledAppointments(allCancelled);
+            if (!response) {
+                throw new Error("Unable to update clients appointment");
+            }
+
+            // Update local state
+            if (appointment.status.toLocaleLowerCase() == "requested") {
+                let allRequested = JSON.parse(JSON.stringify(requestedAppointments));
+                allRequested.splice(index, 1);
+                setRequestedAppointments(allRequested);
+            } else if (appointment.status.toLocaleLowerCase() == "confirmed") {
+                let allConfirmed = JSON.parse(JSON.stringify(confirmedAppointments));
+                allConfirmed.splice(index, 1);
+                setConfirmedAppointments(allConfirmed);
+            } else if (appointment.status.toLocaleLowerCase() == "recent") {
+                let allRecent = JSON.parse(JSON.stringify(recentAppointments));
+                allRecent.splice(index, 1);
+                setRecentAppointments(allRecent);
+            }
+
+            // Update local state
+            if (newStatus.toLocaleLowerCase() == "confirmed") {
+                let allConfirmed = JSON.parse(JSON.stringify(confirmedAppointments));
+                allConfirmed.splice(findSortedIndex(allConfirmed, response.data.updatedAppointment), 0, response.data.updatedAppointment);
+                setConfirmedAppointments(allConfirmed);
+            } else if (newStatus.toLocaleLowerCase() == "cancelled") {
+                let allCancelled = JSON.parse(JSON.stringify(cancelledAppointments));
+                allCancelled.splice(findSortedIndex(allCancelled, response.data.updatedAppointment), 0, response.data.updatedAppointment);
+                setCancelledAppointments(allCancelled);
+            } else if (newStatus.toLocaleLowerCase() == "no show") {
+                let allNoShow = JSON.parse(JSON.stringify(noShowAppointments));
+                allNoShow.splice(findSortedIndex(allNoShow, response.data.updatedAppointment), 0, response.data.updatedAppointment);
+                setNoShowAppointments(allNoShow);
+            } else if (newStatus.toLocaleLowerCase() == "completed") {
+                let allCompleted = JSON.parse(JSON.stringify(completedAppointments));
+                allCompleted.splice(findSortedIndex(allCompleted, response.data.updatedAppointment), 0, response.data.updatedAppointment);
+                setCompletedAppoinments(allCompleted);
+            }
         } catch (err) {
-            setApplicationError("There was a problem cancelling the appointment");
-            showAppError(true);
+            setApplicationError("There was a problem updating the clients appointment");
+            setShowAppError(true);
         }
+    }
+
+    const handleRemoveClientAppointment = async (appointment, index) => {
+        try {
+            let response = await removeAppointment({
+                variables: {
+                    appointmentID: appointment.id
+                }
+            });
+
+            if (!response) {
+                throw new Error("Unable to remove the appointment");
+            }
+
+            // Update local state
+            if (appointment.status.toLocaleLowerCase() == "requested") {
+                let allRequested = JSON.parse(JSON.stringify(requestedAppointments));
+                allRequested.splice(index, 1);
+                setRequestedAppointments(allRequested);
+            }
+        } catch (err) {
+            setApplicationError("There was a problem removing the appointment");
+            setShowAppError(true);
+        }
+    }
+
+    // const handleDeclineAppointment = async (appointment, index) => {
+    //     try {
+    //         if (appointment.status.toLocaleLowerCase() == "requested") {
+    //             let response = await removeAppointment({
+    //                 variables: {
+    //                     appointmentID: appointment.id
+    //                 }
+    //             });
+
+    //             if (!response) {
+    //                 throw new Error("Unable to remove the appointment");
+    //             }
+
+    //             let allRequested = JSON.parse(JSON.stringify(requestedAppointments));
+    //             allRequested.splice(index, 1);
+    //             setRequestedAppointments(allRequested);
+    //         }
+    //     } catch (err) {
+    //         setApplicationError("There was a problem declining the appointment");
+    //         setShowAppError(true);
+    //     }
+    // }
+
+    const handleRemoveAppointment = async (appointment, index) => {
+        try {
+            if (appointment.status.toLocaleLowerCase() == "requested") {
+                const response = await removeAppointment({
+                    variables: {
+                        appointmentID: appointment.id
+                    }
+                });
+
+                if (!response) {
+                    throw new Error("Unable to remove the appointment");
+                }
+
+                let allFilteredUserAppointments = JSON.parse(JSON.stringify(filteredUserAppointments));
+                let filteredRequestedAppointments = allFilteredUserAppointments.requested;
+                filteredRequestedAppointments.splice(index, 1);
+                allFilteredUserAppointments.requested = filteredRequestedAppointments;
+                setFilteredUserAppointments(allFilteredUserAppointments);
+            }
+        } catch (err) {
+            setApplicationError("There was a problem removing the appointment");
+            setShowAppError(true);
+        }
+    }
+
+    const handleUserAppointmentFiltersChange = (e, filter) => {
+        e.preventDefault();
+        let updatedFilters = {
+            ...userAppointmentFilters
+        };
+
+        if (!(userAppointmentFilters?.[filter] ?? false)) {
+            updatedFilters[filter] = true;
+        } else {
+            delete updatedFilters[filter];
+        }
+
+        setUserAppointmentFilters(updatedFilters);
     }
 
     const findSortedIndex = (appointments, appointment) => {
@@ -255,7 +336,9 @@ export default function ProfilePage({ userDetails, error }) {
                 if (when >= Date.now()) {
                     confirmed.push(appointment);
                 } else {
-                    recent.push(appointment);
+                    const recentAppointment = JSON.parse(JSON.stringify(appointment));
+                    recentAppointment.status = "recent";
+                    recent.push(recentAppointment);
                 }
             } else if (appointment.status.toLowerCase() == "cancelled") {
                 if (when > Date.now()) {
@@ -281,19 +364,22 @@ export default function ProfilePage({ userDetails, error }) {
             confirmed,
             cancelled,
             recent,
-            noShow,
-            completed
+            completed,
+            "no show": noShow
         };
     }
 
     return (
         <Layout userDetail={userDetails}>
+            {(userDetails.role.toLowerCase() == "stylist") ? (
             <div className={styles.profilePage}>
                 <div className={styles.profile}>
                     <div className={styles.profileAligner}>
-                        <img className={styles.profilePicture} alt="user image" src={profileImage} />
+                        <div className={styles.profileHeader}>
+                            <img className={styles.profilePicture} alt="user image" src={profileImage} />
+                            <h2 className={styles.header}>{userDetails?.name}</h2>
+                        </div>
                         <div className={styles.profileInfo}>
-                            <h2>{userDetails?.name}</h2>
                             <ul className={styles.profileContact}>
                                 <li>
                                     <a href={"mailto:" + userDetails?.email}>
@@ -313,7 +399,7 @@ export default function ProfilePage({ userDetails, error }) {
                 </div>
                 <div id={styles.appointmentContent}>
                     <div id={styles.clientAppointments}>
-                        <h2>CLIENTS APPOINTMENT</h2>
+                        <h2 className={styles.header}>CLIENTS APPOINTMENT</h2>
                         <Tabs value={clientAppointmentsTimeframe} onChange={handleClientAppointmentsTimeframeChange} textColor="primary" indicatorColor="primary" aria-label="select appointments based on upcoming or past">
                             <Tab value="UPCOMING" label="UPCOMING" />
                             <Tab value="PREVIOUS" label="PREVIOUS" />
@@ -330,9 +416,10 @@ export default function ProfilePage({ userDetails, error }) {
                                                     return (
                                                         <AppointmentDetail 
                                                             key={requestedAppointment.id.toString()} 
-                                                            className={styles.appointmentDetail} 
-                                                            onConfirmAppointment={handleConfirmAppointment}
-                                                            requestPosition={index}
+                                                            className={styles.appointmentDetail}
+                                                            onUpdateAppointment={handleUpdateClientAppointment}
+                                                            onRemoveAppointment={handleRemoveClientAppointment} 
+                                                            filteredIndex={index}
                                                             appointment={requestedAppointment} 
                                                             isClient={false} />
                                                     );
@@ -351,8 +438,8 @@ export default function ProfilePage({ userDetails, error }) {
                                                             key={confirmedAppointment.id.toString()} 
                                                             className={styles.appointmentDetail} 
                                                             appointment={confirmedAppointment}
-                                                            onCancellingAppointment={handleCancelAppointment}
-                                                            requestPosition={index} 
+                                                            onUpdateAppointment={handleUpdateClientAppointment}
+                                                            filteredIndex={index} 
                                                             isClient={false} />
                                                     );
                                                 })}
@@ -374,14 +461,182 @@ export default function ProfilePage({ userDetails, error }) {
                                     }
                                 </div>
                             ) : (
-                                <div>
-
+                                <div id={styles.previousAppointment}>
+                                    {
+                                        recentAppointments?.length ? [
+                                            <h4 id={styles.recentHeading} className={styles.appointmentsTypeHeading}>Recent</h4>,
+                                            <div className={styles.appointmentList}>
+                                                {recentAppointments.map((recentAppointment, index) => {
+                                                    return (
+                                                        <AppointmentDetail 
+                                                            key={recentAppointment.id.toString()} 
+                                                            className={styles.appointmentDetail} 
+                                                            onUpdateAppointment={handleUpdateClientAppointment}
+                                                            filteredIndex={index}
+                                                            appointment={recentAppointment} 
+                                                            isClient={false} />
+                                                    );
+                                                })}
+                                            </div>
+                                        ] : null
+                                    }
+                                    {
+                                        completedAppointments?.length ? [
+                                            <h4 id={styles.completedHeading} className={styles.appointmentsTypeHeading}>Completed</h4>,
+                                            <div className={styles.appointmentList}>
+                                                {completedAppointments.map((completedAppointment, index) => {
+                                                    return (
+                                                        <AppointmentDetail 
+                                                            key={completedAppointment.id.toString()} 
+                                                            className={styles.appointmentDetail} 
+                                                            appointment={completedAppointment} 
+                                                            isClient={false} />
+                                                    );
+                                                })}
+                                            </div>
+                                        ] : null
+                                    }
+                                    {
+                                        noShowAppointments?.length ? [
+                                            <h4 id={styles.noShowHeading} className={styles.appointmentsTypeHeading}>No Show</h4>,
+                                            <div className={styles.appointmentList}>
+                                                {noShowAppointments.map((noShowAppointment, index) => {
+                                                    return (
+                                                        <AppointmentDetail 
+                                                            key={noShowAppointment.id.toString()} 
+                                                            className={styles.appointmentDetail} 
+                                                            appointment={noShowAppointment} 
+                                                            isClient={false} />
+                                                    );
+                                                })}
+                                            </div>
+                                        ] : null
+                                    }
                                 </div>
                             )
                         }
                     </div>
                 </div>
-            </div>
+            </div>) : null}
+            {filteredUserAppointments ? (
+            <Container maxWidth="xl" id={styles.user_appointments}>
+                <List sx={{ p: 1, bgcolor: grey[800], boxShadow: 1, borderRadius: 2 }} id={styles.user_appointments_filter}
+                    component="nav"
+                    subheader={
+                        <ListSubheader sx={{ bgcolor: grey[800] }}component="div" id={styles.appointments_filter_subheader} >
+                            FILTER
+                        </ListSubheader>
+                    }>
+                    <ListItemButton selected={userAppointmentFilters?.Requested} onClick={(e) => handleUserAppointmentFiltersChange(e, "Requested")} className={styles.appointments_filter_option} sx={{ 
+                        '&:hover': {
+                            backgroundColor: blueGrey[500]
+                        }, 
+                        '&.Mui-selected': {
+                            color: StatusColor.Requested,
+                            backgroundColor: 'none'
+                        }}}
+                        >
+                        <ListItemText primary="Requested" />
+                    </ListItemButton>
+                    <ListItemButton selected={userAppointmentFilters?.Confirmed} onClick={(e) => handleUserAppointmentFiltersChange(e, "Confirmed")} className={styles.appointments_filter_option} 
+                        sx={{ 
+                        '&:hover': {
+                            backgroundColor: blueGrey[500]
+                        }, 
+                        '&.Mui-selected': {
+                            color: StatusColor.Confirmed,
+                            backgroundColor: 'none'
+                        }}} >
+                        <ListItemText primary="Confirmed" />
+                    </ListItemButton>
+                    <ListItemButton selected={userAppointmentFilters?.Completed} onClick={(e) => handleUserAppointmentFiltersChange(e, "Completed")} className={styles.appointments_filter_option} sx={{ 
+                        '&:hover': {
+                            backgroundColor: blueGrey[500]
+                        }, 
+                        '&.Mui-selected': {
+                            color: StatusColor.Completed,
+                            backgroundColor: 'none'
+                        }}}
+                        >
+                        <ListItemText primary="Completed" />
+                    </ListItemButton>
+                    <ListItemButton selected={userAppointmentFilters?.Cancelled} onClick={(e) => handleUserAppointmentFiltersChange(e, "Cancelled")} className={styles.appointments_filter_option} className={styles.appointments_filter_option} sx={{ 
+                        '&:hover': {
+                            backgroundColor: blueGrey[500]
+                        }, 
+                        '&.Mui-selected': {
+                            color: StatusColor.Cancelled,
+                            backgroundColor: 'none'
+                        }}}
+                        >
+                        <ListItemText primary="Cancelled" />
+                    </ListItemButton>
+                    <ListItemButton selected={userAppointmentFilters?.["No Show"]} onClick={(e) => handleUserAppointmentFiltersChange(e, "No Show")} className={styles.appointments_filter_option} sx={{ 
+                        '&:hover': {
+                            backgroundColor: blueGrey[500]
+                        }, 
+                        '&.Mui-selected': {
+                            color: StatusColor["No Show"],
+                            backgroundColor: 'none'
+                        }}}
+                        >
+                        <ListItemText primary="No Show" />
+                    </ListItemButton>
+                    <ListItemButton selected={userAppointmentFilters?.Recent} onClick={(e) => handleUserAppointmentFiltersChange(e, "Recent")} className={styles.appointments_filter_option} sx={{ 
+                        '&:hover': {
+                            backgroundColor: blueGrey[500]
+                        }, 
+                        '&.Mui-selected': {
+                            color: StatusColor.Recent,
+                            backgroundColor: 'none'
+                        }}}
+                        >
+                        <ListItemText primary="Recent" />
+                    </ListItemButton>
+                </List>
+                <div id={styles.user_appointments_list}>
+                    <h1 className={styles.header}>Your Appointments</h1>
+                    <div id={styles.user_appointments_container}>
+                        {Object.keys(userAppointmentFilters ?? {}).length ? 
+                        Object.keys(userAppointmentFilters ?? {}).map(filter => {
+                            if (!userAppointmentFilters[filter]) {
+                                return null;
+                            }
+
+                            let filteredAppointments = filteredUserAppointments[filter.toLocaleLowerCase()];
+
+                            if (!filteredAppointments?.length) {
+                                return null;
+                            }
+
+                            return (
+                                <div key={filter.toLocaleLowerCase()} className={styles.filtered_section}>
+                                    <h5 id={styles.filtered_section_header}>{filter}</h5>
+                                    {filteredAppointments.map((appointment, index) => {
+                                        return (
+                                            [
+                                                <UserAppointmentDetail 
+                                                    key={appointment.id} 
+                                                    appointment={appointment}
+                                                    filteredIndex={index} 
+                                                    onEditAppointment={null}
+                                                    onRemoveAppointment={handleRemoveAppointment}/>,
+                                                <br />
+                                            ]
+                                        );
+                                    })}
+                                </div>
+                            )
+                        }) : <h5 id={styles.select_filter_info}>Choose your filter to view your appointments</h5>}
+                    </div>
+                </div>
+            </Container>) : null }
+            <Backdrop
+                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                open={onLoading}>
+                <CircularProgress color="inherit" />
+                <span>&nbsp;{onLoadingNotification}</span> 
+            </Backdrop>
             <Container maxWidth="xs" className={styles.error_alert}>
                 <Collapse in={showAppError}>
                     <Alert

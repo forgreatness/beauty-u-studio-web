@@ -10,7 +10,6 @@ import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer'
@@ -19,6 +18,7 @@ import React, { useState, useEffect } from 'react';
 import { useApolloClient } from '@apollo/client';
 import CircularProgress from '@mui/material/CircularProgress';
 import Backdrop from '@mui/material/Backdrop';
+import Tooltip from "@mui/material/Tooltip";
 
 import { removeAllCookies } from '../lib/utility/cookie';
 import * as Constants from '../src/constants/index';

@@ -98,13 +98,9 @@ export default function UserAppointmentDetail({ appointment, fitleredIndex, onEd
         setAppointmentDuration(totalDuration);
     }, []);
 
-    const handleAppointmentEdit = (e) => {
-        console.log("HI");
-    }
-
     function appointmentActions(type) {
         if (type.toLocaleLowerCase() == "requested") {
-            return [
+            return ([
                 <Tooltip title="Remove Appointment">
                     <IconButton aria-label="delete" size="small" onClick={() => onRemoveAppointment(appointment, fitleredIndex)}>
                         <DeleteIcon fontSize="inherit"/>
@@ -115,7 +111,7 @@ export default function UserAppointmentDetail({ appointment, fitleredIndex, onEd
                         <EditIcon fontSize="inherit"/>
                     </IconButton>
                 </Tooltip>
-            ]
+            ]);
         }
     }
 

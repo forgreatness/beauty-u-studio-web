@@ -77,9 +77,42 @@ export const INFO_TYPE = {
 
 export const StatusColor = {
     Requested: "#eeea07",
+    requested: "#eeea07",
     Confirmed: "#1867df",
+    confirmed: "#1867df",
     Cancelled: "#e68a00",
+    cancelled: "#e68a00",
     "No Show": "#cc3300",
+    "no show": "#cc3300",
     "Completed":  "#009933",
-    "Recent": "black"
+    "completed":  "#009933",
+    "Recent": "black",
+    "recent": "black"
+}
+
+export const TermsOfService = [
+    "Walk Ins are subjected to the availability of the stylist",
+    "Late arrivals are subjected to availability of stylist and can be mark as no show",
+    "Appointments scheduled online will be consider requested until confirm by stylist",
+    "Visa and Cash are both accepted",
+    "Masks are required to keep everyone safe",
+    "Phone and Email contacts will be used to send alert and reminders",
+    "Contact the studio for any missing info",
+];
+
+export const Policy = {
+    cancellation: [
+        "Clients are require to call studio or stylist to cancelled any confirmed appointments",
+        "Cancellation will only be excepted if called 48 hours prior to appointment date",
+    ],
+    "termination": [
+        "Account will be suspended after 2 no show",
+        "Stylist and Studio reserve the rights to decline requested appointment from clients that has at least 1 no show",
+        "Stylist and Studio can place a deposit on a future appointment of a client after at least 1 no show occured"
+    ]
+};  
+
+export const PolicyColor = {
+    cancellation: "#ff5722",
+    termination: "#c62828"
 }

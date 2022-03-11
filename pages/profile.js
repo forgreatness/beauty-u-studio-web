@@ -18,7 +18,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { indigo, brown, blueGrey, grey } from '@mui/material/colors';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import { useQuery, useMutation, useApolloClient, from } from '@apollo/client';
+import { useQuery, useMutation, useApolloClient, useLazyQuery } from '@apollo/client';
 import Cookie from 'cookie';
 
 import styles from '../styles/profilepage.module.css';
@@ -34,7 +34,52 @@ import { StatusColor } from '../src/constants/index';
 * If the user is a stylist: they should be able to see their work schedule, their upcoming appointments, past appointments, upcoming bookings and past bookings
 */
 export default function ProfilePage({ userDetails, error }) {
+    let refetchClientsAppointment;
+    
     const apolloClient = useApolloClient();
+    const [getClientsAppointment, clientsAppointmentResult] = useLazyQuery(GET_APPOINTMENTS, {
+        variables: {
+            query: {
+                stylist: userDetails?.id
+            }
+        },
+        fetchPolicy: "network-only",
+        onCompleted: data => {
+            if (!data) {
+                throw new Error("No clients appointment");
+            }
+
+            updateClientsAppointment(filterAppointments(data.appointments));
+
+            refetchClientsAppointment = setInterval(async () => {
+                try {
+                    setOnLoadingNotification("Refreshing Clients Appointment");
+                    setOnLoading(true);
+
+                    let refetchedClientsAppointment = await clientsAppointmentResult.refetch();
+
+                    if (!refetchedClientsAppointment) {
+                        throw new Error("Unable to refetch clients appointment");
+                    }
+
+                    updateClientsAppointment(filterAppointments(refetchedClientsAppointment.data.appointments));
+                } catch (err) {
+                    console.log(err);
+                    setApplicationError("Unable to refetch clients appointments");
+                    setShowAppError(true);
+                } finally {
+                    setOnLoadingNotification("");
+                    setOnLoading(false);
+                }
+            }, 300000);
+
+            setOnLoading(false);
+        },
+        onError: () => {
+            setApplicationError("Unable to get clients appointments");
+            setShowAppError(true);
+        }
+    });
     const [updateAppointment] = useMutation(UPDATE_APPOINTMENT);
     const [removeAppointment] = useMutation(REMOVE_APPOINTMENT, {
         update: (cache, { data: { removedAppointment } }) => {
@@ -64,8 +109,6 @@ export default function ProfilePage({ userDetails, error }) {
     }
 
     useEffect(async () => {
-        setOnLoading(true);
-
         if (error) {
             setApplicationError(error);
             setShowAppError(true);
@@ -77,6 +120,7 @@ export default function ProfilePage({ userDetails, error }) {
         }
 
         try {
+            setOnLoading(true);
             const userAppointments = await apolloClient.query({
                 query: GET_APPOINTMENTS,
                 variables: {
@@ -91,36 +135,21 @@ export default function ProfilePage({ userDetails, error }) {
             let filteredUserAppointments = filterAppointments(userAppointments.data.appointments);
 
             setFilteredUserAppointments(filteredUserAppointments);
-
-            if ((userDetails?.role ?? '').toLowerCase() == 'stylist') {
-                const { data } = await apolloClient.query({
-                    query: GET_APPOINTMENTS, 
-                    variables: {
-                        query: {
-                            stylist: userDetails?.id
-                        }
-                    },
-                });
-
-                if (!data) {
-                    throw new Error("No clients appointment");
-                }
-
-                let filteredAppointments = filterAppointments(data.appointments);
-
-                setRequestedAppointments(filteredAppointments.requested);
-                setConfirmedAppointments(filteredAppointments.confirmed);
-                setCancelledAppointments(filteredAppointments.cancelled);
-                setRecentAppointments(filteredAppointments.recent);
-                setNoShowAppointments(filteredAppointments["no show"]);
-                setCompletedAppoinments(filteredAppointments.completed);
-            }
         } catch (err) {
-            console.log(err);
             setApplicationError("Unable get user and clients appointments");
             setShowAppError(true);
+        } finally {
+            setOnLoading(false);
         }
-        setOnLoading(false);
+
+        if ((userDetails?.role ?? '').toLowerCase() == 'stylist') {
+            setOnLoading(true);
+            getClientsAppointment();
+        }
+
+        return () => {
+            if (refetchClientsAppointment) clearInterval(refetchClientsAppointment);
+        }
     }, []);
 
     // When status of an appointment changed. Couple of things we need to do:
@@ -367,6 +396,15 @@ export default function ProfilePage({ userDetails, error }) {
             completed,
             "no show": noShow
         };
+    }
+
+    const updateClientsAppointment = (updatedAppointments) => {
+        setRequestedAppointments(updatedAppointments.requested);
+        setConfirmedAppointments(updatedAppointments.confirmed);
+        setCancelledAppointments(updatedAppointments.cancelled);
+        setRecentAppointments(updatedAppointments.recent);
+        setNoShowAppointments(updatedAppointments["no show"]);
+        setCompletedAppoinments(updatedAppointments.completed);
     }
 
     return (
@@ -705,7 +743,6 @@ export async function getServerSideProps(context) {
         }
     } catch (err) {
         const reason = err.message;
-        console.log(err);
 
         if (reason.toLowerCase() == 'user is suspended') {
             return {

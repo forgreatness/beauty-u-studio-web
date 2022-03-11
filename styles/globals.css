@@ -1,3 +1,7 @@
+:root {
+  --color-alpha: #b78846;
+}
+
 html,
 body {
   padding: 0;

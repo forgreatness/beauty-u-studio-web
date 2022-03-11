@@ -100,20 +100,22 @@ export default function Home() {
 
       if (!userDetail) {
         userDetail = await apolloClient.query({
-          query: userDetail,
+          query: GET_USER,
           variables: {
-            userId: payload.id
+            userId: payload?.id
           }
         });
-      }
 
-      if (!userDetail) {
-        throw new Error('User not sign in');
+        if (!userDetail) {
+          throw new Error('Unable to verify user identity');
+        }
+
+        userDetail = userDetail.data.user;
       }
       
       setUser(userDetail);
+      localStorage.setItem("user", userDetail);
     } catch(err) {
-      const reason = err.message;
       return;
     }
   }, []);

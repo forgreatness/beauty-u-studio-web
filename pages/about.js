@@ -86,24 +86,7 @@ export default function AboutPage() {
                     <h3 id={styles.policy_header}>Policy</h3>
                     <div id={styles.policy_list}>
                         {Object.keys(Policy).map(policyName => {
-                            return (<Card key={policyName} sx={{ width: 400, maxWidth: 500, minWidth: 250 }}>
-                                <CardHeader title={policyName.toLocaleUpperCase()} sx={{ color: PolicyColor[policyName], fontWeight: "bold" }} />
-                                <List>
-                                    {Policy[policyName].map((guideline, index) => {
-                                        return (
-                                            <ListItem key={`guideline${index+1}`}>
-                                                <ListItemIcon>
-                                                    <CropSquareIcon />
-                                                </ListItemIcon>
-                                                <ListItemText primary={guideline} />                                 
-                                            </ListItem>
-                                        );
-                                    })}
-                                </List>
-                            </Card>);
-                        })}
-                        {Object.keys(Policy).map(policyName => {
-                            return (<Card key={policyName} sx={{ width: 400, maxWidth: 500, minWidth: 250 }}>
+                            return (<Card key={policyName} className={styles.policy_card} sx={{ width: 400, maxWidth: 500, minWidth: 250 }}>
                                 <CardHeader title={policyName.toLocaleUpperCase()} sx={{ color: PolicyColor[policyName], fontWeight: "bold" }} />
                                 <List>
                                     {Policy[policyName].map((guideline, index) => {

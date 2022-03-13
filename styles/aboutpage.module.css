@@ -127,16 +127,6 @@
     padding: 10px 10px;
 }
 
-/* #conditions_section > * {
-    padding: 10px 10px;
-    width: 50%;
-    flex-basis: auto;
-    flex-grow: 1;
-    flex-shrink: 1;
-    min-width: 300px;
-    flex-wrap: wrap;
-} */
-
 #terms_header {
     color: var(--color-alpha);
 }
@@ -154,6 +144,7 @@
     overflow-x: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--color-alpha);
+    padding: 10px 10px;
 }
 
 #policy_list::-webkit-scrollbar {
@@ -174,4 +165,12 @@
 
 #policy_list::-webkit-scrollbar-thumb:hover {
     background-color: #eeeeee;
+}
+
+.policy_card {
+    color: #616161;
+    -webkit-box-shadow: -10px 10px 6px -6px #777;
+    -moz-box-shadow: -10px 10px 6px -6px #777;
+    box-shadow: -10px 10px 6px -6px #777;
+    border: 1px solid var(--color-alpha);
 }

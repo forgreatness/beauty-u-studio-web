@@ -73,7 +73,7 @@ export default function AboutPage() {
                     </div>
                 </div>
             </Container>
-            <Stack id={styles.conditions_section} direction="row" spacing={2} overflow="wrap">
+            <Stack id={styles.conditions_section} direction="row" spacing={2}>
                 <div id={styles.terms_container}>
                     <h3 id={styles.terms_header}>Terms of Service</h3>
                     <ul>
@@ -85,6 +85,23 @@ export default function AboutPage() {
                 <div id={styles.policy_container}>
                     <h3 id={styles.policy_header}>Policy</h3>
                     <div id={styles.policy_list}>
+                        {Object.keys(Policy).map(policyName => {
+                            return (<Card key={policyName} sx={{ width: 400, maxWidth: 500, minWidth: 250 }}>
+                                <CardHeader title={policyName.toLocaleUpperCase()} sx={{ color: PolicyColor[policyName], fontWeight: "bold" }} />
+                                <List>
+                                    {Policy[policyName].map((guideline, index) => {
+                                        return (
+                                            <ListItem key={`guideline${index+1}`}>
+                                                <ListItemIcon>
+                                                    <CropSquareIcon />
+                                                </ListItemIcon>
+                                                <ListItemText primary={guideline} />                                 
+                                            </ListItem>
+                                        );
+                                    })}
+                                </List>
+                            </Card>);
+                        })}
                         {Object.keys(Policy).map(policyName => {
                             return (<Card key={policyName} sx={{ width: 400, maxWidth: 500, minWidth: 250 }}>
                                 <CardHeader title={policyName.toLocaleUpperCase()} sx={{ color: PolicyColor[policyName], fontWeight: "bold" }} />

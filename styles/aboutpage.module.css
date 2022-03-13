@@ -103,10 +103,31 @@
 }
 
 #conditions_section {
-
+    justify-content: center;
+    align-items: flex-start;
+    align-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+    margin: 0px 0px;
 }
 
-#conditions_section > * {
+#policy_container {
+    min-width: 400px;
+    width: 40%;
+    flex-basis: auto;
+    flex-grow: 1;
+    padding: 10px 10px;
+}
+
+#terms_container {
+    min-width: 400px;
+    width: 40%;
+    flex-basis: auto;
+    flex-grow: 1;
+    padding: 10px 10px;
+}
+
+/* #conditions_section > * {
     padding: 10px 10px;
     width: 50%;
     flex-basis: auto;
@@ -114,7 +135,7 @@
     flex-shrink: 1;
     min-width: 300px;
     flex-wrap: wrap;
-}
+} */
 
 #terms_header {
     color: var(--color-alpha);
@@ -122,10 +143,6 @@
 
 #policy_header {
     color: var(--color-alpha);
-}
-
-#policy_container {
-
 }
 
 #policy_list {

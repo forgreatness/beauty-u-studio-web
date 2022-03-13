@@ -51,12 +51,13 @@ export default function Navbar(props) {
             width: 100px;
         }
 
-        .profile_action > svg {
-            flex: 1;
-        }
-
         .profile_action:hover {
             cursor: pointer;
+        }
+
+        #profile_icon {
+            text-align: center;
+            margin: auto;
         }
 
         .profile_action:hover svg {
@@ -330,7 +331,8 @@ export default function Navbar(props) {
                         ? (
                             <Tooltip title="Account Menu">
                                 <div className="profile_action" onClick={handleClick}>
-                                    <AccountCircleIcon aria-label="account action" aria-controls={open ? 'account-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined}/>
+                                    {/* <AccountCircleIcon aria-label="account action" aria-controls={open ? 'account-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined}/> */}
+                                    <Avatar id="profile_icon" aria-label="account action" aria-controls={open ? 'account-menu' : undefined} aria-haspopup={true} aria-expanded={open ? true : undefined}>DN</Avatar>
                                 </div>
                             </Tooltip>
                         ) 

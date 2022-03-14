@@ -158,7 +158,7 @@ export default function AuthenticatePage() {
 
             // if login sucessfull save the token, save userDetails and reroute to profile page, else display page error saying login unsucessful
             document.cookie = 'token=' + token;
-            localStorage.setItem("user", user.data.user);
+            localStorage.setItem("user", JSON.stringify(user.data.user));
 
             router.push('/profile');
         } catch (error) {
@@ -289,7 +289,7 @@ export default function AuthenticatePage() {
 
             // if login sucessfull save the token, save userDetails and reroute to profile page, else display page error saying login unsucessful
             document.cookie = 'token=' + token;
-            localStorage.setItem("user", user.data.user);
+            localStorage.setItem("user", JSON.stringify(user.data.user));
 
             router.push('/profile');
         } catch(err) {

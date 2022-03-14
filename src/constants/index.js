@@ -20,19 +20,6 @@ export const ICONS = {
     twitter: '/images/twitter_icon.png'
 };
 
-export const TEAM_MEMBER = [
-    {
-        name: 'Lưu Vân', 
-        photo: 'images/team_member1.JPG',
-        about: 'AKA Stinky. She is the sassiest stylist you have yet to meet. With all the confidence in the world and an attitude like no other she will make you look exactly like her. Consider carefully before booking.'
-    },
-    {
-        name: 'Danh Nguyen',
-        photo: 'images/team_member2.JPG',
-        about: 'AKA Gucci. He is the fanciest and most luxurious stylist. With years of experiences under his belt and a wife which he has to feed. Booking him is a must.'
-    }
-];
-
 export const REVIEWS = [
     {
         id: 1,
@@ -116,3 +103,27 @@ export const PolicyColor = {
     cancellation: "#ff5722",
     termination: "#c62828"
 }
+
+export const StudioContact = {
+    email: "nguyenye83@gmail.com",
+    phone: "(503) 446-4774"
+}
+
+export const StudioHours = {
+    monday: "9:00 AM - 6:00 PM",
+    tuesday: "9:00 AM - 6:00 PM",
+    wednesday: "9:00 AM - 6:00 PM",
+    thursday: "9:00 AM - 6:00 PM",
+    friday: "9:00 AM - 6:00 PM",
+    saturday: "9:00 AM - 6:00 PM",
+    sunday: "9:00 AM - 6:00 PM",
+}
+
+export const StudioLocation = [
+    {
+        street: "15405 sw 116th ave suite 105",
+        city: "King City",
+        state: "OR",
+        zip: "97224"
+    }
+];

@@ -309,6 +309,46 @@ export default function Navbar(props) {
         }
     }
 
+    function stringToColor(string) {
+        let hash = 0;
+        let i;
+      
+        /* eslint-disable no-bitwise */
+        for (i = 0; i < string.length; i += 1) {
+          hash = string.charCodeAt(i) + ((hash << 5) - hash);
+        }
+      
+        let color = '#';
+      
+        for (i = 0; i < 3; i += 1) {
+          const value = (hash >> (i * 8)) & 0xff;
+        //   console.log(`00${value.toString(16)}`.substr(-2));
+        //   console.log(`00${value.toString(16)}`);
+          color += `00${value.toString(16)}`.substring(`00${value.toString(16)}`.length - 2);
+        //   color += `00${value.toString(16)}`.substr(-2);
+        }
+        /* eslint-enable no-bitwise */  
+      
+        return color;
+    }
+      
+      function stringAvatar(name) {
+        if (!name) {
+            return {
+                src: profileImage
+            };
+        }
+
+        let wordsInName = name.split(' ');
+
+        return {
+            sx: {
+                bgcolor: stringToColor(name),
+            },
+            children: `${wordsInName[0][0]}` + (name.split(' ')?.[1][0] ?? '')
+        };
+    }
+
     return (
         [
             <nav css={styles}>
@@ -331,8 +371,7 @@ export default function Navbar(props) {
                         ? (
                             <Tooltip title="Account Menu">
                                 <div className="profile_action" onClick={handleClick}>
-                                    {/* <AccountCircleIcon aria-label="account action" aria-controls={open ? 'account-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined}/> */}
-                                    <Avatar id="profile_icon" aria-label="account action" aria-controls={open ? 'account-menu' : undefined} aria-haspopup={true} aria-expanded={open ? true : undefined}>DN</Avatar>
+                                    <Avatar {...stringAvatar(props.userDetail.name)} id="profile_icon" aria-label="account action" aria-controls={open ? 'account-menu' : undefined} aria-haspopup={true} aria-expanded={open ? true : undefined} />
                                 </div>
                             </Tooltip>
                         ) 

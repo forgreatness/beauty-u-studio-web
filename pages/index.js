@@ -96,14 +96,14 @@ export default function Home() {
         throw new Error('Invalid token');
       }
 
-      let userDetail = localStorage.getItem("user");
+      let userDetail = JSON.parse(localStorage.getItem("user"));
 
       if (!userDetail) {
         userDetail = await apolloClient.query({
           query: GET_USER,
           variables: {
             userId: payload?.id
-          }
+          },
         });
 
         if (!userDetail) {
@@ -112,9 +112,9 @@ export default function Home() {
 
         userDetail = userDetail.data.user;
       }
-      
+
       setUser(userDetail);
-      localStorage.setItem("user", userDetail);
+      localStorage.setItem("user", JSON.stringify(userDetail));
     } catch(err) {
       return;
     }

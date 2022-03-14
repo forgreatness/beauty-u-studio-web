@@ -60,6 +60,10 @@
     bottom: -2px;
 }
 
+.section_header {
+    color: var(--color-alpha);
+}
+
 #background_section {
     padding-left: 0px;
     padding-right: 0px;
@@ -93,10 +97,6 @@
     width: calc(100% - 600px);
 }
 
-#background_info_header {
-    color: var(--color-alpha);
-}
-
 #owner_name {
     color: #616161;
     font-weight: bold;
@@ -125,14 +125,6 @@
     flex-basis: auto;
     flex-grow: 1;
     padding: 10px 10px;
-}
-
-#terms_header {
-    color: var(--color-alpha);
-}
-
-#policy_header {
-    color: var(--color-alpha);
 }
 
 #policy_list {
@@ -173,4 +165,33 @@
     -moz-box-shadow: -10px 10px 6px -6px #777;
     box-shadow: -10px 10px 6px -6px #777;
     border: 1px solid var(--color-alpha);
+}
+
+#contact_us_section {
+    max-width: 100%;
+}
+
+#contact_list {
+    justify-content: center;
+    align-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+#contact_item {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.item_header {
+    text-transform: uppercase;
+}
+
+.clickable_contact_details {
+    text-decoration: none;
+    color: #616161;
+}
+
+.clickable_contact_details:hover {
+    color: var(--color-alpha) !important;
 }

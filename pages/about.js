@@ -49,13 +49,13 @@ export default function AboutPage() {
                 });
 
                 if (!user) {
-                    throw new Error("Unable to verify user identity");
+                    throw new Error("Unable to obtain user identity");
                 }
 
                 user = user.data.user;
+                localStorage.setItem("user", JSON.stringify(user));
             }
 
-            localStorage.setItem("user", JSON.stringify(user));
             setUserDetails(user);
         } catch (err) {
             return;

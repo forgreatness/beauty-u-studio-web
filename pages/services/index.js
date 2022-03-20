@@ -77,7 +77,7 @@ export async function getStaticProps() {
         }
     }
 
-    let services = Array.from(data.services);
+    let services = Array.from(data.services).filter(service => service.status.toLowerCase() == "active");
     services.sort((a, b) => {
         const serviceA = a.name.toUpperCase();
         const serviceB = b.name.toUpperCase();

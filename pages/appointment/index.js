@@ -56,9 +56,7 @@ export default function ApppointmentPage({ services, servicesByType, user, email
             role: "stylist"
         },
         // onCompleted: (data) => {
-        //     if (data.users) {
-        //         setSelectedStylist(data.users[0].id);
-        //     }
+        //     data.users = [];
         // }
     }); //TODO: get stylists that can only perform the selected Service;
 
@@ -441,12 +439,13 @@ export default function ApppointmentPage({ services, servicesByType, user, email
                     <Form.Group className={styles.form_group} controlId="selectedStylist">
                         <Form.Label column="lg">Stylist</Form.Label>
                         <Form.Control as="select" onChange={handleStylistChange} value={selectedStylist}>
-                            {(selectedStylist ? [] : [<option value={selectedStylist}></option>]).concat
-                            (data.users.map(stylist => {
-                                return (
-                                    <option key={stylist.id} value={stylist.id}>{stylist.name}</option>
-                                )
-                            }))}.
+                            {(selectedStylist ? [] : [<option value={selectedStylist}></option>]).concat(
+                                data.users.filter(stylist => stylist.id.toString() != user.id.toString()).map(stylist => {
+                                    return (
+                                        <option key={stylist.id} value={stylist.id}>{stylist.name}</option>
+                                    );
+                                })
+                            )}
                         </Form.Control>
                         <Form.Text muted>
                             Choose a stylist
@@ -517,6 +516,7 @@ export default function ApppointmentPage({ services, servicesByType, user, email
 
 export async function getServerSideProps(context) {
     try {
+        // Authentication is require to use appointments page
         const cookies = Cookie.parse(context.req.headers?.cookie ?? '');
         const token = cookies?.token;
         const payload = Jwt.decode(token);
@@ -554,7 +554,8 @@ export async function getServerSideProps(context) {
             throw new Error('No service found');
         }
 
-        let services = Array.from(data.services);
+        let services = Array.from(data.services).filter(service => service.status.toLowerCase() == 'active');
+
         services.sort((a, b) => {
             const serviceA = a.name.toUpperCase();
             const serviceB = b.name.toUpperCase();

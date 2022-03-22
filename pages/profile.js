@@ -20,6 +20,12 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import { useQuery, useMutation, useApolloClient, useLazyQuery } from '@apollo/client';
 import Cookie from 'cookie';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import Stack from '@mui/material/Stack';
+
 
 import styles from '../styles/profilepage.module.css';
 import Layout from '../components/page-layout.js';
@@ -27,13 +33,16 @@ import ApolloClient from '../lib/apollo/apollo-client.js';
 import { GET_USER, GET_APPOINTMENTS, UPDATE_APPOINTMENT, REMOVE_APPOINTMENT } from '../lib/apollo/data-queries.js';
 import AppointmentDetail from '../components/appointment_details';
 import UserAppointmentDetail from '../components//user_appointment_detail';
-import { StatusColor } from '../src/constants/index';
+import { StatusColor, MonthLabel } from '../src/constants/index';
+import { style } from '@mui/system';
+
 
 /* Purpose 
 * If the user is a client: they should only be able to see their contact information, and past bookings, and upcoming bookings
 * If the user is a stylist: they should be able to see their work schedule, their upcoming appointments, past appointments, upcoming bookings and past bookings
 */
 export default function ProfilePage({ userDetails, error }) {
+    let now = new Date();
     let refetchClientsAppointment;
     
     const apolloClient = useApolloClient();
@@ -53,7 +62,7 @@ export default function ProfilePage({ userDetails, error }) {
 
             refetchClientsAppointment = setInterval(async () => {
                 try {
-                    setOnLoadingNotification("Refreshing Clients Appointment");
+                    setOnLoadingNotification("Checking for new appointments");
                     setOnLoading(true);
 
                     let refetchedClientsAppointment = await clientsAppointmentResult.refetch();
@@ -71,7 +80,7 @@ export default function ProfilePage({ userDetails, error }) {
                     setOnLoadingNotification("");
                     setOnLoading(false);
                 }
-            }, 300000);
+            }, 450000);
 
             setOnLoading(false);
         },
@@ -89,6 +98,9 @@ export default function ProfilePage({ userDetails, error }) {
         }
     });
 
+    const [upcomingMonthFilter, setUpcomingMonthFilter] = useState(now.getMonth()+1);
+    const [upcomingYearFilter, setUpcomingYearFilter] = useState(now.getFullYear());
+    const [upcomingDayFilter, setUpcomingDayFilter] = useState('ALL');
     const [profileImage, setProfileImage] = useState("/images/profile_icon.png");
     const [clientAppointmentsTimeframe, setClientAppointmentsTimeframe] = useState('UPCOMING');
     const [applicationError, setApplicationError] = useState("");
@@ -301,6 +313,35 @@ export default function ProfilePage({ userDetails, error }) {
         setUserAppointmentFilters(updatedFilters);
     }
 
+    const handleUpcomingMonthFilterChange = (e) => {
+        let today = new Date();
+
+        if (upcomingYearFilter < today.getFullYear() || (upcomingYearFilter == today.getFullYear() && e.target.value < today.getMonth()+1)) {
+            return;
+        }
+
+        setUpcomingMonthFilter(e.target.value);
+    }
+
+    const handleUpcomingDayFilterChange = (e) => {
+        let today = new Date();
+
+        if (upcomingYearFilter < today.getFullYear() || (upcomingYearFilter == today.getFullYear() && upcomingMonthFilter < today.getMonth()+1)) {
+            return;
+        }
+
+        if (e.target.value != 'ALL') {
+            today.setHours(0,0,0,0); //Set the date object to 12:00 AM to ignore the time of date object
+            let upcomingDateFilter = new Date(`${upcomingMonthFilter} ${e.target.value} ${upcomingYearFilter}`);
+    
+            if (upcomingDateFilter < today) {
+                return;
+            }
+        }
+
+        setUpcomingDayFilter(e.target.value);
+    }
+
     const findSortedIndex = (appointments, appointment) => {
         let index = 0; 
         let appointmentTime = new Date(appointment.time);
@@ -407,6 +448,28 @@ export default function ProfilePage({ userDetails, error }) {
         setCompletedAppoinments(updatedAppointments.completed);
     }
 
+    const getUpcomingDayFilterOption = () => {
+        let dayFilterOption = [];
+        let today = new Date();
+        today.setHours(0,0,0,0);
+
+        for(let i = 1; i <= new Date(upcomingYearFilter, upcomingMonthFilter, 0).getDate(); i++) {
+            dayFilterOption.push(
+                <MenuItem disabled={new Date(`${upcomingMonthFilter} ${i} ${upcomingYearFilter}`) < today} key={`${upcomingMonthFilter} ${i} ${upcomingYearFilter}`} value={i}>{i}</MenuItem>
+            );
+        }
+        
+        return dayFilterOption;
+    }
+
+    const filteredDateStart = (upcomingDayFilter == 'ALL') 
+        ? new Date(`${upcomingMonthFilter} 1 ${upcomingYearFilter}`)
+        : new Date(`${upcomingMonthFilter} ${upcomingDayFilter} ${upcomingYearFilter}`);
+
+    const filteredDateEnd = (upcomingDayFilter == 'ALL') 
+        ? new Date(upcomingYearFilter, upcomingMonthFilter, 0)
+        : new Date(`${upcomingMonthFilter} ${upcomingDayFilter} ${upcomingYearFilter} 23:59:59`);
+
     return (
         <Layout userDetail={userDetails}>
             {(userDetails.role.toLowerCase() == "stylist") ? (
@@ -445,23 +508,78 @@ export default function ProfilePage({ userDetails, error }) {
                         {(clientAppointmentsTimeframe == "UPCOMING") 
                             ? (
                                 <div id={styles.upcomingAppointments}>
+                                    <Stack id={styles.dateFilter} direction="row" spacing={2}>
+                                        <Box sx={{ minWidth: 120 }}>
+                                            <FormControl fullWidth>
+                                                <InputLabel id="month_filter_input">Month</InputLabel>
+                                                <Select
+                                                    labelId="month_filter_input"
+                                                    id={styles.month_filter_input}
+                                                    value={upcomingMonthFilter}
+                                                    label="Month"
+                                                    onChange={handleUpcomingMonthFilterChange}>
+                                                    {MonthLabel.map((month, index) => {
+                                                        return (
+                                                            <MenuItem disabled={(upcomingYearFilter < now.getFullYear() || (upcomingYearFilter == now.getFullYear() && index < now.getMonth()))} 
+                                                                key={month} value={index+1}>{month}</MenuItem>
+                                                        );
+                                                    })}
+                                                </Select>
+                                            </FormControl>
+                                        </Box>
+                                        <Box sx={{ minWidth: 100 }}>
+                                            <FormControl fullWidth>
+                                                <InputLabel id="day_filter_input">Day</InputLabel>
+                                                <Select
+                                                    labelId="day_filter_input"
+                                                    id={styles.day_filter_input}
+                                                    value={upcomingDayFilter}
+                                                    label="Day"
+                                                    onChange={handleUpcomingDayFilterChange}>
+                                                    {[
+                                                        <MenuItem value='ALL'>ALL</MenuItem>
+                                                    ].concat(getUpcomingDayFilterOption())}
+                                                </Select>
+                                            </FormControl>
+                                        </Box>
+                                        <Box sx={{ minWidth: 100}}>
+                                            <FormControl fullWidth>
+                                                <InputLabel id="year_filter_input">Year</InputLabel>
+                                                <Select
+                                                    labelId="year_filter_input"
+                                                    id={styles.year_filter_input}
+                                                    value={upcomingYearFilter}
+                                                    label="Year"
+                                                    onChange={(e) => setUpcomingYearFilter(e.target.value)}>
+                                                    <MenuItem value={now.getFullYear()}>{now.getFullYear()}</MenuItem>
+                                                    <MenuItem value={now.getFullYear()+1}>{now.getFullYear()+1}</MenuItem>
+                                                </Select>
+                                            </FormControl>
+                                        </Box>
+                                    </Stack>
                                     {
                                         (requestedAppointments?.length ?? 0 > 0) 
                                         ? [
                                             <h4 id={styles.requestedHeading} className={styles.appointmentsTypeHeading}>Requested</h4>,
                                             <div className={styles.appointmentList}>
                                                 {requestedAppointments.map((requestedAppointment, index) => {
-                                                    return (
-                                                        <AppointmentDetail 
-                                                            key={requestedAppointment.id.toString()} 
-                                                            className={styles.appointmentDetail}
-                                                            onUpdateAppointment={handleUpdateClientAppointment}
-                                                            onRemoveAppointment={handleRemoveClientAppointment} 
-                                                            filteredIndex={index}
-                                                            appointment={requestedAppointment} 
-                                                            isClient={false} />
-                                                    );
-                                                })}
+                                                    let appointmentDate = new Date(requestedAppointment.time);
+                                                    
+                                                    if (appointmentDate >= filteredDateStart && appointmentDate <= filteredDateEnd) {
+                                                        return (
+                                                            <AppointmentDetail 
+                                                                key={requestedAppointment.id.toString()} 
+                                                                className={styles.appointmentDetail}
+                                                                onUpdateAppointment={handleUpdateClientAppointment}
+                                                                onRemoveAppointment={handleRemoveClientAppointment} 
+                                                                filteredIndex={index}
+                                                                appointment={requestedAppointment} 
+                                                                isClient={false} />
+                                                        );
+                                                    }
+
+                                                    return;
+                                                }).filter(appointment => appointment != null)}
                                             </div> 
                                         ] : null
                                     }
@@ -471,16 +589,22 @@ export default function ProfilePage({ userDetails, error }) {
                                             <h4 id={styles.confirmedHeading} className={styles.appointmentsTypeHeading}>Confirmed</h4>,
                                             <div className={styles.appointmentList}>
                                                 {confirmedAppointments.map((confirmedAppointment, index) => {
-                                                    return (
-                                                        <AppointmentDetail 
-                                                            key={confirmedAppointment.id.toString()} 
-                                                            className={styles.appointmentDetail} 
-                                                            appointment={confirmedAppointment}
-                                                            onUpdateAppointment={handleUpdateClientAppointment}
-                                                            filteredIndex={index} 
-                                                            isClient={false} />
-                                                    );
-                                                })}
+                                                    let appointmentDate = new Date(confirmedAppointment.time);
+                                                    
+                                                    if (appointmentDate >= filteredDateStart && appointmentDate <= filteredDateEnd) {
+                                                        return (
+                                                            <AppointmentDetail 
+                                                                key={confirmedAppointment.id.toString()} 
+                                                                className={styles.appointmentDetail} 
+                                                                appointment={confirmedAppointment}
+                                                                onUpdateAppointment={handleUpdateClientAppointment}
+                                                                filteredIndex={index} 
+                                                                isClient={false} />
+                                                        );
+                                                    }
+
+                                                    return;
+                                                }).filter(appointment => appointment != null)}
                                             </div>
                                         ] : null
                                     }
@@ -490,10 +614,16 @@ export default function ProfilePage({ userDetails, error }) {
                                             <h4 id={styles.cancelledHeading} className={styles.appointmentsTypeHeading}>Cancelled</h4>,
                                             <div className={styles.appointmentList}>
                                                 {cancelledAppointments.map(cancelledAppointment => {
-                                                    return (
-                                                        <AppointmentDetail key={cancelledAppointment.id.toString()} className={styles.appointmentDetail} appointment={cancelledAppointment} isClient={false} />
-                                                    );
-                                                })}
+                                                    let appointmentDate = new Date(cancelledAppointment.time);
+                                                    
+                                                    if (appointmentDate >= filteredDateStart && appointmentDate <= filteredDateEnd) {
+                                                        return (
+                                                            <AppointmentDetail key={cancelledAppointment.id.toString()} className={styles.appointmentDetail} appointment={cancelledAppointment} isClient={false} />
+                                                        );
+                                                    }
+
+                                                    return;
+                                                }).filter(appointment => appointment != null)}
                                             </div>
                                         ] : null
                                     }

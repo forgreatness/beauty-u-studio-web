@@ -127,3 +127,7 @@ export const StudioLocation = [
         zip: "97224"
     }
 ];
+
+export const MonthLabel = [
+    "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"
+];

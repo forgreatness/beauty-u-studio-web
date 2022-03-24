@@ -454,7 +454,7 @@ export default function ProfilePage({ userDetails, error }) {
 
         for(let i = 1; i <= new Date(upcomingYearFilter, upcomingMonthFilter, 0).getDate(); i++) {
             dayFilterOption.push(
-                <MenuItem disabled={new Date(upcomingYearFilter, upcomingMonthFilter-1, upcomingDayFilter) < today} key={`${upcomingMonthFilter} ${i} ${upcomingYearFilter}`} value={i}>{i}</MenuItem>
+                <MenuItem disabled={new Date(upcomingYearFilter, upcomingMonthFilter-1, i) < today} key={`${upcomingMonthFilter} ${i} ${upcomingYearFilter}`} value={i}>{i}</MenuItem>
             );
         }
         

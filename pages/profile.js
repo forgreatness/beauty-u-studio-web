@@ -332,9 +332,8 @@ export default function ProfilePage({ userDetails, error }) {
 
         if (e.target.value != 'ALL') {
             today.setHours(0,0,0,0); //Set the date object to 12:00 AM to ignore the time of date object
-            let upcomingDateFilter = new Date(`${upcomingMonthFilter} ${e.target.value} ${upcomingYearFilter}`);
     
-            if (upcomingDateFilter < today) {
+            if (new Date(upcomingYearFilter, upcomingMonthFilter-1, e.target.value) < today) {
                 return;
             }
         }
@@ -455,20 +454,22 @@ export default function ProfilePage({ userDetails, error }) {
 
         for(let i = 1; i <= new Date(upcomingYearFilter, upcomingMonthFilter, 0).getDate(); i++) {
             dayFilterOption.push(
-                <MenuItem disabled={i < today.getDate()} key={`${upcomingMonthFilter} ${i} ${upcomingYearFilter}`} value={i}>{i}</MenuItem>
+                <MenuItem disabled={new Date(upcomingYearFilter, upcomingMonthFilter-1, upcomingDayFilter) < today.getDate()} key={`${upcomingMonthFilter} ${i} ${upcomingYearFilter}`} value={i}>{i}</MenuItem>
             );
         }
         
         return dayFilterOption;
     }
 
-    const filteredDateStart = (upcomingDayFilter == 'ALL') 
-        ? new Date(`${upcomingMonthFilter} 1 ${upcomingYearFilter}`)
-        : new Date(`${upcomingMonthFilter} ${upcomingDayFilter} ${upcomingYearFilter}`);
+    // const filteredDateStart = (upcomingDayFilter == 'ALL') ? new Date(upcomingYearFilter, upcomingMonthFilter-1, 1) : new Date(upcomingYearFilter, upcomingMonthFilter-1, upcomingDayFilter);
+    const filteredDateStart = new Date(upcomingYearFilter, upcomingMonthFilter-1, (upcomingDayFilter == 'ALL') ? 1 : upcomingDayFilter);
+    const filteredDateEnd = (upcomingDayFilter == 'ALL') ? new Date(upcomingYearFilter, upcomingMonthFilter, 1) : new Date(upcomingYearFilter, upcomingMonthFilter-1, upcomingDayFilter+1)
+        // ? new Date(`${upcomingMonthFilter} 1 ${upcomingYearFilter}`)
+        // : new Date(`${upcomingMonthFilter} ${upcomingDayFilter} ${upcomingYearFilter}`);
 
-    const filteredDateEnd = (upcomingDayFilter == 'ALL') 
-        ? new Date(upcomingYearFilter, upcomingMonthFilter, 0)
-        : new Date(`${upcomingMonthFilter} ${upcomingDayFilter} ${upcomingYearFilter} 23:59:59`);
+    // const filteredDateEnd = (upcomingDayFilter == 'ALL') 
+    //     ? new Date(upcomingYearFilter, upcomingMonthFilter, 0)
+    //     : new Date(`${upcomingMonthFilter} ${upcomingDayFilter} ${upcomingYearFilter} 23:59:59`);
 
     return (
         <Layout userDetail={userDetails}>
@@ -565,7 +566,7 @@ export default function ProfilePage({ userDetails, error }) {
                                                 {requestedAppointments.map((requestedAppointment, index) => {
                                                     let appointmentDate = new Date(requestedAppointment.time);
                                                     
-                                                    if (appointmentDate >= filteredDateStart && appointmentDate <= filteredDateEnd) {
+                                                    if (appointmentDate >= filteredDateStart && appointmentDate < filteredDateEnd) {
                                                         return (
                                                             <AppointmentDetail 
                                                                 key={requestedAppointment.id.toString()} 
@@ -591,7 +592,7 @@ export default function ProfilePage({ userDetails, error }) {
                                                 {confirmedAppointments.map((confirmedAppointment, index) => {
                                                     let appointmentDate = new Date(confirmedAppointment.time);
                                                     
-                                                    if (appointmentDate >= filteredDateStart && appointmentDate <= filteredDateEnd) {
+                                                    if (appointmentDate >= filteredDateStart && appointmentDate < filteredDateEnd) {
                                                         return (
                                                             <AppointmentDetail 
                                                                 key={confirmedAppointment.id.toString()} 
@@ -616,7 +617,7 @@ export default function ProfilePage({ userDetails, error }) {
                                                 {cancelledAppointments.map(cancelledAppointment => {
                                                     let appointmentDate = new Date(cancelledAppointment.time);
                                                     
-                                                    if (appointmentDate >= filteredDateStart && appointmentDate <= filteredDateEnd) {
+                                                    if (appointmentDate >= filteredDateStart && appointmentDate < filteredDateEnd) {
                                                         return (
                                                             <AppointmentDetail key={cancelledAppointment.id.toString()} className={styles.appointmentDetail} appointment={cancelledAppointment} isClient={false} />
                                                         );

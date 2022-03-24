@@ -454,22 +454,15 @@ export default function ProfilePage({ userDetails, error }) {
 
         for(let i = 1; i <= new Date(upcomingYearFilter, upcomingMonthFilter, 0).getDate(); i++) {
             dayFilterOption.push(
-                <MenuItem disabled={new Date(upcomingYearFilter, upcomingMonthFilter-1, upcomingDayFilter) < today.getDate()} key={`${upcomingMonthFilter} ${i} ${upcomingYearFilter}`} value={i}>{i}</MenuItem>
+                <MenuItem disabled={new Date(upcomingYearFilter, upcomingMonthFilter-1, upcomingDayFilter) < today} key={`${upcomingMonthFilter} ${i} ${upcomingYearFilter}`} value={i}>{i}</MenuItem>
             );
         }
         
         return dayFilterOption;
     }
 
-    // const filteredDateStart = (upcomingDayFilter == 'ALL') ? new Date(upcomingYearFilter, upcomingMonthFilter-1, 1) : new Date(upcomingYearFilter, upcomingMonthFilter-1, upcomingDayFilter);
     const filteredDateStart = new Date(upcomingYearFilter, upcomingMonthFilter-1, (upcomingDayFilter == 'ALL') ? 1 : upcomingDayFilter);
     const filteredDateEnd = (upcomingDayFilter == 'ALL') ? new Date(upcomingYearFilter, upcomingMonthFilter, 1) : new Date(upcomingYearFilter, upcomingMonthFilter-1, upcomingDayFilter+1)
-        // ? new Date(`${upcomingMonthFilter} 1 ${upcomingYearFilter}`)
-        // : new Date(`${upcomingMonthFilter} ${upcomingDayFilter} ${upcomingYearFilter}`);
-
-    // const filteredDateEnd = (upcomingDayFilter == 'ALL') 
-    //     ? new Date(upcomingYearFilter, upcomingMonthFilter, 0)
-    //     : new Date(`${upcomingMonthFilter} ${upcomingDayFilter} ${upcomingYearFilter} 23:59:59`);
 
     return (
         <Layout userDetail={userDetails}>

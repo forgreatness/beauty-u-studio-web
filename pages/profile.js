@@ -455,7 +455,7 @@ export default function ProfilePage({ userDetails, error }) {
 
         for(let i = 1; i <= new Date(upcomingYearFilter, upcomingMonthFilter, 0).getDate(); i++) {
             dayFilterOption.push(
-                <MenuItem disabled={new Date(`${upcomingMonthFilter} ${i} ${upcomingYearFilter}`) < today} key={`${upcomingMonthFilter} ${i} ${upcomingYearFilter}`} value={i}>{i}</MenuItem>
+                <MenuItem disabled={i < today.getDate()} key={`${upcomingMonthFilter} ${i} ${upcomingYearFilter}`} value={i}>{i}</MenuItem>
             );
         }
         
@@ -537,7 +537,7 @@ export default function ProfilePage({ userDetails, error }) {
                                                     label="Day"
                                                     onChange={handleUpcomingDayFilterChange}>
                                                     {[
-                                                        <MenuItem value='ALL'>ALL</MenuItem>
+                                                        <MenuItem key={`${upcomingMonthFilter} ALL ${upcomingYearFilter}`} value='ALL'>ALL</MenuItem>
                                                     ].concat(getUpcomingDayFilterOption())}
                                                 </Select>
                                             </FormControl>

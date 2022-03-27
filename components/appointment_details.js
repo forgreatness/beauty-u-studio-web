@@ -66,7 +66,7 @@ export default function AppointmentDetail(props) {
             color: "#d84315",
             fontWeight: "bold"
         }
-      };
+    };
       
 
     useEffect(() => {

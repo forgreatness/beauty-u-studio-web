@@ -111,10 +111,10 @@ export default function Home() {
         }
 
         userDetail = userDetail.data.user;
+        localStorage.setItem("user", JSON.stringify(userDetail));
       }
 
       setUser(userDetail);
-      localStorage.setItem("user", JSON.stringify(userDetail));
     } catch(err) {
       return;
     }

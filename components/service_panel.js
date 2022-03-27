@@ -6,12 +6,13 @@ import { useRouter } from 'next/router';
 
 import ArrowHeading from './arrow_heading';
 
-export default React.forwardRef(({ className, href, serviceType, services }, ref) => {
+export default React.forwardRef(({ className, href, serviceType, services, onNavigate }, ref) => {
     const [isSelected, setIsSelected] = useState(false); 
     const router = useRouter();
     const servicesByKind = {};
 
     const onServicePanelSelect = () => {
+        onNavigate();
         setIsSelected(true);
         router.push(href);
     }

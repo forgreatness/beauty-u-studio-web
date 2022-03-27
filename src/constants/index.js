@@ -59,7 +59,8 @@ export const studioOpens = "08:00:00";
 export const studioCloses =  "17:00:00";
 
 export const INFO_TYPE = {
-    "suspended": "Your account is suspended"
+    "suspended": "Your account is suspended",
+    "notActivated": "Your account is not yet activated"
 }
 
 export const StatusColor = {

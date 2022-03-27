@@ -3,6 +3,8 @@ import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import Cookie from 'cookie';
 import Jwt from 'jsonwebtoken';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useApolloClient } from '@apollo/client';
 
 import ApolloClient from '../../lib/apollo/apollo-client';
@@ -16,6 +18,12 @@ export default function ServicesPage({ servicesByType }) {
     const ApolloClient = useApolloClient();
 
     const [userDetails, setUserDetails] = useState();
+    const [onLoading, setOnLoading] = useState(false);
+    const [onLoadingNotification, setOnLoadingNotification] = useState(''); 
+
+    const handleNavigationChange = () => {
+        setOnLoading(true);
+    }
 
     useEffect(async () => {
         try {
@@ -57,11 +65,17 @@ export default function ServicesPage({ servicesByType }) {
                 {Object.entries(servicesByType).map(key => {
                     return (
                         <Link key={key[0]} href={`${router.pathname}/${key[0].toLowerCase()}`} passHref>
-                            <ServicePanel key={key[0]} className={styles.service_panel} serviceType={key[0]} services={key[1]} /> 
+                            <ServicePanel key={key[0]} onNavigate={handleNavigationChange} className={styles.service_panel} serviceType={key[0]} services={key[1]} /> 
                         </Link>
                     );
                 })}
             </div>
+            <Backdrop
+                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                open={onLoading}>
+                <CircularProgress color="inherit" />
+                <span>&nbsp;{onLoadingNotification}</span> 
+            </Backdrop>
         </Layout>
     );
 }

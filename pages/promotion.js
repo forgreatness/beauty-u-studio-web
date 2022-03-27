@@ -7,7 +7,6 @@ import { useApolloClient } from '@apollo/client';
 
 import ApolloClient from '../lib/apollo/apollo-client';
 import Layout from '../components/page-layout';
-import { getServerSideProps } from './appointment';
 import { GET_USER } from '../lib/apollo/data-queries';
 
 export default function PromotionPage({ user }) {

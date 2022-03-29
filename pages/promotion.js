@@ -10,9 +10,17 @@ import Layout from '../components/page-layout';
 import { GET_USER } from '../lib/apollo/data-queries';
 
 export default function PromotionPage({ user }) {
-    return (
-        <Layout>
+    const [onLoading, setOnLoading] = useState(false);
+    const [onLoadingNotification, setOnLoadingNotification] = useState('');
 
+    return (
+        <Layout userDetail={user}>
+            <Backdrop
+                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                open={onLoading}>
+                <CircularProgress color="inherit" />
+                <span>&nbsp;{onLoadingNotification}</span> 
+            </Backdrop>
         </Layout>
     )
 }

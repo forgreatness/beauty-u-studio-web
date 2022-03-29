@@ -22,12 +22,13 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { useRouter } from 'next/router';
 import Cookie from 'cookie';
 import Jwt from 'jsonwebtoken';
+import EmailJS from '@emailjs/browser';
 
 import ApolloClient from '../lib/apollo/apollo-client.js';
 import styles from '../styles/authenticatepage.module.css';
 import { GET_USER, SIGN_IN, SIGN_UP } from '../lib/apollo/data-queries.js';
 
-export default function AuthenticatePage() {
+export default function AuthenticatePage(props) {
     const [submitForm, setSubmitForm] = useState(false);
 
     const [formType, setFormType] = useState("login");
@@ -250,6 +251,7 @@ export default function AuthenticatePage() {
         }
 
         try {
+            const activationCode = Math.random().toString(16).substring(2,12);
             const { data } = await ApolloClient.mutate({
                 mutation: SIGN_UP,
                 variables: {
@@ -258,7 +260,8 @@ export default function AuthenticatePage() {
                         email: signUpEmail,
                         phone: signUpPhone.split('-').join(''),
                         password: signUpPassword,
-                        role: "client"
+                        role: "client",
+                        activationCode: activationCode
                     }
                 },
                 fetchPolicy: "no-cache"
@@ -268,32 +271,43 @@ export default function AuthenticatePage() {
             const payload = Jwt.decode(token);
 
             if (!payload || Date.now() > payload.exp * 1000) {
-                throw 'Sign Up Unsucessful';
+                throw new Error('invalid auth token');
             }
 
-            const user = await ApolloClient.query({
-                query: GET_USER,
-                variables: {
-                    userId: payload?.id
-                },
-                context: {
-                    headers: {
-                        authorization: `Bearer ${token}`
-                    }
-                }
+            // if signup sucessfull save the token, but no need to get the user detail because they need to verify account first
+            document.cookie = 'token=' + token;
+
+            // Once the user sign up and their token is store, we need to send an email with activation code to user
+            const activationPayload = {
+                "uid": payload.id,
+                "ac": activationCode
+            };
+
+            console.log("HELLO");
+
+            const activationToken = await Jwt.sign(activationPayload, props.jwtActivationTokenKey, {
+                expiresIn: "30d",
+                subject: "Account activation jwt",
+                issuer: "beautyustudioweb",
+                audience: "beautyustudio clients"
             });
 
-            if (!user) {
-                throw 'Login unsucessful';
-            }
+            console.log("HI there");
 
-            // if login sucessfull save the token, save userDetails and reroute to profile page, else display page error saying login unsucessful
-            document.cookie = 'token=' + token;
-            localStorage.setItem("user", JSON.stringify(user.data.user));
+            const emailResponse = await EmailJS.send(props.emailJS.serviceID, props.emailJS.accountActivationTemplateID, {
+                client: signUpName,
+                activation_link: `${props.appHomeUrl}/userActivation?activationToken=${activationToken}`,
+                send_to: signUpEmail
+            }, props.emailJS.userID);
+
+            if ((emailResponse?.status ?? "") != 200) {
+                throw new Error ('Unable to send user activation link');
+            }
 
             router.push('/profile');
         } catch(err) {
-            setSignUpError("Sign Up Not Successful");
+            console.log(err);
+            setSignUpError(err?.message ?? 'Sign up unsuccessful');
         }
     }
 
@@ -473,6 +487,14 @@ export async function getServerSideProps(context) {
     }
 
     return {
-        props: {}
+        props: {
+            appHomeUrl: `https://www.${context.req.headers.host}.com`,
+            emailJS: {
+                "serviceID": process.env.EMAILJS_SERVICE_ID,
+                "accountActivationTemplateID": process.env.EMAILJS_ACCOUNT_ACTIVATION_TEMPLATE_ID,
+                "userID": process.env.EMAILJS_USER_ID
+            },
+            jwtActivationTokenKey: process.env.JWT_ACTIVATION_TOKEN_KEY
+        }
     }
 }

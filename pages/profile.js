@@ -838,7 +838,6 @@ export async function getServerSideProps(context) {
             throw new Error('Invalid token');
         }
 
-
         const userDetails = await ApolloClient.query({
             query: GET_USER,
             variables: {
@@ -857,6 +856,8 @@ export async function getServerSideProps(context) {
         } else {
             if (userDetails.data.user.status.toLowerCase() == 'suspended') {
                 throw new Error('User is suspended');
+            } else if (userDetails.data.user.status.toLowerCase() == 'not activated') {
+                throw new Error('User account is not activated');
             }
         }
 
@@ -876,7 +877,15 @@ export async function getServerSideProps(context) {
                     permanent: false
                 }
             }
-        } else if (reason.toLowerCase() == 'user does not exist' || reason.toLowerCase() == 'no user found' || reason.toLowerCase() == "invalid token") {
+        } else if (reason.toLowerCase() == 'user account is not activated') {
+            return {
+                redirect: {
+                    source: '/profile',
+                    destination: '/info/notActivated',
+                    permanent: false
+                }
+            }
+        } else if (reason.toLocaleLowerCase() == 'userinputerror: no user found' || reason.toLowerCase() == 'user does not exist' || reason.toLowerCase() == 'no user found' || reason.toLowerCase() == "invalid token") {
             context.res.setHeader(
                 "Set-Cookie", [
                 `token=; Max-Age=0`]

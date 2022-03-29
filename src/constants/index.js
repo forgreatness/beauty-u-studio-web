@@ -60,7 +60,7 @@ export const studioCloses =  "17:00:00";
 
 export const INFO_TYPE = {
     "suspended": "Your account is suspended",
-    "notActivated": "Your account is not yet activated"
+    "notActivated": "Please activate your account from the link provided in your email"
 }
 
 export const StatusColor = {

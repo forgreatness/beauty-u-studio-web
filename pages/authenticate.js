@@ -488,7 +488,7 @@ export async function getServerSideProps(context) {
 
     return {
         props: {
-            appHomeUrl: `https://www.${context.req.headers.host}.com`,
+            appHomeUrl: `https://www.${context.req.headers.host}`,
             emailJS: {
                 "serviceID": process.env.EMAILJS_SERVICE_ID,
                 "accountActivationTemplateID": process.env.EMAILJS_ACCOUNT_ACTIVATION_TEMPLATE_ID,

@@ -76,7 +76,7 @@ export async function getServerSideProps(context) {
             fetchPolicy: "no-cache",
         });
 
-        if (!activate || activate?.data?.token) {
+        if (!activate || !activate?.data?.token) {
             throw new Error('unable to activate account');
         }
 

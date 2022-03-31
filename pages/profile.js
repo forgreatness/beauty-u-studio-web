@@ -87,6 +87,7 @@ export default function ProfilePage({ userDetails, error }) {
         onError: () => {
             setApplicationError("Unable to get clients appointments");
             setShowAppError(true);
+            setOnLoading(false);
         }
     });
     const [updateAppointment] = useMutation(UPDATE_APPOINTMENT);

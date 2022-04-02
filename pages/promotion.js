@@ -3,7 +3,6 @@ import Cookie from 'cookie';
 import Jwt from 'jsonwebtoken';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
-import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
 import Container from '@mui/material/Container';
 import FormControl from '@mui/material/FormControl';
@@ -186,7 +185,7 @@ export default function PromotionPage({ servicesByType, user }) {
                         type="text" multiline rows={3} 
                         fullWidth
                         value={newPromoDescription} onChange={handleNewPromoDescriptionChange} inputProps={{ maxLength: 250 }} 
-                        helperText={`Count: ${newPromoDescription?.length ?? 0} | Remaining ${250-newPromoDescription.length}`}/>
+                        helperText={`Count: ${newPromoDescription?.length ?? 0} | Remaining ${250-newPromoDescription?.length ?? 0}`}/>
                 </FormControl>
             </Container>            
             <Backdrop

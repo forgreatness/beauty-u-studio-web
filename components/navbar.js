@@ -332,7 +332,7 @@ export default function Navbar(props) {
         return color;
     }
       
-      function stringAvatar(name) {
+    function stringAvatar(name) {
         if (!name) {
             return {
                 src: profileImage
@@ -345,7 +345,7 @@ export default function Navbar(props) {
             sx: {
                 bgcolor: stringToColor(name),
             },
-            children: `${wordsInName[0][0]}` + (name.split(' ')?.[1][0] ?? '')
+            children: `${wordsInName[0][0]}` + (name.split(' ')?.[1]?.[0] ?? '')
         };
     }
 
@@ -442,12 +442,13 @@ export default function Navbar(props) {
                         </Avatar>
                         Add Appointments
                     </MenuItem>
-                    <MenuItem>
-                        <Avatar>
-                            <LocalOfferIcon />
-                        </Avatar>
-                        Add Promotions
-                    </MenuItem>
+                    {(props?.userDetail?.role.toLowerCase() == 'admin') 
+                        ? <MenuItem onClick={(_) => handleNavigation("/promotion")}>
+                            <Avatar>
+                                <LocalOfferIcon />
+                            </Avatar>
+                            Add Promotions
+                        </MenuItem> : null}
                     <MenuItem>
                         <Avatar>
                             <SettingsIcon />

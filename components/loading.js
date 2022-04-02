@@ -8,6 +8,7 @@ export default function Loading(props) {
         position: absolute;
         top: 50%;
         left: 50%;
+        transform: translate(-50%, -50%);
     `;
 
     return <ReactLoading css={styles} type="spinningBubbles" color='#000' />

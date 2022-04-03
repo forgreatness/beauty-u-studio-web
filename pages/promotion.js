@@ -20,6 +20,10 @@ import DateTimePicker from '@mui/lab/DateTimePicker';
 import Stack from '@mui/material/Stack';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
+import ClearIcon from '@mui/icons-material/Clear';
+import ArrowCircleRightIcon from '@mui/icons-material/ArrowCircleRight';
+import LoadingButton from '@mui/lab/LoadingButton';
+import Button from '@mui/material/Button';
 import { useApolloClient } from '@apollo/client';
 
 import ApolloClient from '../lib/apollo/apollo-client';
@@ -91,6 +95,10 @@ export default function PromotionPage({ servicesByType, user }) {
     }
 
     const handleNewPromoFormSubmit = () => {
+
+    }
+
+    const handleNewPromoFormClear = () => {
 
     }
 
@@ -187,6 +195,18 @@ export default function PromotionPage({ servicesByType, user }) {
                         value={newPromoDescription} onChange={handleNewPromoDescriptionChange} inputProps={{ maxLength: 250 }} 
                         helperText={`Count: ${newPromoDescription?.length ?? 0} | Remaining ${250-newPromoDescription?.length ?? 0}`}/>
                 </FormControl>
+                <Stack direction="row" justifyContent={'end'} gap={2}>
+                    <Button variant="outlined" onClick={handleNewPromoFormClear} startIcon={<ClearIcon />}>
+                        Clear
+                    </Button>
+                    <LoadingButton 
+                        color="primary" 
+                        onClick={handleNewPromoFormSubmit} 
+                        loading={onLoading} loadingPosition="end"
+                        endIcon={<ArrowCircleRightIcon />} variant="contained">
+                        Submit
+                    </LoadingButton>
+                </Stack>
             </Container>            
             <Backdrop
                 sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}

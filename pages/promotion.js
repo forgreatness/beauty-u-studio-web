@@ -28,7 +28,7 @@ import { useApolloClient } from '@apollo/client';
 
 import ApolloClient from '../lib/apollo/apollo-client';
 import Layout from '../components/page-layout';
-import { GET_SERVICES, GET_USER } from '../lib/apollo/data-queries';
+import { GET_SERVICES, GET_USER, GET_PROMOTIONS, ADD_PROMOTION } from '../lib/apollo/data-queries';
 
 export default function PromotionPage({ servicesByType, user }) {
     const [onLoading, setOnLoading] = useState(false);
@@ -38,15 +38,24 @@ export default function PromotionPage({ servicesByType, user }) {
     const [serviceByKind, setServiceByKind] = useState([]);
     const [qualifyingServices, setQualifyingServices] = useState([]);
     const [newPromoCode, setNewPromoCode] = useState('');
-    const [newPromoAmount, setNewPromoAmount] = useState();
-    const [newPromoCodeError, setNewPromoCodeError] = useState('');
+    const [newPromoAmount, setNewPromoAmount] = useState('');
     const [newPromoType, setNewPromoType] = useState('percentage');
-    const [newPromoStartDate, setNewPromoStartDate] = useState();
-    const [newPromoEndDate, setNewPromoEndDate] = useState();
+    const [newPromoStartDate, setNewPromoStartDate] = useState(new Date());
+    const [newPromoEndDate, setNewPromoEndDate] = useState(new Date());
     const [newPromoDescription, setNewPromoDescription] = useState();
+
+    const [newPromoCodeError, setNewPromoCodeError] = useState('');
+    const [qualifyingServicesError, setQualifyingServicesError] = useState(false);
+    const [newPromoAmountError, setNewPromoAmountError] = useState('');
+    const [newPromoDateError, setNewPromoDateError] = useState(false);
+    const [newPromoDescriptionError, setNewPromoDescriptionError] = useState('');
 
     const handleNewPromoCodeChange = (e) => {
         setNewPromoCode(e.target.value.toUpperCase());
+
+        if ((e.target.value?.length ?? 0) >= 6) {
+            setNewPromoCodeError('');
+        }
     }
 
     const handleServiceTypeFilterChange = (e) => {
@@ -59,6 +68,7 @@ export default function PromotionPage({ servicesByType, user }) {
         }
 
         setNewPromoAmount(e.target.value);
+        setNewPromoAmountError('');
     }
 
     const handleNewPromoType = (e) => {
@@ -68,7 +78,7 @@ export default function PromotionPage({ servicesByType, user }) {
     const handleQualifyingServicesChange = (e) => {
         let newSelected = Array.from(e.target.selectedOptions, option => option.value);
 
-        const selected = qualifyingServices.filter(serviceId => {
+        const previousSelected = qualifyingServices.filter(serviceId => {
             let currentServices = servicesByType[serviceTypeFilter];
             let exist = currentServices.findIndex(service => service.id.toString() == serviceId);
 
@@ -79,27 +89,74 @@ export default function PromotionPage({ servicesByType, user }) {
             return true;
         });
 
-        setQualifyingServices(selected.concat(newSelected));
+        const selected = previousSelected.concat(newSelected);
+
+        setQualifyingServices(selected);
+        
+        if ((selected?.length ?? 0) > 0) {
+            setQualifyingServicesError(false);
+        }
     }
 
     const handleNewPromoStartDateChange = (newDateTime) => {
         setNewPromoStartDate(newDateTime);
+
+        if (newDateTime < newPromoEndDate) {
+            setNewPromoDateError(false);
+        }
     }
 
     const handleNewPromoEndDateChange = (newDateTime) => {
         setNewPromoEndDate(newDateTime);
+
+        if (newDateTime > newPromoStartDate) {
+            setNewPromoDateError(false);
+        }
     }
 
     const handleNewPromoDescriptionChange = (e) => {
         setNewPromoDescription(e.target.value);
+        setNewPromoDescriptionError('');
     }
 
     const handleNewPromoFormSubmit = () => {
+        if (!newPromoCode) {
+            setNewPromoCodeError('(Required Field)');
+        } else {
+            if ((newPromoCode?.length ?? 0) < 6) {
+                setNewPromoCodeError('(min 8 chars)');
+            }
+        }
 
+        if ((qualifyingServices.length ?? 0) < 1) {
+            setQualifyingServicesError(true);
+        } 
+
+        if (!newPromoAmount) {
+            setNewPromoAmountError('(Required Field)');
+        }
+
+        if (newPromoStartDate >= newPromoEndDate) {
+            setNewPromoDateError(true);
+        }
+
+        if (!newPromoDescription) {
+            setNewPromoDescriptionError('Required Field');
+        }
     }
 
     const handleNewPromoFormClear = () => {
-
+        setQualifyingServices([]);
+        setNewPromoCode('');
+        setNewPromoAmount('');
+        setNewPromoStartDate(new Date());
+        setNewPromoEndDate(new Date());
+        setNewPromoDescription('');
+        setNewPromoCodeError('');
+        setQualifyingServicesError(false);
+        setNewPromoAmountError('');
+        setNewPromoDateError(false);
+        setNewPromoDescriptionError('');
     }
 
     useEffect(() => {
@@ -131,9 +188,10 @@ export default function PromotionPage({ servicesByType, user }) {
                     <TextField sx={{ my: 2 }}
                         id="promo_code" 
                         name="promo_code" 
-                        label="Promotion Code" 
+                        label="Promotion Code" required
                         type="text" placeholder='SUMMER20' 
-                        value={newPromoCode} onChange={handleNewPromoCodeChange} helperText="The promotion code must be at least 8 characters" />
+                        error={newPromoCodeError}
+                        value={newPromoCode} onChange={handleNewPromoCodeChange} helperText={`The promotion code must be at least 8 characters ${newPromoCodeError ?? ''}`}/>
                 </FormControl>
                 <FormControl sx={{ display: "block" }}>
                     <FormLabel id="promo_type_label">Promotion Type</FormLabel>
@@ -152,7 +210,7 @@ export default function PromotionPage({ servicesByType, user }) {
                         })}
                     </Select>
                 </FormControl>
-                <FormControl sx={{ my: 2, width: 400, minWidth: 300 }}>
+                <FormControl sx={{ my: 2, width: 400, minWidth: 300, py: 1 }} error={qualifyingServicesError}>
                     <InputLabel shrink id="select_multiple_services">Qualifying Services</InputLabel>
                     <Select multiple native value={qualifyingServices} onChange={handleQualifyingServicesChange} inputProps={{ id: 'select_multiple_services' }}>
                         {Object.entries(serviceByKind ?? []).map(key => {
@@ -167,7 +225,7 @@ export default function PromotionPage({ servicesByType, user }) {
                             );
                         })}
                     </Select>
-                    <FormHelperText>Select One or more (Drag mouse or hold CTRL)</FormHelperText>
+                    <FormHelperText>Select one or more (Drag mouse or hold CTRL)</FormHelperText>
                 </FormControl>
                 <FormControl sx={{ my: 2, display: "block" }}>
                     <TextField 
@@ -175,15 +233,17 @@ export default function PromotionPage({ servicesByType, user }) {
                         name="promo_amount_input" 
                         label="Amount For" 
                         type="text" 
-                        value={newPromoAmount} onChange={handleNewPromoAmountChange} helperText={`Enter amount in ${promoTypeUnit}`} />
+                        error={newPromoAmountError}
+                        value={newPromoAmount} onChange={handleNewPromoAmountChange} helperText={`Enter amount in ${promoTypeUnit} ${newPromoAmountError}`} />
                 </FormControl>
                 <FormControl sx={{ my: 2, display: "block" }}>
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
-                    <Stack direction="row">
-                        <DateTimePicker label="Start Datetime" value={newPromoStartDate} onChange={handleNewPromoStartDateChange} renderInput={(params) => <TextField {...params} />} />
-                        <DateTimePicker label="End Datetime" value={newPromoEndDate} onChange={handleNewPromoEndDateChange} renderInput={(params) => <TextField {...params} />} />
-                    </Stack>
+                        <Stack direction="row">
+                            <DateTimePicker label="Start Datetime" value={newPromoStartDate} onChange={handleNewPromoStartDateChange} renderInput={(params) => <TextField {...params} />} />
+                            <DateTimePicker label="End Datetime" value={newPromoEndDate} onChange={handleNewPromoEndDateChange} renderInput={(params) => <TextField {...params} />} />
+                        </Stack>
                     </LocalizationProvider>
+                    <FormHelperText error={newPromoDateError}>Start Date must be before End Date</FormHelperText>
                 </FormControl>
                 <FormControl sx={{ my: 2, display: 'block' }}>
                     <TextField
@@ -192,8 +252,10 @@ export default function PromotionPage({ servicesByType, user }) {
                         label="Description"
                         type="text" multiline rows={3} 
                         fullWidth
+                        required
+                        error={newPromoDescriptionError}
                         value={newPromoDescription} onChange={handleNewPromoDescriptionChange} inputProps={{ maxLength: 250 }} 
-                        helperText={`Count: ${newPromoDescription?.length ?? 0} | Remaining ${250-newPromoDescription?.length ?? 0}`}/>
+                        helperText={`Count: ${newPromoDescription?.length ?? 0} | Remaining ${250-(newPromoDescription?.length ?? 0)} ${newPromoDescriptionError}`}/>
                 </FormControl>
                 <Stack direction="row" justifyContent={'end'} gap={2}>
                     <Button variant="outlined" onClick={handleNewPromoFormClear} startIcon={<ClearIcon />}>

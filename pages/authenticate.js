@@ -94,7 +94,6 @@ export default function AuthenticatePage(props) {
 
     const handleSignInSubmit = async (e) => {
         e.preventDefault();
-        setSubmitForm(true);
 
         let isValid = true;
 
@@ -119,9 +118,11 @@ export default function AuthenticatePage(props) {
         }
 
         if (!isValid) {
-            setSignInError('Input must match the specified criteria')
+            setSignInError('Input must match the specified criteria');
             return;
         }
+
+        setSubmitForm(true);
 
         // If input is valid send sign in request
         try {
@@ -377,6 +378,7 @@ export default function AuthenticatePage(props) {
 
     useEffect(() => {
         setSubmitForm(false);
+        console.log("hi");
     }, [signInError, signUpError]);
 
     function signInForm() {

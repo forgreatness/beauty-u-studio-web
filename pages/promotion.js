@@ -21,16 +21,26 @@ import Stack from '@mui/material/Stack';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import ClearIcon from '@mui/icons-material/Clear';
+import CloseIcon from '@mui/icons-material/Close';
 import ArrowCircleRightIcon from '@mui/icons-material/ArrowCircleRight';
 import LoadingButton from '@mui/lab/LoadingButton';
 import Button from '@mui/material/Button';
-import { useApolloClient } from '@apollo/client';
+import Collapse from '@mui/material/Collapse';
+import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle'
+import IconButton from '@mui/material/IconButton';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import { useApolloClient, useQuery } from '@apollo/client';
 
 import ApolloClient from '../lib/apollo/apollo-client';
 import Layout from '../components/page-layout';
+import PromotionDetail from '../components/promotion_detail';
 import { GET_SERVICES, GET_USER, GET_PROMOTIONS, ADD_PROMOTION } from '../lib/apollo/data-queries';
 
 export default function PromotionPage({ servicesByType, user }) {
+    const ApolloClient = useApolloClient();
+
     const [onLoading, setOnLoading] = useState(false);
     const [onLoadingNotification, setOnLoadingNotification] = useState('');
     
@@ -49,6 +59,53 @@ export default function PromotionPage({ servicesByType, user }) {
     const [newPromoAmountError, setNewPromoAmountError] = useState('');
     const [newPromoDateError, setNewPromoDateError] = useState(false);
     const [newPromoDescriptionError, setNewPromoDescriptionError] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+    const [showAlert, setShowAlert] = useState(false);
+    const [alertStatus, setAlertStatus] = useState();
+    const [promotionTimeFrame, setPromotionTimeFrame] = useState('ACTIVE');
+    const [promotionByTimeFrame, setPromotionByTimeFrame] = useState();
+
+    const getPromotion = useQuery(GET_PROMOTIONS, {
+        onCompleted: data => {
+            if (!data?.promotions) {
+                return;
+            }
+
+            let promotions = Array.from(data.promotions);
+            let active = [];
+            let previous = [];
+            let upcoming = [];
+
+            promotions.forEach(promotion => {
+                let promotionStart = new Date(promotion.start);
+                let promotionEnd = new Date(promotion.end);
+
+                if (Date.now() > promotionEnd) {
+                    previous.push(promotion);
+                } else if (Date.now() < promotionStart) {
+                    upcoming.push(promotion);
+                } else {
+                    active.push(promotion);
+                }
+            });
+
+            setPromotionByTimeFrame({
+                active,
+                previous,
+                upcoming
+            });
+        },
+        onError: error => {
+            setAlertMessage('Unable to fetch promotions list');
+            setAlertStatus('error');
+            setShowAlert(true);
+        },
+        fetchPolicy: "network-only"
+    });
+
+    const handlePromotionTimeFrameChange = (e, newValue) => {
+        setPromotionTimeFrame(newValue);
+    }
 
     const handleNewPromoCodeChange = (e) => {
         setNewPromoCode(e.target.value.toUpperCase());
@@ -116,32 +173,103 @@ export default function PromotionPage({ servicesByType, user }) {
 
     const handleNewPromoDescriptionChange = (e) => {
         setNewPromoDescription(e.target.value);
-        setNewPromoDescriptionError('');
+        if (newPromoDescription) setNewPromoDescriptionError('');
     }
 
-    const handleNewPromoFormSubmit = () => {
+    const handleNewPromoFormSubmit = async () => {
+        let error = false;
+
         if (!newPromoCode) {
             setNewPromoCodeError('(Required Field)');
+            error = true;
         } else {
             if ((newPromoCode?.length ?? 0) < 6) {
                 setNewPromoCodeError('(min 8 chars)');
+                error = true;
             }
         }
 
         if ((qualifyingServices.length ?? 0) < 1) {
             setQualifyingServicesError(true);
+            error = true;
         } 
 
         if (!newPromoAmount) {
             setNewPromoAmountError('(Required Field)');
+            error = true;
         }
 
         if (newPromoStartDate >= newPromoEndDate) {
             setNewPromoDateError(true);
+            error = true;
         }
 
         if (!newPromoDescription) {
             setNewPromoDescriptionError('Required Field');
+            error = true;
+        }
+
+        if (error) {
+            return;
+        }
+
+        // Add loading while the request is running
+        setOnLoading(true);
+
+        try {
+            const addPromotion = await ApolloClient.mutate({
+                mutation: ADD_PROMOTION,
+                variables: {
+                    newPromotion: {
+                        code: newPromoCode,
+                        type: newPromoType,
+                        amount: parseInt(newPromoAmount),
+                        description: newPromoDescription,
+                        start: newPromoStartDate.toISOString(),
+                        end: newPromoEndDate.toISOString(),
+                        services: qualifyingServices
+                    }
+                },
+                update: (cache, { data: { newPromotion } }) => {
+                    cache.modify({
+                        fields: {
+                            promotions(existingPromotions = []) {
+                                const newPromotionRef = cache.writeFragment({
+                                    data: newPromotion,
+                                    fragment: gql`
+                                        fragment NewPromotion on Promotion {
+                                            __typename
+                                            id
+                                            code
+                                            type
+                                            amount
+                                            description
+                                            services
+                                            start
+                                            end
+                                        }
+                                    `
+                                });
+                                return [...existingPromotions, newPromotionRef];
+                            }
+                        }
+                    });
+                }
+            });
+    
+            if (!addPromotion?.data?.newPromotion) {
+                throw "response is undefined";
+            }
+
+            handleNewPromoFormClear();
+            setAlertMessage('Promotion successfully added');
+            setAlertStatus('success');
+        } catch (err) {
+            setAlertMessage('Unable to create new promotion');
+            setAlertStatus('error')
+        } finally {
+            setOnLoading(false);
+            setShowAlert(true);
         }
     }
 
@@ -181,6 +309,23 @@ export default function PromotionPage({ servicesByType, user }) {
 
     return (
         <Layout userDetail={user}>
+            <Container sx={{ p: 2, m: 2 }}>
+                <Stack gap={3} direction="row" alignContent={"center"} alignItems={"center"}>
+                    <h3>ALL PROMOTIONS</h3>
+                    <Tabs value={promotionTimeFrame} onChange={handlePromotionTimeFrameChange} textColor="primary" indicatorColor="primary" aria-label="view all promotions based on upcoming, past, or active">
+                        <Tab value="ACTIVE" label="ACTIVE" />
+                        <Tab value="UPCOMING" label="UPCOMING" />
+                        <Tab value="PREVIOUS" label="PREVIOUS" />
+                    </Tabs>
+                </Stack>
+                <Stack sx={{ p: 5 }} gap={5} direction="row" alignContent="center" alignItems="center">
+                    {(promotionByTimeFrame?.[promotionTimeFrame.toLocaleLowerCase()] ?? []).map(promotion => {
+                        return (
+                            <PromotionDetail promotion={promotion} key={promotion.id.toLocaleLowerCase()} />
+                        )
+                    })}
+                </Stack>
+            </Container>
             <Container maxWidth="lg" sx={{ px: 2, py: 2, border: "2px solid black" }}>
                 <h2>Create New Promo</h2>
                 <Divider />
@@ -190,7 +335,7 @@ export default function PromotionPage({ servicesByType, user }) {
                         name="promo_code" 
                         label="Promotion Code" required
                         type="text" placeholder='SUMMER20' 
-                        error={newPromoCodeError}
+                        error={(newPromoCodeError ?? '') != ''}
                         value={newPromoCode} onChange={handleNewPromoCodeChange} helperText={`The promotion code must be at least 8 characters ${newPromoCodeError ?? ''}`}/>
                 </FormControl>
                 <FormControl sx={{ display: "block" }}>
@@ -233,7 +378,7 @@ export default function PromotionPage({ servicesByType, user }) {
                         name="promo_amount_input" 
                         label="Amount For" 
                         type="text" 
-                        error={newPromoAmountError}
+                        error={(newPromoAmountError ?? '') != ''}
                         value={newPromoAmount} onChange={handleNewPromoAmountChange} helperText={`Enter amount in ${promoTypeUnit} ${newPromoAmountError}`} />
                 </FormControl>
                 <FormControl sx={{ my: 2, display: "block" }}>
@@ -253,7 +398,7 @@ export default function PromotionPage({ servicesByType, user }) {
                         type="text" multiline rows={3} 
                         fullWidth
                         required
-                        error={newPromoDescriptionError}
+                        error={(newPromoDescriptionError ?? '') != ''}
                         value={newPromoDescription} onChange={handleNewPromoDescriptionChange} inputProps={{ maxLength: 250 }} 
                         helperText={`Count: ${newPromoDescription?.length ?? 0} | Remaining ${250-(newPromoDescription?.length ?? 0)} ${newPromoDescriptionError}`}/>
                 </FormControl>
@@ -276,6 +421,29 @@ export default function PromotionPage({ servicesByType, user }) {
                 <CircularProgress color="inherit" />
                 <span>&nbsp;{onLoadingNotification}</span> 
             </Backdrop>
+            <Container maxWidth="xs" className="alert_popup">
+                <Collapse in={showAlert}>
+                    <Alert
+                        severity={alertStatus ?? 'info'}
+                        action={
+                        <IconButton
+                            aria-label="close"
+                            color="inherit"
+                            size="small"
+                            onClick={() => {
+                                setAlertMessage('');
+                                setShowAlert(false);
+                                setAlertStatus();
+                            }}>
+                            <CloseIcon fontSize="inherit" />
+                        </IconButton>
+                        }
+                        sx={{ mb: 2 }} >
+                        <AlertTitle>{(alertStatus ?? 'info').toLocaleUpperCase()}</AlertTitle>
+                        {alertMessage}
+                    </Alert>
+                </Collapse>
+            </Container>  
         </Layout>
     )
 }
@@ -323,7 +491,7 @@ export async function getServerSideProps(context) {
             query: GET_SERVICES
         });
 
-        if (!getServices) {
+        if (!getServices?.data?.services) {
             throw new Error('Error getting services');
         }
 

@@ -20,3 +20,11 @@ a {
 * {
   box-sizing: border-box;
 }
+
+.alert_popup {
+  position: fixed;
+  bottom: 0px;
+  right: 0px;
+  z-index: 10;
+  max-width: 30%;
+}

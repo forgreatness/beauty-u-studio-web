@@ -314,7 +314,6 @@ export default function ApppointmentPage({ services, servicesByType, user, email
 
                 setShowBookedMessage(true);
             } catch (err) {
-                console.log(err);
                 setAppError(err.message);
                 setShowAppError(true);
             } finally {
@@ -484,7 +483,7 @@ export default function ApppointmentPage({ services, servicesByType, user, email
             </Backdrop>
             <Snackbar open={showBookedMessage} autoHideDuration={6000} onClose={handleCloseBookedMessage}>
                 <Alert onClose={handleCloseBookedMessage} severity="success" sx={{ width: '100%' }}>
-                Your appointment have been requested, we will notify you via your contact once confirmed
+                    Your appointment have been requested, we will notify you via your contact once confirmed
                 </Alert>
             </Snackbar>
             <Container maxWidth="xs" className={styles.error_alert}>

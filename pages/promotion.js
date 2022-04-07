@@ -31,12 +31,12 @@ import AlertTitle from '@mui/material/AlertTitle'
 import IconButton from '@mui/material/IconButton';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import { useApolloClient, useQuery } from '@apollo/client';
+import { useApolloClient, useQuery, gql } from '@apollo/client';
 
 import ApolloClient from '../lib/apollo/apollo-client';
 import Layout from '../components/page-layout';
 import PromotionDetail from '../components/promotion_detail';
-import { GET_SERVICES, GET_USER, GET_PROMOTIONS, ADD_PROMOTION } from '../lib/apollo/data-queries';
+import { GET_SERVICES, GET_USER, GET_PROMOTIONS, ADD_PROMOTION, REMOVE_PROMOTION } from '../lib/apollo/data-queries';
 
 export default function PromotionPage({ servicesByType, user }) {
     const ApolloClient = useApolloClient();
@@ -76,6 +76,19 @@ export default function PromotionPage({ servicesByType, user }) {
             let previous = [];
             let upcoming = [];
 
+            promotions.sort((a, b) => {
+                const promotionAExpires = new Date(a.end);
+                const promotionBExpires = new Date(b.end);
+
+                if (promotionAExpires < promotionBExpires) {
+                    return -1;
+                } else if (promotionAExpires > promotionBExpires) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            });
+
             promotions.forEach(promotion => {
                 let promotionStart = new Date(promotion.start);
                 let promotionEnd = new Date(promotion.end);
@@ -100,7 +113,6 @@ export default function PromotionPage({ servicesByType, user }) {
             setAlertStatus('error');
             setShowAlert(true);
         },
-        fetchPolicy: "network-only"
     });
 
     const handlePromotionTimeFrameChange = (e, newValue) => {
@@ -174,6 +186,44 @@ export default function PromotionPage({ servicesByType, user }) {
     const handleNewPromoDescriptionChange = (e) => {
         setNewPromoDescription(e.target.value);
         if (newPromoDescription) setNewPromoDescriptionError('');
+    }
+
+    const handleRemovePromotion = async (promotionID, promotionTimeFrame, index) => {
+        try {
+            setOnLoading(true);
+
+            const removePromotion = await ApolloClient.mutate({
+                mutation: REMOVE_PROMOTION,
+                variables: {
+                    promotionID: promotionID
+                },
+                update: (cache, { data: { removedPromotion }}) => {
+                    cache.evict({
+                        id: cache.identify(removedPromotion)
+                    });
+                }
+            });
+
+            if (!removePromotion?.data?.removedPromotion) {
+                throw 'Unable to remove promotion';
+            }
+
+            const promotionByTimeFrameCopy = JSON.parse(JSON.stringify(promotionByTimeFrame));
+            const promotions = promotionByTimeFrameCopy[promotionTimeFrame.toLocaleLowerCase()];
+            promotions.splice(index, 1);
+            promotionByTimeFrameCopy[promotionTimeFrame.toLocaleLowerCase()] = promotions;
+            
+            setPromotionByTimeFrame(promotionByTimeFrameCopy);
+            setAlertMessage('Promotion successfully removed');
+            setAlertStatus('success');
+        } catch (err) {
+            console.log(err);
+            setAlertMessage('Unable to remove promotion');
+            setAlertStatus('error')           
+        } finally {
+            setOnLoading(false);
+            setShowAlert(true);
+        }
     }
 
     const handleNewPromoFormSubmit = async () => {
@@ -261,10 +311,34 @@ export default function PromotionPage({ servicesByType, user }) {
                 throw "response is undefined";
             }
 
+            let newPromotionTimeFrame = '';
+            
+            if (Date.now() > newPromoEndDate) {
+                newPromotionTimeFrame = "previous";
+            } else if (Date.now() < newPromoStartDate) {
+                newPromotionTimeFrame = "upcoming";
+            } else {
+                newPromotionTimeFrame = "active";
+            }
+
+            const timeFramePromotions = Array.from(promotionByTimeFrame[newPromotionTimeFrame]);
+            timeFramePromotions.splice(
+                findSortedIndex(timeFramePromotions, addPromotion.data.newPromotion), 0, addPromotion.data.newPromotion);
+
+            console.log({
+                ...promotionByTimeFrame,
+                [newPromotionTimeFrame]: timeFramePromotions
+            });
+
+            setPromotionByTimeFrame({
+                ...promotionByTimeFrame,
+                [newPromotionTimeFrame]: timeFramePromotions
+            });
             handleNewPromoFormClear();
             setAlertMessage('Promotion successfully added');
             setAlertStatus('success');
         } catch (err) {
+            console.log(err);
             setAlertMessage('Unable to create new promotion');
             setAlertStatus('error')
         } finally {
@@ -285,6 +359,21 @@ export default function PromotionPage({ servicesByType, user }) {
         setNewPromoAmountError('');
         setNewPromoDateError(false);
         setNewPromoDescriptionError('');
+    }
+
+    const findSortedIndex = (promotions, promotion) => {
+        let index = 0; 
+        let promotionExpires = new Date(promotion.end);
+
+        for (index = 0; index < promotions.length; index++) {
+            let currentPromotionExpires = new Date(promotions[index].end);
+
+            if (promotionExpires >= currentPromotionExpires) {
+                break;
+            }
+        }
+
+        return index;
     }
 
     useEffect(() => {
@@ -318,10 +407,10 @@ export default function PromotionPage({ servicesByType, user }) {
                         <Tab value="PREVIOUS" label="PREVIOUS" />
                     </Tabs>
                 </Stack>
-                <Stack sx={{ p: 5 }} gap={5} direction="row" alignContent="center" alignItems="center">
-                    {(promotionByTimeFrame?.[promotionTimeFrame.toLocaleLowerCase()] ?? []).map(promotion => {
+                <Stack sx={{ p: 5 }} gap={5} direction="row" alignContent="center" alignItems="center" overflow="auto">
+                    {(promotionByTimeFrame?.[promotionTimeFrame.toLocaleLowerCase()] ?? []).map((promotion, index) => {
                         return (
-                            <PromotionDetail promotion={promotion} key={promotion.id.toLocaleLowerCase()} />
+                            <PromotionDetail onRemovePromotion={(promotionID) => handleRemovePromotion(promotionID, promotionTimeFrame, index)} promotion={promotion} key={promotion.id.toLocaleLowerCase()} />
                         )
                     })}
                 </Stack>

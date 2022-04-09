@@ -19,15 +19,21 @@ import Cookie from 'cookie';
 import 'react-datepicker/dist/react-datepicker.css';
 import Jwt from 'jsonwebtoken';
 import EmailJS from '@emailjs/browser';
+import Stack from '@mui/material/Stack';
+import Dialog from '@mui/material/dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
 
 import styles from '../../styles/appointmentpage.module.css';
 import Layout from '../../components/page-layout';
 import ApolloClient from '../../lib/apollo/apollo-client';
-import { GET_SERVICES, GET_USERS, GET_APPOINTMENTS, ADD_APPOINTMENT, GET_USER } from '../../lib/apollo/data-queries';
+import { GET_SERVICES, GET_USERS, GET_APPOINTMENTS, ADD_APPOINTMENT, GET_USER, GET_PROMOTIONS } from '../../lib/apollo/data-queries';
 import Loading from '../../components/loading';
 import { studioOpens, studioCloses } from '../../src/constants/index';
 
-export default function ApppointmentPage({ services, servicesByType, user, emailJS }) {
+export default function ApppointmentPage({ clientsOccupiedAppointments, activePromotions, services, servicesByType, user, emailJS }) {
     const apolloClient = useApolloClient();
     const today = new Date();
     today.setHours(0,0,0,0);
@@ -50,7 +56,15 @@ export default function ApppointmentPage({ services, servicesByType, user, email
     const [selectedTime, setSelectedTime] = useState("");
     const [appointments, setAppointments] = useState([]);
     const [availableTime, setAvailableTime] = useState([]);
+    const [qualifyingPromotions, setQualifyingPromotions] = useState([]);
+    const [selectedPromotion, setSelectedPromotion] = useState("");
+    const [promotionDiscount, setPromotionDiscount] = useState(0);
+    const [calculateDiscount, setCalculateDiscount] = useState(false);
+    const [appointmentCost, setAppointmentCost] = useState(0);
     const [addAppointment, { addAppointmentLoading }] = useMutation(ADD_APPOINTMENT);
+    const [bookAppointmentDialog, setBookAppointmentDialog] = useState(false);
+    const [onePerDayCondition, setOnePerDayCondition] = useState(true);
+    const [fourHoursMaxCondition, setFourHoursMaxCondition] = useState(true);
     const { loading, error, data } = useQuery(GET_USERS, {
         variables: {
             role: "stylist"
@@ -154,10 +168,41 @@ export default function ApppointmentPage({ services, servicesByType, user, email
         }
     }
 
+    if (calculateDiscount) {
+        console.log("calculating the discount for you");
+        const promotion = activePromotions.find(promotion => promotion.code == selectedPromotion);
+        let discount = 0;
+
+        if (promotion) {
+            selectedServices.forEach(selectedService => {
+                if (promotion.services.findIndex(promotionService => promotionService.toString() == selectedService) > -1) {
+                    const serviceInfo = services.find(service => service.id.toString() == selectedService);
+
+                    if (promotion.type == 'value') {
+                        discount += promotion.amount;
+                    } else {
+                        let promotionAmount = promotion.amount;
+                        if (promotion.amount > 100) {
+                            promotionAmount = 100;
+                        } else if (promotion.amount < 0) {
+                            promotionAmount = 0;
+                        }
+
+                        discount += (serviceInfo.price / 100 * promotionAmount);
+                    }
+                }
+            });
+        }
+
+        console.log(discount);
+        setPromotionDiscount(discount);
+        setCalculateDiscount(false);
+    }
+
     const handleServicesChange = (e) => {
         let newSelected = Array.from(e.target.selectedOptions, option => option.value);
 
-        const selected = selectedServices.filter(service => {
+        const previousSelected = selectedServices.filter(service => {
             const serviceInfo = services.find(element => element.id.toString() == service);
 
             if (!serviceTypeFilter || serviceInfo.type == serviceTypeFilter) {
@@ -167,9 +212,20 @@ export default function ApppointmentPage({ services, servicesByType, user, email
             return true;
         });
 
+        const selected = previousSelected.concat(newSelected);
+
+        let combinedServicePrice = 0;
+
+        selected.forEach(selected => {
+            const service = services.find(element => element.id.toString() == selected);
+
+            combinedServicePrice += service.price;
+        });
+
+        setAppointmentCost(combinedServicePrice);
         setAvailableTime([]);
         setSelectedTime("");
-        setSelectedServices(selected.concat(newSelected));
+        setSelectedServices(selected);
         setCalculateSlots(true);
     }
 
@@ -194,6 +250,11 @@ export default function ApppointmentPage({ services, servicesByType, user, email
         setSelectedTime(e.target.value);
     }
 
+    const handleSelectedPromotionChange = (e) => {
+        setSelectedPromotion(e.target.value);
+        setCalculateDiscount(true);
+    };
+
     const handleFormClear = (e) => {
         setSelectedServices([]);
         setSelectedStylist("");
@@ -202,6 +263,11 @@ export default function ApppointmentPage({ services, servicesByType, user, email
         setAppointments([]);
         setAvailableTime([]);
         setCalculateSlots(false);
+        setQualifyingPromotions([]);
+        setSelectedPromotion("");
+        setPromotionDiscount(0);
+        setCalculateDiscount(false);
+        setAppointmentCost(0);
     }
 
     const handleCloseBookedMessage = (event, reason) => {
@@ -226,6 +292,11 @@ export default function ApppointmentPage({ services, servicesByType, user, email
                 time: appointmentTime.toISOString(),
                 status: "Requested"
             };
+
+            if (selectedPromotion) {
+                newAppointment.details = `Promotion code ${selectedPromotion} applied`;
+                newAppointment.discount = promotionDiscount;
+            }
 
             try {
                 let response = await addAppointment({
@@ -274,6 +345,8 @@ export default function ApppointmentPage({ services, servicesByType, user, email
                                                 }
                                                 time
                                                 status
+                                                discount
+                                                details
                                             }
                                         `
                                     });
@@ -289,6 +362,10 @@ export default function ApppointmentPage({ services, servicesByType, user, email
                 }
 
                 newAppointment = response.data.newAppointment;
+                console.log(newAppointment);
+
+                clientsOccupiedAppointments.push(newAppointment);
+
                 let newAppointmentServicesMsg = "";
 
                 newAppointment.services.forEach((service, index) => {
@@ -320,7 +397,12 @@ export default function ApppointmentPage({ services, servicesByType, user, email
                 setOnLoading(false);
                 handleFormClear(e);
             }
+        } else {
+            setAppError("Not enough information to book");
+            setShowAppError(true);
         }
+
+        setBookAppointmentDialog(false);
     }
 
     const handleServiceTypeFilterSelect = (key, event) => {
@@ -334,9 +416,9 @@ export default function ApppointmentPage({ services, servicesByType, user, email
                     query: GET_APPOINTMENTS,
                     variables: {
                         query: {
-                            stylist: selectedStylist,
-                            client: user.id
-                        }
+                            stylist: selectedStylist
+                        },
+                        future: true
                     },
                     fetchPolicy: 'network-only'
                 });
@@ -349,22 +431,19 @@ export default function ApppointmentPage({ services, servicesByType, user, email
                 // We want only appointments which are confirmed
                 // We want appointments which are requested when:
                 // The stylist is the client of that appointment
-                // The user is the client of that appointment
-                let occupiedAppointments = [];
-
-                data.appointments.forEach(appointment => {
-                    if (new Date(appointment.time) > Date.now()) {
-                        if (appointment.status.toLowerCase() == "confirmed") {
-                            occupiedAppointments.push(appointment);
-                        } else if (appointment.status.toLowerCase() == "requested") {
-                            if (user.id == appointment.client.id || selectedStylist == appointment.client.id) {
-                                occupiedAppointments.push(appointment);
-                            }
-                        }
+                let occupiedAppointments = data.appointments.filter(appointment => {
+                    if (appointment.status.toLocaleLowerCase() == "confirmed") {
+                        return true;
                     }
+
+                    if (appointment.status.toLocaleLowerCase() == "requested" && appointment.client.id.toString() == selectedStylist) {
+                        return true;
+                    }
+
+                    return false;
                 });
     
-                setAppointments(occupiedAppointments);
+                setAppointments(occupiedAppointments.concat(clientsOccupiedAppointments));
                 setCalculateSlots(true);
             }
         } catch (err) {
@@ -393,6 +472,78 @@ export default function ApppointmentPage({ services, servicesByType, user, email
             setServicesByKind(newServicesByKind);
         }
     }, [serviceTypeFilter]);
+
+    useEffect(() => {
+        let qualifiedPromotions = [];
+        if (selectedDate && selectedTime && selectedServices) {
+            let appointmentTime = new Date(`${selectedDate.toDateString()} ${selectedTime}`);
+
+            activePromotions.forEach(promotion => {
+                let promotionStart = new Date(promotion.start);
+                let promotionEnd = new Date(promotion.end);
+
+                if (appointmentTime >= promotionStart && appointmentTime <= promotionEnd) {
+                    for (let i = 0; i < promotion.services.length; i++) {
+                        if (selectedServices.includes(promotion.services[i])) {
+                            qualifiedPromotions.push(promotion);
+                            break;
+                        }
+                    }
+                }
+            });    
+        }
+
+        if (qualifiedPromotions.findIndex(promotion => promotion.code == selectedPromotion) < 0) {
+            setSelectedPromotion("");
+        }
+
+        
+        if (selectedPromotion) {
+            setCalculateDiscount(true);
+        }
+
+        setQualifyingPromotions(qualifiedPromotions);
+    }, [selectedServices, selectedDate, selectedTime]);
+
+    useEffect(() => {
+        if (selectedServices?.length) {
+            let requestedDuration = 0;
+            selectedServices.forEach(selectedService => {
+                const serviceInfo = services.find(service => service.id.toString() == selectedService);
+    
+                requestedDuration += serviceInfo.time;
+            });
+    
+            if (requestedDuration > 240) {
+                setFourHoursMaxCondition(false);
+                setAppError("Appointment can't be over 4 hrs in total time");
+                setShowAppError(true);
+                return;
+            }
+        }
+
+        setFourHoursMaxCondition(true);
+    }, [selectedServices]);
+
+    useEffect(() => {
+        if (selectedDate) {
+            let selectedAppointmentDate = new Date(selectedDate);
+
+            for (let i = 0; i < clientsOccupiedAppointments.length; i++) {
+                let occupiedAppointmentDate = new Date(clientsOccupiedAppointments[i].time);
+                console.log(occupiedAppointmentDate.toDateString());
+    
+                if (selectedAppointmentDate.setHours(0,0,0,0) == occupiedAppointmentDate.setHours(0,0,0,0)) {
+                    setOnePerDayCondition(false);
+                    setAppError("You have already book an appointment on this date, select another");
+                    setShowAppError(true);
+                    return;
+                }
+            }    
+        }        
+
+        setOnePerDayCondition(true);
+    }, [selectedDate]);
 
     if (loading) return <Loading /> 
     if (error) {
@@ -469,9 +620,32 @@ export default function ApppointmentPage({ services, servicesByType, user, email
                             })}
                         </Form.Control>
                     </Form.Group>
+                    <Form.Group className={styles.form_group} controlId="selectedPromotion">
+                        <Form.Label column="lg">Qualifying Promotion</Form.Label>
+                        <Form.Control as="select" onChange={handleSelectedPromotionChange} value={selectedPromotion}>
+                            {[<option key="no_promo" value="" />].concat(qualifyingPromotions.map(promotion => {
+                                return (
+                                    <option key={promotion.id} value={promotion.code}>{promotion.code}</option>
+                                );
+                            }))}
+                        </Form.Control>
+                    </Form.Group>
+                    <Stack direction="row" gap={3}>
+                        {promotionDiscount > 0 ? 
+                            <p>
+                                <b>Applied Discount</b> <span style={{ color: "green" }}>- ${promotionDiscount}</span>
+                            </p> : null
+                        }
+                        <p>
+                            <b>Total Due</b> ${appointmentCost - promotionDiscount}
+                        </p>
+                    </Stack>
                     <div id={styles.form_action}>
                         <Button variant="outline-secondary" type="reset" onClick={handleFormClear}>Clear</Button>{' '}
-                        <Button variant="outline-primary" type="submit" onClick={handleBookAppointment}>Book</Button>{' '}
+                        <Button disabled={!onePerDayCondition || !fourHoursMaxCondition} variant="outline-primary" type="submit" onClick={e => { 
+                            e.preventDefault();
+                            setBookAppointmentDialog(true);
+                        }}>Book</Button>{' '}
                     </div>
                 </Form>
             </Container>
@@ -486,7 +660,7 @@ export default function ApppointmentPage({ services, servicesByType, user, email
                     Your appointment have been requested, we will notify you via your contact once confirmed
                 </Alert>
             </Snackbar>
-            <Container maxWidth="xs" className={styles.error_alert}>
+            <Container fluid="xs" className={styles.error_alert}>
                 <Collapse in={showAppError}>
                     <Alert
                         severity="error"
@@ -509,6 +683,24 @@ export default function ApppointmentPage({ services, servicesByType, user, email
                     </Alert>
                 </Collapse>
             </Container>  
+            <Dialog 
+                open={bookAppointmentDialog} 
+                onClose={() => setBookAppointmentDialog(false)}
+                aria-labelledby="book_appointment_dialog_title"
+                aria-describedby="book_appointment_dialog_description">
+                <DialogTitle id="book_appointment_dialog_title">
+                    Are you sure want to schedule the appointment
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="book_appointment_dialog_description">
+                        Once the appointment is booked, stylist will be notify. If the stylist confirms your appointment, you will be notify via your contact info.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setBookAppointmentDialog(false)}>Cancel</Button>
+                    <Button onClick={handleBookAppointment}>Confirm</Button>
+                </DialogActions>
+            </Dialog>
         </Layout>
     );
 }
@@ -581,11 +773,63 @@ export async function getServerSideProps(context) {
             }
         });
 
+        const getPromotions = await ApolloClient.query({
+            query: GET_PROMOTIONS,
+            context: {
+                headers: {
+                    authorization: `Bearer ${token}`
+                }
+            },
+            fetchPolicy: "no-cache"
+        });
+
+        if (!getPromotions?.data?.promotions) {
+            throw new Error('Unable to fetch promotions');
+        }
+
+        const activePromotions = getPromotions.data.promotions.filter(promotion => {
+            if (Date.now() > new Date(promotion.end) || Date.now() < new Date(promotion.start)) {
+                return false;
+            }
+            
+            return true;
+        });
+
+        const getClientsAppointments = await ApolloClient.query({
+            query: GET_APPOINTMENTS,
+            variables: {
+                query: {
+                    client: payload.id
+                },
+                future: true
+            },
+            context: {
+                headers: {
+                    authorization: `Bearer ${token}`
+                }
+            },
+            fetchPolicy: "no-cache"
+        });
+
+        if (!getClientsAppointments?.data?.appointments) {
+            throw new Error('Unable to fetch user appointments');
+        }
+
+        let clientsOccupiedAppointments = getClientsAppointments.data.appointments.filter(appointment => {
+            if (appointment.status.toLowerCase() == 'requested' || appointment.status.toLowerCase() == 'confirmed') {
+                return true;
+            }
+
+            return false;
+        });
+
         return {
             props: {
+                clientsOccupiedAppointments: clientsOccupiedAppointments,
                 services: services,
                 servicesByType: servicesByType,
                 user: user.data.user,
+                activePromotions: activePromotions,
                 emailJS: {
                     "serviceID": process.env.EMAILJS_SERVICE_ID,
                     "appointmentRequestTemplateID": process.env.EMAILJS_APPOINTMENT_REQUEST_TEMPLATE_ID,
@@ -594,6 +838,7 @@ export async function getServerSideProps(context) {
             }
         };
     } catch (err) {
+        console.log(err);
         const reason = err?.message.toLowerCase();
 
         if (reason == 'bad token') {

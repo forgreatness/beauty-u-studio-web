@@ -84,8 +84,10 @@ export default function Footbar() {
                 <a className="home">
                     <img src="/images/BeautyUStudio-logo.png" alt="BeautyUStudio Home Link" />
                 </a>
+            </Link>            
+            <Link href="/appointment" passHref>
+                <CustomButton className="appointment_button">Appointment</CustomButton>
             </Link>
-            <CustomButton className="appointment_button">Appointment</CustomButton>
         </div>
     );
 }

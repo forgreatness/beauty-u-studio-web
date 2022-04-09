@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { gql, useQuery, useApolloClient } from '@apollo/client';
 import React, { useState, useRef, useEffect } from 'react';
 import Cookie from 'cookie';
@@ -8,6 +9,8 @@ import AlertTitle from '@mui/material/AlertTitle';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Container from '@mui/material/Container';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
 import Jwt from 'jsonwebtoken';
 
 import Layout from '../components/page-layout';
@@ -21,6 +24,7 @@ import CustomButton from '../components/custom_button';
 import { GET_SERVICES, GET_USERS, GET_HOMEPAGEDATA } from '../lib/apollo/data-queries';
 
 export default function Home() {
+  const router = useRouter();
   const apolloClient = useApolloClient();
   const studioSectionRef = useRef();
   const [showAppError, setShowAppError] = useState(false);
@@ -29,6 +33,8 @@ export default function Home() {
   const [pageCover, setPageCover] = useState(0);
   const [typeOfServices, setTypeOfServices] = useState([]);
   const [user, setUser] = useState();
+  const [onLoading, setOnLoading] = useState(false);
+  const [onLoadingNotification, setOnLoadingNotificaiton] = useState("");
   const { loading, error, data } = useQuery(GET_HOMEPAGEDATA, {
     variables: {
       userRole: "stylist"
@@ -78,6 +84,15 @@ export default function Home() {
         setSelectedMember(i);
       }
     });
+  }
+
+  const handleNavigation = (path) => {
+    setOnLoading(true);
+    if (router.pathname == path) {
+        router.reload();
+    } else {
+        router.push(path);
+    }
   }
 
   useEffect(async () => {
@@ -184,11 +199,11 @@ export default function Home() {
           <div className={styles.member_info}>
             <b>{data.stylists[currentMember].name}</b>
             <p>{data.stylists[currentMember].about}</p>
-            <button>BOOK APPOINTMENT</button>
+            <button onClick={(_) => handleNavigation("/appointment")}>BOOK APPOINTMENT</button>
           </div>
         </div>
       </div>
-      <div className={styles.client_reviews_section}>
+      {/* <div className={styles.client_reviews_section}>
         <h3>CLIENT REVIEWS</h3>
         <div className={styles.reviews}>
           {Constants.REVIEWS.map((review, i) => 
@@ -197,7 +212,13 @@ export default function Home() {
             ]
           )}
         </div>
-      </div>
+      </div> */}
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={onLoading}>
+        <CircularProgress color="inherit" />
+        <span>&nbsp;{onLoadingNotification}</span> 
+      </Backdrop>
       <Container maxWidth="xs" className={styles.error_alert}>
         <Collapse in={showAppError}>
           <Alert

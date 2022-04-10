@@ -67,7 +67,7 @@ export default function AboutPage() {
             <Container id={styles.background_section}>
                 <div className={styles.outter_box}>
                     <div className={styles.inner_box}>
-                        <img id={styles.outside_shop_photo} atl="Outside view of BeautyUStudio" src="/images/Outside_Shop_Template.jpg" />
+                        <img id={styles.outside_shop_photo} atl="Outside view of BeautyUStudio" src="/images/outside_shop_photo.jpg" />
                         <div id={styles.background_info}>
                             <h3 className={styles.section_header}>Background</h3>
                             <p>BeautyUStudio started in 2019 by <span id={styles.owner_name}>Hoang Yen Nguyen</span>. 

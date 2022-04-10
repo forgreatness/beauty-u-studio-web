@@ -362,7 +362,6 @@ export default function ApppointmentPage({ clientsOccupiedAppointments, activePr
                 }
 
                 newAppointment = response.data.newAppointment;
-                console.log(newAppointment);
 
                 clientsOccupiedAppointments.push(newAppointment);
 

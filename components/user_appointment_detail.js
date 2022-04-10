@@ -53,7 +53,7 @@ export default function UserAppointmentDetail({ appointment, fitleredIndex, onEd
         }
 
         #appointment_details {
-            padding: 10px 5px;
+            padding: 10px 15px;
             max-Width: 70%;
             min-widtH: 70%;
         }
@@ -61,10 +61,11 @@ export default function UserAppointmentDetail({ appointment, fitleredIndex, onEd
         #appointment_special {
             text-align: center;
             flex-grow: 2;
+            color: green;
         }
 
         #appointment_service_list {
-            overflow: auto;
+            overflow-x: auto;
             padding: 0px 7px;
             -ms-overflow-style: none; /* for Internet Explorer, Edge */
             scrollbar-width: none; /* for Firefox */
@@ -93,8 +94,9 @@ export default function UserAppointmentDetail({ appointment, fitleredIndex, onEd
         });
 
         setAppointmentTime(new Date(appointment.time));
-        setAppointmentCost(totalPrice);
+        setAppointmentCost(totalPrice-(appointment?.discount ?? 0));
         setAppointmentDuration(totalDuration);
+        setAppointmentPromotion(appointment.discount);
     }, []);
 
     function appointmentActions(type) {
@@ -119,7 +121,7 @@ export default function UserAppointmentDetail({ appointment, fitleredIndex, onEd
             <Container css={styles}>
                 <div id="appointment_header">
                     <PersonIcon />
-                    <h6>{appointment.stylist.name}</h6>
+                    <Tooltip title="Your Stylist"><h6>{appointment.stylist.name}</h6></Tooltip>
                     {appointmentActions(appointment.status)}
                 </div>
                 <Divider style={{ height: "100px", alignSelf: "center" }} orientation="vertical" flexItem />
@@ -158,9 +160,16 @@ export default function UserAppointmentDetail({ appointment, fitleredIndex, onEd
                         })}
                     </Stack>
                 </div>
-                {(appointmentPromotion) ? <div id="appointment_special">
-                    <SellIcon />
-                </div> : null}
+
+                {(appointmentPromotion) ?
+                [
+                    <Divider style={{ height: "100px", alignSelf: "center" }} orientation="vertical" flexItem />,
+                    <Tooltip title="Discount Applied">
+                        <div id="appointment_special">
+                            <SellIcon /> {appointmentPromotion}
+                        </div> 
+                    </Tooltip>
+                ] : null}
             </Container>
         );   
     } else {

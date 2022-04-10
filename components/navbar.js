@@ -436,12 +436,14 @@ export default function Navbar(props) {
                     <MenuItem onClick={(_) => handleNavigation("/profile")}>
                         <Avatar /> Profile
                     </MenuItem>
-                    <MenuItem>
-                        <Avatar>
-                            <EventIcon   />
-                        </Avatar>
-                        Add Appointments
-                    </MenuItem>
+                    {(props?.userDetail?.role.toLowerCase() == 'admin')
+                        ? <MenuItem>
+                            <Avatar>
+                                <EventIcon   />
+                            </Avatar>
+                            Add Appointments
+                        </MenuItem> : null
+                    }
                     {(props?.userDetail?.role.toLowerCase() == 'admin') 
                         ? <MenuItem onClick={(_) => handleNavigation("/promotion")}>
                             <Avatar>
@@ -449,12 +451,12 @@ export default function Navbar(props) {
                             </Avatar>
                             Add Promotions
                         </MenuItem> : null}
-                    <MenuItem>
+                    {/* <MenuItem>
                         <Avatar>
                             <SettingsIcon />
                         </Avatar>
                         Settings
-                    </MenuItem>
+                    </MenuItem> */}
                     <Divider />
                     <MenuItem onClick={handleSignOut}>
                         <ListItemIcon>

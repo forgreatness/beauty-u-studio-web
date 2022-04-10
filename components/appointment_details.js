@@ -10,6 +10,13 @@ import Stack from '@mui/material/Stack';
 import Chip from '@mui/material/Chip';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import Typography from '@mui/material/Typography';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import SellIcon from '@mui/icons-material/Sell';
+import Tooltip from '@mui/material/Tooltip';
 
 import { StatusColor } from '../src/constants/index';
 
@@ -20,9 +27,11 @@ export default function AppointmentDetail(props) {
 
     const styles = css`
         min-width: 350px;
+        max-width: 450px;
         padding: 8px 15px;
         border: 2px solid ${StatusColor[props.appointment.status] ?? 'black'};
         border-radius: 8px;
+        position: relative;
 
         #serviceList {
             overflow: auto;
@@ -32,6 +41,17 @@ export default function AppointmentDetail(props) {
 
         #serviceList::-webkit-scrollbar {
             display: none;
+        }
+
+        #promotion_container {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            color: #2e7d32;
+        }
+
+        #appointment_cost_details {
+            color: ${props?.appointment?.discount ? '#ff8a65' : 'black'}
         }
     `;
 
@@ -77,6 +97,8 @@ export default function AppointmentDetail(props) {
             totalPrice += parseFloat(service.price);
             totalDuration += service.time;
         });
+
+        totalPrice -= parseFloat(props?.appointment?.discount ?? 0);
 
         setSchedule(new Date(props.appointment.time));
         setAppointmentCost(totalPrice);
@@ -127,7 +149,7 @@ export default function AppointmentDetail(props) {
                         <span> </span>
                         {schedule?.toLocaleTimeString([], { hour: "2-digit", minute: '2-digit'}) ?? ""}
                     </p>
-                    <p>
+                    <p id="appointment_cost_details">
                         <AttachMoneyIcon />
                         <span> </span>
                         {appointmentCost} USD
@@ -150,9 +172,32 @@ export default function AppointmentDetail(props) {
                     );
                 })}
             </Stack>
+            {props?.appointment?.details 
+                ? <Accordion sx={{ my: 2 }}>
+                    <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        aria-controls="appointment_details"
+                        id="appointment_details_header"
+                        >
+                    <Typography variant="h6">Additional Details</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                    <Typography>
+                        {props.appointment.details}
+                    </Typography>
+                    </AccordionDetails>
+                </Accordion> : null}
             <Stack mt={1} direction="row" spacing={1} justifyContent="flex-end">
                 {appointmentActions(props.appointment.status)}
             </Stack>
+            {props?.appointment?.discount 
+                ? <Tooltip title="Discount Applied">
+                    <span id="promotion_container">
+                        <SellIcon />
+                        {props?.appointment?.discount} USD
+                    </span>
+                </Tooltip> : null
+            }
         </div>
     );
 }

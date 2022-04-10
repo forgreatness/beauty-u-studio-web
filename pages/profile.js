@@ -25,7 +25,7 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import Stack from '@mui/material/Stack';
-
+import EmailJS from '@emailjs/browser';
 
 import styles from '../styles/profilepage.module.css';
 import Layout from '../components/page-layout.js';
@@ -41,7 +41,7 @@ import { style } from '@mui/system';
 * If the user is a client: they should only be able to see their contact information, and past bookings, and upcoming bookings
 * If the user is a stylist: they should be able to see their work schedule, their upcoming appointments, past appointments, upcoming bookings and past bookings
 */
-export default function ProfilePage({ userDetails, error }) {
+export default function ProfilePage({ emailJS, userDetails, error }) {
     let now = new Date();
     let refetchClientsAppointment;
     
@@ -179,7 +179,9 @@ export default function ProfilePage({ userDetails, error }) {
                         client: appointment.client.id,
                         services: appointment.services.map(service => service.id),
                         time: appointment.time,
-                        status: newStatus
+                        status: newStatus,
+                        discount: appointment.discount,
+                        details: appointment.details
                     }
                 }
             });
@@ -208,10 +210,30 @@ export default function ProfilePage({ userDetails, error }) {
                 let allConfirmed = JSON.parse(JSON.stringify(confirmedAppointments));
                 allConfirmed.splice(findSortedIndex(allConfirmed, response.data.updatedAppointment), 0, response.data.updatedAppointment);
                 setConfirmedAppointments(allConfirmed);
+
+                const emailParams = {
+                    client: appointment.client.name,
+                    stylist: appointment.stylist.name,
+                    stylist_phone: appointment.stylist.phone,
+                    send_to: appointment.client.email,
+                    message: `Your appointment for ${generateAppointmentDetailMessage(response.data.updatedAppointment)} has been confirmed.`
+                };
+
+                await sendEmail(emailJS.appointmentConfirmedTemplateID, emailParams);
             } else if (newStatus.toLocaleLowerCase() == "cancelled") {
                 let allCancelled = JSON.parse(JSON.stringify(cancelledAppointments));
                 allCancelled.splice(findSortedIndex(allCancelled, response.data.updatedAppointment), 0, response.data.updatedAppointment);
                 setCancelledAppointments(allCancelled);
+
+                const emailParams = {
+                    client: appointment.client.name,
+                    stylist: appointment.stylist.name,
+                    stylist_phone: appointment.stylist.phone,
+                    send_to: appointment.client.email,
+                    message: `Your appointment for ${generateAppointmentDetailMessage(response.data.updatedAppointment)} has been cancel.`
+                };
+
+                await sendEmail(emailJS.appointmentCancelledTemplateID, emailParams);
             } else if (newStatus.toLocaleLowerCase() == "no show") {
                 let allNoShow = JSON.parse(JSON.stringify(noShowAppointments));
                 allNoShow.splice(findSortedIndex(allNoShow, response.data.updatedAppointment), 0, response.data.updatedAppointment);
@@ -341,6 +363,44 @@ export default function ProfilePage({ userDetails, error }) {
 
         setUpcomingDayFilter(e.target.value);
     }
+
+    const generateAppointmentDetailMessage = (appointment) => {
+        let serviceDetailMessage = "";
+
+        appointment.services.forEach((service, index) => {
+            if (index == appointment.services.length-1 && index != 0) {
+                serviceDetailMessage += " and";
+            }
+
+            serviceDetailMessage += ` ${service.name}`;
+            serviceDetailMessage += ` ${service.type}`;
+            serviceDetailMessage += (service?.kind?.type) ? ` ${service.kind.type}` : "";
+            serviceDetailMessage += ','
+        });
+
+        const appointmentTime = new Date(appointment.time);
+
+        let timeDetailMessage = `on ${appointmentTime.toDateString()} at ${appointmentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+
+        return `${serviceDetailMessage} ${timeDetailMessage}`;
+    };
+
+    const sendEmail = async (emailTemplate, templateParams) => {
+        try {
+            setOnLoading(true);
+            const emailResponse = await EmailJS.send(emailJS.serviceID, emailTemplate, templateParams, emailJS.userID);
+
+            if ((emailResponse?.status ?? "") != 200) {
+                throw new Error ('Unable to run emailJS service');
+            }
+        } catch (err) {
+            setApplicationError(`Unable to notify recipient ${templateParams?.send_to}`);
+            setShowAppError(true);
+            return err;
+        } finally {
+            setOnLoading(false);
+        }
+    };
 
     const findSortedIndex = (appointments, appointment) => {
         let index = 0; 
@@ -864,7 +924,13 @@ export async function getServerSideProps(context) {
 
         return {
             props: {
-                userDetails: userDetails.data.user
+                userDetails: userDetails.data.user,
+                emailJS: {
+                    "serviceID": process.env.EMAILJS_SERVICE_ID,
+                    "appointmentConfirmedTemplateID": process.env.EMAILJS_APPOINTMENT_CONFIRMED_TEMPLATE_ID,
+                    "appointmentCancelledTemplateID": process.env.EMAILJS_APPOINTMENT_CANCELLED_TEMPLATE_ID,
+                    "userID": process.env.EMAILJS_USER_ID
+                }
             }
         }
     } catch (err) {

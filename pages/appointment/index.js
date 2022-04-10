@@ -20,7 +20,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import Jwt from 'jsonwebtoken';
 import EmailJS from '@emailjs/browser';
 import Stack from '@mui/material/Stack';
-import Dialog from '@mui/material/dialog';
+import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';

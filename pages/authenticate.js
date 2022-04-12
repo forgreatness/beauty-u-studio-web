@@ -19,17 +19,25 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useRouter } from 'next/router';
 import Cookie from 'cookie';
 import Jwt from 'jsonwebtoken';
 import EmailJS from '@emailjs/browser';
+import { useApolloClient } from '@apollo/client';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 
 import ApolloClient from '../lib/apollo/apollo-client.js';
 import styles from '../styles/authenticatepage.module.css';
-import { GET_USER, SIGN_IN, SIGN_UP } from '../lib/apollo/data-queries.js';
+import { GET_USER, SIGN_IN, SIGN_UP, GET_ACCOUNT_RECOVERY_TOKEN } from '../lib/apollo/data-queries.js';
 
 export default function AuthenticatePage(props) {
     const [submitForm, setSubmitForm] = useState(false);
+    const apolloClient = useApolloClient();
 
     const [formType, setFormType] = useState("login");
     const [signInUsername, setSignInUsername] = useState("");
@@ -50,16 +58,17 @@ export default function AuthenticatePage(props) {
     const [signUpShowPassword, setSignUpShowPassword] = useState(false);
     const [signUpError, setSignUpError] = useState("");
 
+    const [forgotPassword, setForgotPassword] = useState(false);
+    const [forgotPasswordUsername, setForgotPasswordUsername] = useState("");
+    const [forgotPasswordUsernameError, setForgotPasswordUsernameError] = useState("");
+    const [forgotPasswordError, setForgotPasswordError] = useState("");
+    const [openAccountRecoveryDialog, setOpenAccountRecoveryDialog] = useState(false);
+
     const router = useRouter();
 
     // Request change form type
     const handleFormTypeChange = (e, newValue) => {
         setFormType(newValue);
-    }
-
-    // Request password change link
-    const handleSignInPasswordRequest = (e) => {
-        e.preventDefault();
     }
 
     // SignIn event handlers
@@ -90,7 +99,6 @@ export default function AuthenticatePage(props) {
         setSignInPasswordError("");
         setSignInShowPassword(false);
     }
-
 
     const handleSignInSubmit = async (e) => {
         e.preventDefault();
@@ -253,6 +261,7 @@ export default function AuthenticatePage(props) {
 
         try {
             const activationCode = Math.random().toString(16).substring(2,12);
+            const accountRecoveryCode = Math.random().toString(16).substring(2,12);
             const { data } = await ApolloClient.mutate({
                 mutation: SIGN_UP,
                 variables: {
@@ -262,7 +271,8 @@ export default function AuthenticatePage(props) {
                         phone: signUpPhone.split('-').join(''),
                         password: signUpPassword,
                         role: "client",
-                        activationCode: activationCode
+                        activationCode: activationCode,
+                        accountRecoveryCode: accountRecoveryCode
                     }
                 },
                 fetchPolicy: "no-cache"
@@ -284,16 +294,12 @@ export default function AuthenticatePage(props) {
                 "ac": activationCode
             };
 
-            console.log("HELLO");
-
             const activationToken = await Jwt.sign(activationPayload, props.jwtActivationTokenKey, {
                 expiresIn: "30d",
                 subject: "Account activation jwt",
                 issuer: "beautyustudioweb",
                 audience: "beautyustudio clients"
             });
-
-            console.log("HI there");
 
             const emailResponse = await EmailJS.send(props.emailJS.serviceID, props.emailJS.accountActivationTemplateID, {
                 client: signUpName,
@@ -363,6 +369,76 @@ export default function AuthenticatePage(props) {
         setSignUpPasswordError("");
     }
 
+    const handleForgotPasswordUsernameChange = (e) => {
+        setForgotPasswordUsername(e.target.value);
+
+        setForgotPasswordUsernameError("");
+    }
+
+    const handleForgotPassword = (forgot) => {
+        setForgotPassword(forgot);
+    }
+
+    const handleForgotPasswordRequest = async (e) => {
+        e.preventDefault();
+
+        let inputError = false;
+
+        if (!forgotPasswordUsername) {
+            setForgotPasswordUsernameError('required');
+            inputError = true;
+        } else {
+            let isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(forgotPasswordUsername);
+
+            if (!isValidEmail) {
+                inputError = true;
+                setForgotPasswordUsernameError('email should contain @service and .domain');
+            }
+        }
+
+        if (inputError) {
+            setOpenAccountRecoveryDialog(false);
+            return;
+        }
+
+        try {
+            const getAccountRecoveryToken = await apolloClient.query({
+                query: GET_ACCOUNT_RECOVERY_TOKEN,
+                variables: {
+                    "username": forgotPasswordUsername
+                },
+            });
+
+            if (!getAccountRecoveryToken?.data?.token) {
+                throw new Error('Unable to send account recovery');
+            }
+
+            const payload = Jwt.decode(getAccountRecoveryToken.data.token);
+
+            if (!payload || Date.now() > (payload?.exp ?? 0) * 1000) {
+                throw new Error('Invalid account recovery token');
+            }
+
+            const emailResponse = await EmailJS.send(props.emailJS.serviceID, props.emailJS.accountRecoveryTemplateID, {
+                client: payload?.name,
+                account_recovery_link: `${props.appHomeUrl}/accountRecovery?recoveryToken=${getAccountRecoveryToken.data.token}`,
+                send_to: forgotPasswordUsername
+            }, props.emailJS.userID);
+
+            if ((emailResponse?.status ?? "") != 200) {
+                throw new Error ('Unable to send user recovery link');
+            }
+        } catch (err) {
+
+        } finally {
+            setForgotPassword(false);
+            setForgotPasswordUsername("");
+            setForgotPasswordUsernameError("");
+            setOpenAccountRecoveryDialog(false);
+            return;
+        }
+    }
+
     // Utility functions
     function calNumOfDigits(str) {
         let count = 0;
@@ -378,7 +454,6 @@ export default function AuthenticatePage(props) {
 
     useEffect(() => {
         setSubmitForm(false);
-        console.log("hi");
     }, [signInError, signUpError]);
 
     function signInForm() {
@@ -409,7 +484,7 @@ export default function AuthenticatePage(props) {
                     />
                     <FormHelperText error={(signInPasswordError) ? true : false}>{signInPasswordError ? signInPasswordError : ""}</FormHelperText>
                 </FormControl>
-                <a href="#" onClick={handleSignInShowPasswordChange}>Forget Password?</a>
+                <a href="#" onClick={() => handleForgotPassword(true)}>Forget Password?</a>
                 <Stack direction="row" alignItems="center" justifyContent="flex-end" spacing={2 }>
                     <Button onClick={handleSignInClear} style={{"color": "black", "borderColor": "black"}} variant="outlined" startIcon={<RefreshIcon />}>Reset</Button>
                     <Button type="submit" style={{"color": "black", "borderColor": "black"}} variant="outlined" endIcon={<EastOutlinedIcon />}>Enter</Button>
@@ -448,6 +523,37 @@ export default function AuthenticatePage(props) {
         );
     }
 
+    function forgotPasswordForm() {
+        return (
+            <Box component="form" className={styles.forgot_password_form} onSubmit={(e) => { e.preventDefault(); setOpenAccountRecoveryDialog(true)} }>
+                <TextField fullWidth error={forgotPasswordUsernameError ? true : false} autoComplete="email" id="username" label="Username" variant="outlined" helperText={forgotPasswordUsernameError ? forgotPasswordUsernameError : "Enter the email of the account"} value={forgotPasswordUsername} onChange={handleForgotPasswordUsernameChange} />
+                <a href="#" style={{ "color": "black", "textDecoration": "none" }} onClick={() => handleForgotPassword(false)}><ArrowBackIcon /> Back</a>
+                <Stack className={styles.forgot_password_action_container} direction="row" alignItems="center" justifyContent="flex-end" spacing={2 }>
+                    <Button type="submit" style={{"color": "black", "borderColor": "black"}} variant="outlined" endIcon={<EastOutlinedIcon />}>Enter</Button>
+                    <Dialog
+                        open={openAccountRecoveryDialog}
+                        onClose={() => setOpenAccountRecoveryDialog(false)}
+                        aria-labelledby="send-account-recovery-dialog-title"
+                        aria-describedby="send-account-recovery-dialog-description"
+                    >
+                        <DialogTitle id="send-account-recovery-title">
+                            {"Send Account Recovery Request"}
+                        </DialogTitle>
+                        <DialogContent>
+                            <DialogContentText id="send-account-recovery-dialog-description">
+                                If an account exist, a recovery link will be send out to the email of the account
+                            </DialogContentText>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => setOpenAccountRecoveryDialog(false)}>Back</Button>
+                            <Button onClick={handleForgotPasswordRequest} autoFocus>Proceed</Button>
+                        </DialogActions>
+                    </Dialog>
+                </Stack>
+            </Box>
+        )
+    }
+
     return (
         [
             <Link href="/" passHref>
@@ -456,13 +562,19 @@ export default function AuthenticatePage(props) {
                 </a>
             </Link>,
             <Container component="main" maxWidth="xxl" className={styles.auth_page_container}>
-                <div className={styles.auth_form_container}>
-                    <Tabs value={formType} onChange={handleFormTypeChange} textColor="primary" indicatorColor="primary" aria-label="select the form type to authenticate">
-                        <Tab value="login" label="SIGN IN" />
-                        <Tab value="register" label="SIGN UP" />
-                    </Tabs>
-                    {formType == "login" ? signInForm() : signUpForm()}
-                </div>
+                {forgotPassword ? 
+                    <div className={styles.forgot_password_form_container}>
+                        <h5>Recover your password</h5>
+                        {forgotPasswordForm()}
+                    </div>
+                    : <div className={styles.auth_form_container}>
+                        <Tabs value={formType} onChange={handleFormTypeChange} textColor="primary" indicatorColor="primary" aria-label="select the form type to authenticate">
+                            <Tab value="login" label="SIGN IN" />
+                            <Tab value="register" label="SIGN UP" />
+                        </Tabs>
+                        {formType == "login" ? signInForm() : signUpForm()}
+                    </div>
+                }
             </Container>,
             <Backdrop
                 sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
@@ -494,6 +606,7 @@ export async function getServerSideProps(context) {
             emailJS: {
                 "serviceID": process.env.EMAILJS_SERVICE_ID,
                 "accountActivationTemplateID": process.env.EMAILJS_ACCOUNT_ACTIVATION_TEMPLATE_ID,
+                "accountRecoveryTemplateID": process.env.EMAILJS_ACCOUNT_RECOVERY_TEMPLATE_ID,
                 "userID": process.env.EMAILJS_USER_ID
             },
             jwtActivationTokenKey: process.env.JWT_ACTIVATION_TOKEN_KEY

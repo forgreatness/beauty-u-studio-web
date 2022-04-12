@@ -783,7 +783,7 @@ export default function ProfilePage({ emailJS, userDetails, error }) {
                         >
                         <ListItemText primary="Completed" />
                     </ListItemButton>
-                    <ListItemButton selected={userAppointmentFilters?.Cancelled} onClick={(e) => handleUserAppointmentFiltersChange(e, "Cancelled")} className={styles.appointments_filter_option} className={styles.appointments_filter_option} sx={{ 
+                    <ListItemButton selected={userAppointmentFilters?.Cancelled} onClick={(e) => handleUserAppointmentFiltersChange(e, "Cancelled")} className={styles.appointments_filter_option} sx={{ 
                         '&:hover': {
                             backgroundColor: blueGrey[500]
                         }, 

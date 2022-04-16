@@ -34,8 +34,7 @@ import { GET_USER, GET_APPOINTMENTS, UPDATE_APPOINTMENT, REMOVE_APPOINTMENT } fr
 import AppointmentDetail from '../components/appointment_details';
 import UserAppointmentDetail from '../components//user_appointment_detail';
 import { StatusColor, MonthLabel } from '../src/constants/index';
-import { style } from '@mui/system';
-
+import { generateAppointmentDetailMessage } from '../lib/utility/emailJS';       
 
 /* Purpose 
 * If the user is a client: they should only be able to see their contact information, and past bookings, and upcoming bookings
@@ -363,27 +362,6 @@ export default function ProfilePage({ emailJS, userDetails, error }) {
 
         setUpcomingDayFilter(e.target.value);
     }
-
-    const generateAppointmentDetailMessage = (appointment) => {
-        let serviceDetailMessage = "";
-
-        appointment.services.forEach((service, index) => {
-            if (index == appointment.services.length-1 && index != 0) {
-                serviceDetailMessage += " and";
-            }
-
-            serviceDetailMessage += ` ${service.name}`;
-            serviceDetailMessage += ` ${service.type}`;
-            serviceDetailMessage += (service?.kind?.type) ? ` ${service.kind.type}` : "";
-            serviceDetailMessage += ','
-        });
-
-        const appointmentTime = new Date(appointment.time);
-
-        let timeDetailMessage = `on ${appointmentTime.toDateString()} at ${appointmentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-
-        return `${serviceDetailMessage} ${timeDetailMessage}`;
-    };
 
     const sendEmail = async (emailTemplate, templateParams) => {
         try {

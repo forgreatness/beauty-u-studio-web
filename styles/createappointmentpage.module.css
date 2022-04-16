@@ -1,0 +1,42 @@
+.menu {
+    width: 200;
+}
+
+#select_client_container {
+    width: 40%;
+    text-align: center;
+    position: relative;
+}
+
+#clients_list {
+    -webkit-box-shadow: 0 2px 10px 5px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0 2px 10px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 10px 5px rgba(0, 0, 0, 0.2);
+    transform: scale(0.99);
+    max-height: 400px;
+    overflow-y: auto;
+    position: absolute;
+    width: 90%;
+    left: 5%;
+    z-index: 2;
+}
+
+#clients_list::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+#clients_list::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+#clients_list::-webkit-slider-thumb {
+    background-color: var(--color-alpha);
+    border-radius: 20px;
+    border: 1px solid black;
+    background-clip: content-box;
+}
+
+#clients_list::-webkit-scrollbar-thumb:hover {
+    background-color: #eeeeee;
+}

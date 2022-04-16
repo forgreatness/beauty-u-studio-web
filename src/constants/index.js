@@ -6,12 +6,14 @@ export const CONTACTS = {
 }
 
 export const HOMEPAGE_COVER = [
-    '/images/homepage_cover1.jpg',
-    '/images/homepage_cover2.jpg',
-    '/images/homepage_cover3.jpg',
+    '/images/beautyustudio_service_cover1.jpg',
+    '/images/beautyustudio_service_cover2.jpg',
+    '/images/beautyustudio_service_cover3.jpg',
+    '/images/beautyustudio_inside2.jpg',
+    '/images/beautyustudio_inside3.jpg'
 ];
 
-export const STUDIO_COVER = '/images/studio_cover.jpg';
+export const STUDIO_COVER = '/images/beautyustudio_inside.jpg';
 
 export const ICONS = {
     signin: '/images/signin_icon.png',

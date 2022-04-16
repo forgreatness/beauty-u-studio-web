@@ -437,7 +437,7 @@ export default function Navbar(props) {
                         <Avatar /> Profile
                     </MenuItem>
                     {(props?.userDetail?.role.toLowerCase() == 'admin')
-                        ? <MenuItem>
+                        ? <MenuItem onClick={(_) => handleNavigation("/appointment/create")}>
                             <Avatar>
                                 <EventIcon   />
                             </Avatar>

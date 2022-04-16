@@ -52,6 +52,7 @@ export default function ApppointmentPage({ clientsOccupiedAppointments, activePr
     const [calculateSlots, setCalculateSlots] = useState(false);
     const [selectedServices, setSelectedServices] = useState([]);
     const [selectedStylist, setSelectedStylist] = useState("");
+    const [qualifyingStylist, setQuallifyingStylist] = useState([]);
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedTime, setSelectedTime] = useState("");
     const [appointments, setAppointments] = useState([]);
@@ -525,6 +526,22 @@ export default function ApppointmentPage({ clientsOccupiedAppointments, activePr
     }, [selectedServices]);
 
     useEffect(() => {
+        let qualifiedStylist = (data?.users ?? []).filter(stylist => {
+            const qualified = selectedServices.every(service => {
+                return (stylist?.capabilities ?? []).includes(service);
+            });
+
+            return qualified;
+        })
+
+        if (!qualifiedStylist.find(stylist => stylist.id.toString() == selectedStylist)) {
+            setSelectedStylist("");
+        }
+
+        setQuallifyingStylist(qualifiedStylist);
+    }, [selectedServices]);
+
+    useEffect(() => {
         if (selectedDate) {
             let selectedAppointmentDate = new Date(selectedDate);
 
@@ -589,7 +606,7 @@ export default function ApppointmentPage({ clientsOccupiedAppointments, activePr
                         <Form.Label column="lg">Stylist</Form.Label>
                         <Form.Control as="select" onChange={handleStylistChange} value={selectedStylist}>
                             {(selectedStylist ? [] : [<option value={selectedStylist}></option>]).concat(
-                                data.users.filter(stylist => stylist.id.toString() != user.id.toString()).map(stylist => {
+                                qualifyingStylist.filter(stylist => stylist.id.toString() != user.id.toString()).map(stylist => {
                                     return (
                                         <option key={stylist.id} value={stylist.id}>{stylist.name}</option>
                                     );

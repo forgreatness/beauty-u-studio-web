@@ -3,6 +3,7 @@
  */
 import { jsx, css } from '@emotion/react';
 import Link from 'next/link';
+import CopyrightIcon from '@mui/icons-material/Copyright';
 
 import CustomButton from './custom_button';
 import * as Constants from '../src/constants/index';
@@ -64,6 +65,13 @@ export default function Footbar() {
                 margin: 0 auto; 
             }
         }
+
+        #copyright_container {
+            position: absolute;
+            bottom: 0px;
+            right: 30px;
+            color: #303f9f;
+        }
     `;
 
     return (
@@ -88,6 +96,11 @@ export default function Footbar() {
             <Link href="/appointment" passHref>
                 <CustomButton className="appointment_button">Appointment</CustomButton>
             </Link>
+            <p id="copyright_container">
+                <b>Copyright </b>
+                <CopyrightIcon fontSize='medium' />
+                2022 Danh Nguyen, BeautyUStudio
+            </p>
         </div>
     );
 }

@@ -6,9 +6,12 @@ export const CONTACTS = {
 }
 
 export const HOMEPAGE_COVER = [
+    '/images/beautyustudio_service_cover0.jpg',
     '/images/beautyustudio_service_cover1.jpg',
     '/images/beautyustudio_service_cover2.jpg',
     '/images/beautyustudio_service_cover3.jpg',
+    '/images/beautyustudio_service_cover4.jpg',
+    '/images/beautyustudio_service_cover5.jpg',
     '/images/beautyustudio_inside2.jpg',
     '/images/beautyustudio_inside3.jpg'
 ];

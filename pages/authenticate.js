@@ -30,6 +30,8 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import SnackBar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 
 import ApolloClient from '../lib/apollo/apollo-client.js';
 import styles from '../styles/authenticatepage.module.css';
@@ -38,6 +40,9 @@ import { GET_USER, SIGN_IN, SIGN_UP, GET_ACCOUNT_RECOVERY_TOKEN } from '../lib/a
 export default function AuthenticatePage(props) {
     const [submitForm, setSubmitForm] = useState(false);
     const apolloClient = useApolloClient();
+
+    const [openErrorSnackBar, setOpenErrorSnackBar] = useState(false);
+    const [snackBarError, setSnackBarError] = useState("");
 
     const [formType, setFormType] = useState("login");
     const [signInUsername, setSignInUsername] = useState("");
@@ -172,6 +177,9 @@ export default function AuthenticatePage(props) {
 
             router.push('/profile');
         } catch (error) {
+            setOpenErrorSnackBar(true);
+            setSnackBarError("Invalid Credentials");
+            setSubmitForm(false);
             setSignInError(error);
         }
     }
@@ -191,7 +199,6 @@ export default function AuthenticatePage(props) {
 
     const handleSignUpSubmit = async (e) => {
         e.preventDefault();
-        setSubmitForm(true);
 
         let isValid = true;
 
@@ -260,6 +267,8 @@ export default function AuthenticatePage(props) {
         }
 
         try {
+            setSubmitForm(true);
+
             const activationCode = Math.random().toString(16).substring(2,12);
             const accountRecoveryCode = Math.random().toString(16).substring(2,12);
             const { data } = await ApolloClient.mutate({
@@ -313,8 +322,17 @@ export default function AuthenticatePage(props) {
 
             router.push('/profile');
         } catch(err) {
-            console.log(err);
+            const reason = err?.message?.toLocaleLowerCase() ?? '';
+
+            if (reason == "unable to send user activation link") {
+                setSnackBarError("There was a problem sending the activation code, please use the contact section and reach out to activate your account");
+            } else {
+                setSnackBarError("Unable to process your credentials");
+            }
+            
+            setOpenErrorSnackBar(true);
             setSignUpError(err?.message ?? 'Sign up unsuccessful');
+            setSubmitForm(false);
         }
     }
 
@@ -437,6 +455,10 @@ export default function AuthenticatePage(props) {
             setOpenAccountRecoveryDialog(false);
             return;
         }
+    }
+
+    const handleCloseErrorSnackBar = () => {
+        setOpenErrorSnackBar(false);
     }
 
     // Utility functions
@@ -576,6 +598,9 @@ export default function AuthenticatePage(props) {
                     </div>
                 }
             </Container>,
+            <SnackBar anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }} open={openErrorSnackBar} autoHideDuration={7500} onClose={handleCloseErrorSnackBar}>
+                <Alert severity="error">{snackBarError}</Alert>
+            </SnackBar>,
             <Backdrop
                 sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
                 open={submitForm}

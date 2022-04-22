@@ -21,9 +21,11 @@ import MemberSelector from '../components/member_selector';
 import Loading from '../components/loading';
 import ClientReview from '../components/client_review';
 import CustomButton from '../components/custom_button';
-import { GET_SERVICES, GET_USERS, GET_HOMEPAGEDATA } from '../lib/apollo/data-queries';
+import ApolloClient from '../lib/apollo/apollo-client';
+import PromotionBanner from '../components/promotion_banner';
+import { GET_HOMEPAGEDATA, GET_PROMOTIONS } from '../lib/apollo/data-queries';
 
-export default function Home() {
+export default function Home({ featuredPromotions }) {
   const router = useRouter();
   const apolloClient = useApolloClient();
   const studioSectionRef = useRef();
@@ -35,6 +37,8 @@ export default function Home() {
   const [user, setUser] = useState();
   const [onLoading, setOnLoading] = useState(false);
   const [onLoadingNotification, setOnLoadingNotificaiton] = useState("");
+  const [featuredPromotionsDetails, setFeaturedPromotionsDetails] = useState([]);
+  const [featuredPromotion, setFeaturedPromotion] = useState(featuredPromotions?.[0]?.id);
   const { loading, error, data } = useQuery(GET_HOMEPAGEDATA, {
     variables: {
       userRole: "stylist"
@@ -50,7 +54,24 @@ export default function Home() {
         });
 
         setTypeOfServices(serviceType);
+
+        featuredPromotions.forEach(promotion => {
+          promotion.services = promotion.services.map(serviceId => {
+            const service = data.services.find(service => service.id.toString() == serviceId.toString());
+
+            return service;
+          }).filter(service => (service));
+        });
+      } else {
+        featuredPromotions.forEach(promotion => promotion.services = []);
       }
+
+      setFeaturedPromotionsDetails(featuredPromotions);
+      console.log(featuredPromotions);
+    },
+    onError: () => {
+      featuredPromotions.forEach(promotion => promotion.services = []);
+      setFeaturedPromotionsDetails(featuredPromotions);
     }
   });
 
@@ -75,15 +96,25 @@ export default function Home() {
   }
 
   const handleSelectMember = (e) => {
-    e.preventDefault;
+    e.preventDefault();
 
-    const selected_member_name = e.target.id;
+    const selected_member_id = e.target.id;
 
     data.stylists.forEach((stylist, i) => {
-      if (stylist.name == selected_member_name) {
+      if (stylist.id.toString() == selected_member_id) {
         setSelectedMember(i);
       }
     });
+  }
+
+  const handleFeaturedPromotionChange = (e) => {
+    e.preventDefault();
+
+    featuredPromotionsDetails.forEach(promotion => {
+      if (promotion.id.toString() == e.target.id) {
+        setFeaturedPromotion(e.target.id);
+      }
+    })
   }
 
   const handleNavigation = (path) => {
@@ -189,7 +220,7 @@ export default function Home() {
           <div className={styles.member_selectors}>
             {data.stylists.map((stylist, i) => 
               [
-                <MemberSelector key={stylist.name} member={stylist} selected={i==currentMember} onSelectMemberSelector={handleSelectMember}/>,
+                <MemberSelector key={stylist.id.toString()} memberId={stylist.id.toString()} selected={i==currentMember} onSelectMemberSelector={handleSelectMember}/>,
               ]
             )}
           </div>
@@ -213,6 +244,16 @@ export default function Home() {
           )}
         </div>
       </div> */}
+      <div id={styles.promotion_banner}>
+        <PromotionBanner promotion={featuredPromotionsDetails?.[featuredPromotionsDetails.findIndex(promotion => promotion.id == featuredPromotion)]} />
+        <div id={styles.promotion_selector}>
+          {(featuredPromotionsDetails ?? []).map(promotion => {
+            return (
+              <MemberSelector className={styles.selector} key={promotion.id.toString()} memberId={promotion.id.toString()} selected={promotion.id.toString()==featuredPromotion} onSelectMemberSelector={handleFeaturedPromotionChange}/>
+            );
+          })}
+        </div>
+      </div>
       <Backdrop
         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
         open={onLoading}>
@@ -245,4 +286,38 @@ export default function Home() {
       </Container>  
     </Layout>
   )
+}
+
+export async function getServerSideProps(context) {
+  try {
+    const getPromotions = await ApolloClient.query({
+      query: GET_PROMOTIONS,
+      fetchPolicy: "network-only"
+    });
+  
+    const promotions = getPromotions?.data?.promotions;
+  
+    if (!promotions) {
+      throw new Error('Unable to fetch promotions');
+    }
+
+    const featuredPromotions = promotions.filter(promotion => {
+      const promotionStartDate = new Date(promotion?.start);
+      const promotionEndDate = new Date(promotion?.end);
+
+      if (promotionStartDate <= Date.now() && promotionEndDate >= Date.now()) {
+        return true;
+      }
+
+      return false;
+    });
+
+    return {
+      props: {
+        featuredPromotions: featuredPromotions
+      }
+    }
+  } catch (err) {
+    console.log(err);
+  }
 }

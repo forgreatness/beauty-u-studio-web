@@ -71,8 +71,8 @@ export default function AboutPage() {
                         <div id={styles.background_info}>
                             <h3 className={styles.section_header}>Background</h3>
                             <p>BeautyUStudio started in 2019 by <span id={styles.owner_name}>Hoang Yen Nguyen</span>. 
-                            A very ambitious and confident women that grew up in Portland almost her whole entire life. 
-                            From clothings, to singing, and nursing, she found her passion for beauty in the beginning with lip and eyebrow tatooing. 
+                            A very ambitious and confident woman that grew up in Portland almost her whole entire life. 
+                            From clothings, to singing, and nursing, she found her passion for beauty in the beginning with lash extension and eyebrow tatooing. 
                             Together with her good friend Thanh they have built BeautyUStudio to be an amazing beauty shop today that brings many joy, excitement, and trust to their clients</p>
                         </div>
                     </div>

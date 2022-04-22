@@ -2,7 +2,7 @@ export const OUR_VISION = "At BeautyUStudio we prioritize our client beauty more
 "With a variety of services aiming at captivating the true beauty of our client, we are ready to take you to the most enchantress place in your world";
 
 export const CONTACTS = {
-    phone: "503-330-1405"
+    phone: "503-446-4774"
 }
 
 export const HOMEPAGE_COVER = [
@@ -89,7 +89,7 @@ export const TermsOfService = [
     "Late arrivals are subjected to availability of stylist and can be mark as no show",
     "Appointments scheduled online will be consider requested until confirm by stylist",
     "Visa and Cash are both accepted",
-    "Masks are required to keep everyone safe",
+    "Masks are highly recommended as service are provided in close proximity",
     "Phone and Email contacts will be used to send alert and reminders",
     "Contact the studio for any missing info",
 ];
@@ -117,13 +117,13 @@ export const StudioContact = {
 }
 
 export const StudioHours = {
-    monday: "9:00 AM - 6:00 PM",
-    tuesday: "9:00 AM - 6:00 PM",
-    wednesday: "9:00 AM - 6:00 PM",
-    thursday: "9:00 AM - 6:00 PM",
-    friday: "9:00 AM - 6:00 PM",
-    saturday: "9:00 AM - 6:00 PM",
-    sunday: "9:00 AM - 6:00 PM",
+    monday: "CLOSED",
+    tuesday: "10:00 AM - 6:00 PM",
+    wednesday: "10:00 AM - 6:00 PM",
+    thursday: "10:00 AM - 6:00 PM",
+    friday: "10:00 AM - 6:00 PM",
+    saturday: "10:00 AM - 6:00 PM",
+    sunday: "CLOSED",
 }
 
 export const StudioLocation = [
@@ -138,3 +138,10 @@ export const StudioLocation = [
 export const MonthLabel = [
     "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"
 ];
+
+export const ServiceIcon = {
+    "spa & beauty": "beauty_icon.png",
+    nails: "nails_icon.png",
+    hair: "hair_icon.png",
+    eye: "eye_icon.png"
+}

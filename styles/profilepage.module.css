@@ -10,6 +10,18 @@
     margin-bottom: 50px;
 }
 
+@media (max-width: 749px) {
+    .profilePage {
+        flex-wrap: wrap;
+        row-gap: 20px;
+        justify-content: center;
+    }
+
+    .profile {
+        position: initial !important;
+    }
+}
+
 .profile {
     text-align: center;
     border-radius: 10px;

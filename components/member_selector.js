@@ -2,7 +2,7 @@
 /* @jsx jsx */
 import {jsx, css} from '@emotion/react';
 
-export default function MemberSelector({ member, selected, onSelectMemberSelector }) {
+export default function MemberSelector({ memberId, selected, onSelectMemberSelector }) {
     const styles = css`
         width: 10px;
         height: 10px;
@@ -19,6 +19,6 @@ export default function MemberSelector({ member, selected, onSelectMemberSelecto
 
 
     return (
-        <div id={member.name} css={styles} onClick={(e) => onSelectMemberSelector(e)}></div>
+        <div id={memberId}  css={styles} onClick={(e) => onSelectMemberSelector(e)}></div>
     );
 }

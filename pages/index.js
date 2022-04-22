@@ -244,16 +244,18 @@ export default function Home({ featuredPromotions }) {
           )}
         </div>
       </div> */}
-      <div id={styles.promotion_banner}>
-        <PromotionBanner promotion={featuredPromotionsDetails?.[featuredPromotionsDetails.findIndex(promotion => promotion.id == featuredPromotion)]} />
-        <div id={styles.promotion_selector}>
-          {(featuredPromotionsDetails ?? []).map(promotion => {
-            return (
-              <MemberSelector className={styles.selector} key={promotion.id.toString()} memberId={promotion.id.toString()} selected={promotion.id.toString()==featuredPromotion} onSelectMemberSelector={handleFeaturedPromotionChange}/>
-            );
-          })}
-        </div>
-      </div>
+      {featuredPromotionsDetails.length > 0 ?
+        <div id={styles.promotion_banner}>
+          <PromotionBanner promotion={featuredPromotionsDetails?.[featuredPromotionsDetails.findIndex(promotion => promotion.id == featuredPromotion)]} />
+          <div id={styles.promotion_selector}>
+            {(featuredPromotionsDetails ?? []).map(promotion => {
+              return (
+                <MemberSelector className={styles.selector} key={promotion.id.toString()} memberId={promotion.id.toString()} selected={promotion.id.toString()==featuredPromotion} onSelectMemberSelector={handleFeaturedPromotionChange}/>
+              );
+            })}
+          </div>
+        </div> : null
+      }
       <Backdrop
         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
         open={onLoading}>
@@ -288,11 +290,11 @@ export default function Home({ featuredPromotions }) {
   )
 }
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps() {
   try {
     const getPromotions = await ApolloClient.query({
       query: GET_PROMOTIONS,
-      fetchPolicy: "network-only"
+      fetchPolicy: "no-cache"
     });
   
     const promotions = getPromotions?.data?.promotions;

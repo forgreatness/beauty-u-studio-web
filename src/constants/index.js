@@ -63,6 +63,31 @@ export const user = {
 export const studioOpens = "08:00:00";
 export const studioCloses =  "17:00:00";
 
+export const BUSINESS_HOURS = [
+    undefined,
+    undefined,
+    {
+        open: "08:00:00",
+        close: "17:00:00"
+    },
+    {
+        open: "08:00:00",
+        close: "17:00:00"
+    },
+    {
+        open: "08:00:00",
+        close: "17:00:00"
+    },
+    {
+        open: "08:00:00",
+        close: "17:00:00"
+    },
+    {
+        open: "08:00:00",
+        close: "17:00:00"
+    }
+];
+
 export const INFO_TYPE = {
     "suspended": "Your account is suspended",
     "notActivated": "Please activate your account from the link provided in your email",

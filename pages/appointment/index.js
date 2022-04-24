@@ -31,7 +31,7 @@ import Layout from '../../components/page-layout';
 import ApolloClient from '../../lib/apollo/apollo-client';
 import { GET_SERVICES, GET_USERS, GET_APPOINTMENTS, ADD_APPOINTMENT, GET_USER, GET_PROMOTIONS } from '../../lib/apollo/data-queries';
 import Loading from '../../components/loading';
-import { studioOpens, studioCloses } from '../../src/constants/index';
+import { studioOpens, studioCloses, BUSINESS_HOURS } from '../../src/constants/index';
 
 export default function ApppointmentPage({ clientsOccupiedAppointments, activePromotions, services, servicesByType, user, emailJS }) {
     const apolloClient = useApolloClient();
@@ -76,96 +76,108 @@ export default function ApppointmentPage({ clientsOccupiedAppointments, activePr
     }); //TODO: get stylists that can only perform the selected Service;
 
     if (calculateSlots) {
-        // Calculate slots if we have all the data needed;
-        if (selectedServices.length > 0 && selectedStylist && selectedDate) {
-            // #1:filter all the appointments from our system to only use one from the selectedDate and order the filtered appointments by time;
+        if (selectedDate) {
             const onDate = new Date(Date.parse(selectedDate));
-            let appointmentsOnDate = [];
-            let timeSlots = [];
+            const selectedDateOpenTime = BUSINESS_HOURS[onDate.getDay()]?.open;
+            const selectedDateCloseTime = BUSINESS_HOURS[onDate.getDay()]?.close;
 
-            for (var i = 0; i < appointments.length; i++) {
-                let appointmentDate = new Date(appointments[i].time);
-
-                // if the current appointment in iteration is on the same day as the selected date user choosed;
-                if (onDate.getMonth() == appointmentDate.getMonth() && onDate.getDate() == appointmentDate.getDate()) {
-                    let isAdded = false;
-
-                    for (let x = 0; x < appointmentsOnDate.length; x++) {
-                        if (appointmentDate < new Date(appointmentsOnDate[x].time)) {
-                            appointmentsOnDate.splice(x, 0, appointments[i]);
-                            isAdded = true;
-                            break;
+            if (selectedDateOpenTime || selectedDateCloseTime) {
+                // Calculate slots if we have all the data needed;
+                if (selectedServices.length > 0 && selectedStylist) {
+                    // #1:filter all the appointments from our system to only use one from the selectedDate and order the filtered appointments by time;
+                    // const onDate = new Date(Date.parse(selectedDate));
+                    let appointmentsOnDate = [];
+                    let timeSlots = [];
+    
+                    for (var i = 0; i < appointments.length; i++) {
+                        let appointmentDate = new Date(appointments[i].time);
+    
+                        // if the current appointment in iteration is on the same day as the selected date user choosed;
+                        if (onDate.getMonth() == appointmentDate.getMonth() && onDate.getDate() == appointmentDate.getDate()) {
+                            let isAdded = false;
+    
+                            for (let x = 0; x < appointmentsOnDate.length; x++) {
+                                if (appointmentDate < new Date(appointmentsOnDate[x].time)) {
+                                    appointmentsOnDate.splice(x, 0, appointments[i]);
+                                    isAdded = true;
+                                    break;
+                                }
+                            }
+    
+                            if (!isAdded) {
+                                appointmentsOnDate.push(appointments[i]);
+                            }
                         }
                     }
-
-                    if (!isAdded) {
-                        appointmentsOnDate.push(appointments[i]);
-                    }
-                }
-            }
-
-            // #2 Calculate slots using the ordered appointmentsOnDate and the startTime and endTime of studio/stylist;
-                // Condition for adding slots. Starting at last free time. If there is a gap between free time and the next appointment and the gap is bigger than services time;
-            let nextAvailableTime = new Date(`${selectedDate.toDateString()} ${studioOpens}`);
-            let nextUnavailableTime = new Date();
-            let currentSlot = new Date();
-            let newAppointmentTime = 0;
-
-                // Calculate newAppointmentTime; 
-            selectedServices.forEach(serviceId => {
-                let service = services.find(service => service.id == serviceId);
-
-                newAppointmentTime = newAppointmentTime + service.time;
-            });
-
-            for (let j = 0; j <= appointmentsOnDate.length; j++) {
-                if (j == appointmentsOnDate.length) {
-                    nextUnavailableTime.setTime(Date.parse(`${selectedDate.toDateString()} ${studioCloses}`));
-                } else {
-                    // Date must be normalized to start at midnight;
-                    nextUnavailableTime.setTime(Date.parse(appointmentsOnDate[j].time));
-                    nextUnavailableTime.setSeconds(0);
-                    nextUnavailableTime.setMilliseconds(0);
-                }
-
-                currentSlot.setTime(nextAvailableTime.getTime());
-
-                while (nextAvailableTime.setMinutes(nextAvailableTime.getMinutes() + newAppointmentTime) <= nextUnavailableTime.getTime()) {
-                    let meridiem = currentSlot.getHours() < 12 ? "AM" : "PM";
-                    let hour = currentSlot.getHours() < 13 ? `${currentSlot.getHours()}` : `${currentSlot.getHours() - 12}`;
-                    let minutes = currentSlot.getMinutes();
-        
-                    if (parseInt(hour) < 10) {
-                        hour = "0" + hour;
-                    }
-        
-                    if (parseInt(minutes) < 10) {
-                        minutes = "0" + minutes;
-                    }
-        
-                    timeSlots.push(hour + ":" + minutes + " " + meridiem);
-                    
-                    currentSlot.setHours(nextAvailableTime.getHours());
-                    currentSlot.setMinutes(nextAvailableTime.getMinutes());
-                };
-
-                if (j < appointmentsOnDate.length) {
-                    let appointmentTime = 0;
-                    appointmentsOnDate[j].services.forEach(service => {
-                        appointmentTime = appointmentTime + service.time;
+    
+                    // #2 Calculate slots using the ordered appointmentsOnDate and the startTime and endTime of studio/stylist;
+                        // Condition for adding slots. Starting at last free time. If there is a gap between free time and the next appointment and the gap is bigger than services time;
+                    let nextAvailableTime = new Date(`${selectedDate.toDateString()} ${selectedDateOpenTime}`);
+                    let nextUnavailableTime = new Date();
+                    let currentSlot = new Date();
+                    let newAppointmentTime = 0;
+    
+                        // Calculate newAppointmentTime; 
+                    selectedServices.forEach(serviceId => {
+                        let service = services.find(service => service.id == serviceId);
+    
+                        newAppointmentTime = newAppointmentTime + service.time;
                     });
-                    nextAvailableTime.setTime(nextUnavailableTime);
-                    nextAvailableTime.setMinutes(nextAvailableTime.getMinutes() + appointmentTime);             
+    
+                    for (let j = 0; j <= appointmentsOnDate.length; j++) {
+                        if (j == appointmentsOnDate.length) {
+                            nextUnavailableTime.setTime(Date.parse(`${selectedDate.toDateString()} ${selectedDateCloseTime}`));
+                        } else {
+                            // Date must be normalized to start at midnight;
+                            nextUnavailableTime.setTime(Date.parse(appointmentsOnDate[j].time));
+                            nextUnavailableTime.setSeconds(0);
+                            nextUnavailableTime.setMilliseconds(0);
+                        }
+    
+                        currentSlot.setTime(nextAvailableTime.getTime());
+    
+                        while (nextAvailableTime.setMinutes(nextAvailableTime.getMinutes() + newAppointmentTime) <= nextUnavailableTime.getTime()) {
+                            let meridiem = currentSlot.getHours() < 12 ? "AM" : "PM";
+                            let hour = currentSlot.getHours() < 13 ? `${currentSlot.getHours()}` : `${currentSlot.getHours() - 12}`;
+                            let minutes = currentSlot.getMinutes();
+                
+                            if (parseInt(hour) < 10) {
+                                hour = "0" + hour;
+                            }
+                
+                            if (parseInt(minutes) < 10) {
+                                minutes = "0" + minutes;
+                            }
+                
+                            timeSlots.push(hour + ":" + minutes + " " + meridiem);
+                            
+                            currentSlot.setHours(nextAvailableTime.getHours());
+                            currentSlot.setMinutes(nextAvailableTime.getMinutes());
+                        };
+    
+                        if (j < appointmentsOnDate.length) {
+                            let appointmentTime = 0;
+                            appointmentsOnDate[j].services.forEach(service => {
+                                appointmentTime = appointmentTime + service.time;
+                            });
+                            nextAvailableTime.setTime(nextUnavailableTime);
+                            nextAvailableTime.setMinutes(nextAvailableTime.getMinutes() + appointmentTime);             
+                        }
+                    }
+    
+                    setCalculateSlots(false);
+                    setAvailableTime(timeSlots);
+                    setSelectedTime(timeSlots[0]); 
+                } else {
+                    setCalculateSlots(false);
+                    setAvailableTime([]);
+                    setSelectedTime("");
                 }
+            } else {
+                setAppError("Studio is closed on selected day");
+                setShowAppError(true);
+                setCalculateSlots(false);
             }
-
-            setCalculateSlots(false);
-            setAvailableTime(timeSlots);
-            setSelectedTime(timeSlots[0]); 
-        } else {
-            setCalculateSlots(false);
-            setAvailableTime([]);
-            setSelectedTime("");
         }
     }
 
@@ -242,6 +254,8 @@ export default function ApppointmentPage({ clientsOccupiedAppointments, activePr
         if (date != 'Invalid Date' && date >= minAppointmentDate && date <= maxAppointmentDate) {
             setAvailableTime([]);
             setSelectedTime("");
+            setAppError("");
+            setShowAppError(false);
             setSelectedDate(date);   
             setCalculateSlots(true);
         }

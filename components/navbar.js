@@ -451,12 +451,12 @@ export default function Navbar(props) {
                             </Avatar>
                             Add Promotions
                         </MenuItem> : null}
-                    {/* <MenuItem>
+                    <MenuItem onClick={(_) => handleNavigation("/settings")}>
                         <Avatar>
                             <SettingsIcon />
                         </Avatar>
                         Settings
-                    </MenuItem> */}
+                    </MenuItem>
                     <Divider />
                     <MenuItem onClick={handleSignOut}>
                         <ListItemIcon>

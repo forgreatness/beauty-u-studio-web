@@ -18,7 +18,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SellIcon from '@mui/icons-material/Sell';
 import Tooltip from '@mui/material/Tooltip';
 
-import { StatusColor } from '../src/constants/index';
+import { StatusColor, ServiceIcon } from '../src/constants/index';
 
 export default function AppointmentDetail(props) {
     const [schedule, setSchedule] = useState();
@@ -160,15 +160,8 @@ export default function AppointmentDetail(props) {
                 {props.appointment.services.map(service => {
                     let serviceType = service.type.toLowerCase();
 
-                    let serviceIcon = {
-                        "spa & beauty": "beauty_icon.png",
-                        nails: "nails_icon.png",
-                        hair: "hair_icon.png",
-                        eye: "eye_icon.png"
-                    };
-
                     return (
-                        <Chip key={service.id.toString()} label={service.name} variant="filled" color="info" avatar={<Avatar src={"/images/"+serviceIcon[serviceType]} />} />
+                        <Chip key={service.id.toString()} label={service.name} variant="filled" color="info" avatar={<Avatar src={"/images/"+ServiceIcon[serviceType]} />} />
                     );
                 })}
             </Stack>

@@ -18,14 +18,7 @@ import Tooltip from '@mui/material/Tooltip';
 
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { useEffect, useState } from 'react';
-import { StatusColor } from '../src/constants/index';
-
-const ServiceIcon = {
-    "spa & beauty": "beauty_icon.png",
-    nails: "nails_icon.png",
-    hair: "hair_icon.png",
-    eye: "eye_icon.png"
-}
+import { StatusColor, ServiceIcon } from '../src/constants/index';
 
 const DateOption = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 

@@ -1,0 +1,20 @@
+#settings_layout {
+    display: flex;
+    justify-content: center;
+    align-content: flex-start;
+    align-items: flex-start;
+    direction: row;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 0px 0px !important;
+}
+
+#settings_menu {
+    width: 20%;
+    min-width: 300px;
+}
+
+#settings_form {
+    width: 70%;
+    min-width: 350px;
+}

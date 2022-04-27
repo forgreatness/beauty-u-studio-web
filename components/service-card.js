@@ -2,14 +2,9 @@
 /* @jsx jsx */
 import {jsx, css} from '@emotion/react';
 
-export default function ServiceCard({ serviceType }) {
-    const SERVICE_CARD_LOGO = {
-        "EYE": "/images/eye_icon.png",
-        "HAIR": "/images/hair_icon.png",
-        "NAILS": "/images/nails_icon.png",
-        "SPA & BEAUTY": "/images/beauty_icon.png"
-    };
+import { ServiceIcon } from '../src/constants';
 
+export default function ServiceCard({ serviceType }) {
     const styles = css`
         text-align: center;
         width: 200px;
@@ -29,7 +24,7 @@ export default function ServiceCard({ serviceType }) {
 
     return (
         <div css={styles}>
-            <img src={SERVICE_CARD_LOGO[serviceType]} alt="Type of service" />
+            <img src={`/images/${ServiceIcon[serviceType.toLowerCase()]}`} alt="Type of service" />
             <b>{serviceType}</b>
         </div>
     );

@@ -165,8 +165,10 @@ export const MonthLabel = [
 ];
 
 export const ServiceIcon = {
-    "spa & beauty": "beauty_icon.png",
+    facial: "beauty_icon.png",
     nails: "nails_icon.png",
     hair: "hair_icon.png",
-    eye: "eye_icon.png"
+    eye: "eye_icon.png",
+    waxing: "waxing_icon.png",
+    "cosmetic tattoo": "cosmetic_tattoo_icon.png"
 }

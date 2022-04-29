@@ -47,7 +47,7 @@ export default function Home({ featuredPromotions }) {
       if (data?.services) {
         let serviceType = [];
 
-        data.services.forEach(service => {
+        data.services.filter(service => service.status == "active").forEach(service => {
           if (!serviceType.includes(service.type)) {
             serviceType.push(service.type)
           }

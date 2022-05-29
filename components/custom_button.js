@@ -36,7 +36,7 @@ export default React.forwardRef(({ className, onClick, href, children }, ref) =>
         &::after {
             content: "";
             display: inline-block;
-            background-image: url(images/click_arrow_icon.png);
+            background-image: url(/images/click_arrow_icon.png);
             position: absolute;
             top: 0;
             left: calc(100% - 3em);

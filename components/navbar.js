@@ -3,7 +3,6 @@
 import { jsx, css } from '@emotion/react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Avatar from '@mui/material/Avatar';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -12,7 +11,8 @@ import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer'
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded';
 import EventIcon from '@mui/icons-material/Event';
 import React, { useState, useEffect } from 'react';
 import { useApolloClient } from '@apollo/client';
@@ -437,6 +437,14 @@ export default function Navbar(props) {
                         <Avatar /> Profile
                     </MenuItem>
                     {(props?.userDetail?.role.toLowerCase() == 'admin')
+                        ? <MenuItem onClick={(_) => handleNavigation("/appointment/bookings")}>
+                            <Avatar>
+                                <EventAvailableRoundedIcon />
+                            </Avatar>
+                            Bookings
+                        </MenuItem> : null
+                    }
+                    {(props?.userDetail?.role.toLowerCase() == 'admin')
                         ? <MenuItem onClick={(_) => handleNavigation("/appointment/create")}>
                             <Avatar>
                                 <EventIcon   />
@@ -450,7 +458,8 @@ export default function Navbar(props) {
                                 <LocalOfferIcon />
                             </Avatar>
                             Add Promotions
-                        </MenuItem> : null}
+                        </MenuItem> : null
+                    }
                     <MenuItem onClick={(_) => handleNavigation("/settings")}>
                         <Avatar>
                             <SettingsIcon />

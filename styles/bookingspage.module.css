@@ -1,0 +1,59 @@
+#dateFilter {
+    display: block;
+}
+
+#filterContainerWrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 10px 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+#dateFilterContainer > label {
+    font-weight: 500;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    margin-bottom: 10px;
+}
+
+#stylistFilterLabel {
+    margin: 0px 0px;
+    margin-bottom: 10px;
+}
+
+.stylistFilterOption {
+    border: none;
+    background-color: transparent;
+}
+
+.stylistFilterOption[aria-selected='true'] {
+    border-bottom: 2px solid blue;
+}
+
+.stylistFilterOption:hover {
+    opacity: 0.75;
+}
+
+#bookingsSectionHeader {
+    margin: 20px 50px 40px 50px;
+    text-align: center;
+}
+
+.filterContainer {
+    text-align: center;
+}
+
+.appointmentList {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    align-items: center;
+    align-content: center;
+    gap: 20px;
+    padding: 10px 20px;
+}
+
+#appointmentListWrapper {
+    padding: 30px 3%;
+}

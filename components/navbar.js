@@ -19,6 +19,7 @@ import { useApolloClient } from '@apollo/client';
 import CircularProgress from '@mui/material/CircularProgress';
 import Backdrop from '@mui/material/Backdrop';
 import Tooltip from "@mui/material/Tooltip";
+import GroupIcon from '@mui/icons-material/Group';
 
 import { removeAllCookies } from '../lib/utility/cookie';
 import * as Constants from '../src/constants/index';
@@ -436,6 +437,14 @@ export default function Navbar(props) {
                     <MenuItem onClick={(_) => handleNavigation("/profile")}>
                         <Avatar /> Profile
                     </MenuItem>
+                    {(props?.userDetail?.role.toLowerCase() == 'admin')
+                        ? <MenuItem onClick={(_) => handleNavigation("/users")}>
+                            <Avatar>
+                                <GroupIcon />
+                            </Avatar>
+                            Users
+                        </MenuItem> : null
+                    }
                     {(props?.userDetail?.role.toLowerCase() == 'admin')
                         ? <MenuItem onClick={(_) => handleNavigation("/appointment/bookings")}>
                             <Avatar>

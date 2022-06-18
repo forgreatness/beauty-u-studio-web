@@ -172,3 +172,7 @@ export const ServiceIcon = {
     waxing: "waxing_icon.png",
     "cosmetic tattoo": "cosmetic_tattoo_icon.png"
 }
+
+export const UserDetailProperties = ["id", "name", "email", "phone", "status", "role"];
+
+export const DataPerPage = 20;

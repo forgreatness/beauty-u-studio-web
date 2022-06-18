@@ -1,0 +1,76 @@
+#account_section {
+    padding: 10px 30px;
+}
+
+.section_heading {
+    color: var(--color-alpha);
+}
+
+#account_table {
+    table-layout: fixed;
+    text-align: left;
+    caption-side: top;
+    border-collapse: collapse;
+    margin: 10px;
+}
+
+#account_table > caption {
+    display: table-caption;
+    text-align: center;
+    margin-bottom: 10px;
+    color: #3f51b5;
+    font-size: 1.5em;
+}
+
+#account_table td {
+    border-bottom: 1px solid black;
+}
+
+#account_table td {
+    width: 1%;
+    white-space: nowrap;
+}
+
+#account_table thead tr {
+    border: 2px solid #3f51b5;
+}
+
+/* #account_table tbody::before {
+    content: "-";
+    line-height: 1em;
+} */
+
+#account_table thead tr {
+    color: var(--color-alpha);
+    box-shadow: -5px 3px 5px black;
+}
+
+#account_table_wrapper {
+    border: 3px solid #64b5f6;
+    overflow-x: auto;
+}
+
+#search_filter_box {
+    padding: 10px 10px;
+}
+
+#search_filter_box input {
+    border: 2px solid #3f51b5;
+}
+
+#search_filter_box input:focus {
+    border: 2px solid #1b5e20;
+}
+
+#search_filter_label {
+    font-weight: 500;
+}
+
+#pagination_container {
+    padding: 10px 10px;
+    float: right;
+}
+
+#pagination_container a {
+    margin-right: 5px;
+}

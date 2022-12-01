@@ -33,7 +33,9 @@ export default function PageLayout(props) {
         <div css={styles} className="layout">
             <Head>
                 <link rel="icon" href="/favicon.ico" />
-                <meta name="description" content="A website use to serve all informations relating to BeautyUStudio salon" />
+                <meta name="description" content="Welcome to BeautyUStudio, 
+                home to many different beauty services ranging from eyelashes, to eyebrows, hair, facial, nails and cosmetic tattoos. 
+                We are located in King City Oregon, and are very excited to to have you as our guest." />
                 <meta name="og:title" content="BeautyUStudio website" />
                 <meta name="og:type" content="website" />
             </Head>

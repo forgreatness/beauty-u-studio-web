@@ -39,8 +39,8 @@ export default function ApppointmentPage({ clientsOccupiedAppointments, activePr
     today.setHours(0,0,0,0);
     const millisecondsPerDay = 8.64e+7;
     
-    const minAppointmentDate = new Date(today.getTime() + millisecondsPerDay);
-    const maxAppointmentDate = new Date(today.getTime() + millisecondsPerDay * 15);
+    const minAppointmentDate = new Date(today.getTime() + millisecondsPerDay * 4);
+    const maxAppointmentDate = new Date(today.getTime() + millisecondsPerDay * 19);
 
     const [appError, setAppError] = useState("");
     const [showAppError, setShowAppError] = useState(false);
@@ -678,6 +678,7 @@ export default function ApppointmentPage({ clientsOccupiedAppointments, activePr
                         }}>Book</Button>{' '}
                     </div>
                 </Form>
+                <em>Note: To schedule appointments on a date not available above please call (503) 446-4774</em>
             </Container>
             <Backdrop
                 sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}

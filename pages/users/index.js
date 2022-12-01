@@ -154,6 +154,7 @@ export async function getServerSideProps(context) {
         }
     
         const getUsers = await ApolloClient.query({
+            fetchPolicy: "network-only",
             query: GET_USERS,
             variables: {
                 role: ""

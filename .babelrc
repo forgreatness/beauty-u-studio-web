@@ -1,0 +1,14 @@
+{
+    "presets": [
+      [
+        "next/babel",
+        {
+          "preset-env": {},
+          "preset-react": {
+            "runtime": "automatic"
+          }
+        }
+      ]
+    ],
+    "plugins": []
+  }

@@ -277,7 +277,7 @@ export default function ApppointmentPage({ clientsOccupiedAppointments, activePr
         setSelectedTime("");
         setAppointments([]);
         setAvailableTime([]);
-        setCalculateSlots(false);
+        setCalculateSlots(false); 
         setQualifyingPromotions([]);
         setSelectedPromotion("");
         setPromotionDiscount(0);
@@ -713,8 +713,9 @@ export default function ApppointmentPage({ clientsOccupiedAppointments, activePr
                         {appError}
                     </Alert>
                 </Collapse>
-            </Container>  
-            <Dialog 
+            </Container>
+            <BookingDialog isBookAppointmentDialogOpen={bookAppointmentDialog} onBookAppointment={handleBookAppointment} onCloseBookingDialog={() => setBookAppointmentDialog(false)}/>
+            {/* <Dialog 
                 open={bookAppointmentDialog} 
                 onClose={() => setBookAppointmentDialog(false)}
                 aria-labelledby="book_appointment_dialog_title"
@@ -731,10 +732,33 @@ export default function ApppointmentPage({ clientsOccupiedAppointments, activePr
                     <Button onClick={() => setBookAppointmentDialog(false)}>Cancel</Button>
                     <Button onClick={handleBookAppointment}>Confirm</Button>
                 </DialogActions>
-            </Dialog>
+            </Dialog> */}
         </Layout>
     );
 }
+
+const BookingDialog = React.memo(function BookingDialog(props) {
+    return (
+        <Dialog 
+            open={props.isBookAppointmentDialogOpen} 
+            onClose={props.onCloseBookingDialog}
+            aria-labelledby="book_appointment_dialog_title"
+            aria-describedby="book_appointment_dialog_description">
+            <DialogTitle id="book_appointment_dialog_title">
+                Are you sure want to schedule the appointment
+            </DialogTitle>
+            <DialogContent>
+                <DialogContentText id="book_appointment_dialog_description">
+                    Once the appointment is booked, stylist will be notify. If the stylist confirms your appointment, you will be notify via your contact info.
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={props.onCloseBookingDialog}>Cancel</Button>
+                <Button onClick={props.onBookAppointment}>Confirm</Button> 
+            </DialogActions>
+        </Dialog>
+    )
+}, (prev, curr) => prev.isBookAppointmentDialogOpen == curr.isBookAppointmentDialogOpen);
 
 export async function getServerSideProps(context) {
     try {

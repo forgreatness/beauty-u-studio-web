@@ -24,7 +24,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import { removeAllCookies } from '../lib/utility/cookie';
 import * as Constants from '../src/constants/index';
 
-export default function Navbar(props) {
+export default React.memo(function Navbar(props) {
     const [scrolled, hasScrolled] = useState(false);
     const [menuClicked, hasClicked] = useState(false);
     const [profileImage, setProfileImage] = useState("/images/profile_icon.png");
@@ -492,4 +492,4 @@ export default function Navbar(props) {
             </Backdrop>
         ]
     );
-}
+}, (prevProps, newProps) => prevProps.userDetail?.id == newProps.userDetail?.id);

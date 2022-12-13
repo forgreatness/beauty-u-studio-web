@@ -126,6 +126,11 @@ export default React.memo(function Navbar(props) {
             background-color: #666;
         }
 
+        .nav > a[aria-selected="true"] {
+            color: white;
+            background-color: black;
+        }
+
         .menu-icon {
             cursor: pointer;
             display: none;
@@ -387,13 +392,13 @@ export default React.memo(function Navbar(props) {
                         )
                     }
                     <Link href="/services" passHref>
-                        <a onClick={(_) => handleNavigation("/services")}>Services</a>
+                        <a aria-selected={router.pathname == "/services"} onClick={(_) => handleNavigation("/services")}>Services</a>
                     </Link>
                     <Link href="/appointment" passHref>
-                        <a onClick={(_) => handleNavigation("/appointment")}>Appointment</a>
+                        <a aria-selected={router.pathname == "/appointment"} onClick={(_) => handleNavigation("/appointment")}>Appointment</a>
                     </Link>
                     <Link href="/about" passHref>
-                        <a onClick={(_) => handleNavigation("/about")}>About Us</a>
+                        <a aria-selected={router.pathname == "/about"} onClick={(_) => handleNavigation("/about")}>About Us</a>
                     </Link>
                     <div className="footer">
                         <Link href="/" passHref>
@@ -492,4 +497,6 @@ export default React.memo(function Navbar(props) {
             </Backdrop>
         ]
     );
-}, (prevProps, newProps) => prevProps.userDetail?.id == newProps.userDetail?.id);
+}, function (prevProps, newProps) {
+    return prevProps.userDetail?.id == newProps.userDetail?.id;
+});

@@ -13,6 +13,8 @@ export default function ScheduledAppointments({ userDetail, appointments, error 
     const [filteredDate, setFilteredDate] = useState(new Date(new Date().setHours(0,0,0,0)));
     const [filteredStylist, setFilteredStylist] = useState();
     const [filteredAppointments, setFilteredAppointments] = useState({});
+    const [filteredDateStart, setFilteredDateStart] = useState(new Date(new Date().setHours(0,0,0,0)));
+    const [filteredDateEnd, setFilteredDateEnd] = useState(new Date(filteredDateStart.setDate(filteredDateStart.getDate() + 1)));
 
     const handleOnFilteredDateChange = (e) => {
         var zone = new Date().toLocaleTimeString('en-us',{timeZoneName:'short'}).split(' ')[2]
@@ -66,11 +68,22 @@ export default function ScheduledAppointments({ userDetail, appointments, error 
             <section id={styles.bookingsSection}>
                 <h2 id={styles.bookingsSectionHeader}>Bookings</h2>
                 <div id={styles.filterContainerWrapper}>
-                    <div className={styles.filterContainer} id={styles.dateFilterContainer}>
+                    {/* <div className={styles.filterContainer} id={styles.dateFilterContainer}>
                         <label htmlFor='dateFilter'>On Date</label>
                         <input type="date" id={styles.dateFilter} name="dateFilter" 
                             value={filteredDate.toISOString().split('T')[0]}
                             onChange={handleOnFilteredDateChange}/>
+                    </div> */}
+                    <div className={styles.filterContainer} id={styles.dateFilterContainer}>
+                        <h5>Filtered Date</h5>
+                        <div className={styles.startDateFilter}>
+                            <label htmlFor="startDateFilter">From</label>
+                            <input type="date" id="startDateFilter" name="startDateFilter" value={filteredDateStart} />
+                        </div>
+                        <div className={styles.endDateFilter}>
+                            <label htmlFor="endDateFilter">To</label>
+                            <input type="date" id="endDateFilter" name="" />
+                        </div>
                     </div>
                     <div className={styles.filterContainer} id={styles.stylistFilterContainer}>
                         <h5 id={styles.stylistFilterLabel}>Stylist</h5>

@@ -23,6 +23,7 @@ import ClientReview from '../components/client_review';
 import CustomButton from '../components/custom_button';
 import ApolloClient from '../lib/apollo/apollo-client';
 import PromotionBanner from '../components/promotion_banner';
+import SplatterButton from '../components/splatter_button';
 import { GET_HOMEPAGEDATA, GET_PROMOTIONS } from '../lib/apollo/data-queries';
 
 export default function Home({ featuredPromotions }) {

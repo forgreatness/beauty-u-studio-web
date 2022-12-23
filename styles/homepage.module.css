@@ -155,21 +155,13 @@
 
 /* TEAM SECTION */
 .team_section {
-    display: flex;
-    width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    align-content: center;
     padding: 20px 10px;
     background-color: #666;
+    color: white;
 }
 
-.team_section > .team_section_header {
-  width: 20%;
+.team_section_header {
   text-align: center;
-  flex-shrink: 1;
 }
 
 .team_section_header > h3 {
@@ -188,17 +180,6 @@
   background-color: blue;
 }
 
-.team_section > .team_card {
-  padding: 30px 40px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  align-content: flex-start;
-  color: white;
-  overflow: auto;
-}
-
 .team_card > img {
 	height: 300px;
 	border: 8px solid transparent;
@@ -208,28 +189,33 @@
 	box-sizing: border-box;
 	box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.5);
   object-fit: contain;
-  flex-shrink: 0;
   border-radius: 2px;
   background-image: url(""), linear-gradient(to bottom right, lightgray, white, black);
 }
 
-.team_card > .member_info {
-  width: 300px;
-  margin-left: 50px;
+.member_info {
+  margin-top: 20px;
+  overflow: hidden;
 }
 
-.member_info > button {
-  font-weight: 700;
-  padding: 7px 15px;
-  color: black;
-  background-color: white;
-  border: 2px solid black;
-  float: right;
+.member_info > .scheduleAppointmentButtonContainer {
+  min-height: 100px;
+  position: relative;
 }
 
-.member_info > button:hover {
-  color: white;
-  background-color: black;
+.scheduleAppointmentButton {
+  left: 100%;
+  height: 50px;
+  transform: translate(-100%, 0%);
+}
+
+.member_info > .name {
+  color: Black;
+}
+
+.member_info > .about {
+  text-indent: 5px;
+  margin-top: 10px;
 }
 
 /* CLIENT REVIEWS SECTION */

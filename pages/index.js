@@ -215,36 +215,30 @@ export default function Home({ featuredPromotions }) {
           })}
         </div>
       </div>
-      <div className={styles.team_section}>
-        <div className={styles.team_section_header}>
-          <h3>OUR TEAM</h3>
-          <div className={styles.member_selectors}>
-            {data.stylists.map((stylist, i) => 
-              [
-                <MemberSelector key={stylist.id.toString()} memberId={stylist.id.toString()} selected={i==currentMember} onSelectMemberSelector={handleSelectMember}/>,
-              ]
-            )}
+      <div className={`container-fluid`}>
+        <div className={`row ${styles.team_section}`}>
+          <div className={`col-md-4 ${styles.team_section_header} align-self-center`}>
+            <h3>OUR TEAM</h3>
+            <div className={styles.member_selectors}>
+              {data.stylists.map((stylist, i) => 
+                [
+                  <MemberSelector key={stylist.id.toString()} memberId={stylist.id.toString()} selected={i==currentMember} onSelectMemberSelector={handleSelectMember}/>,
+                ]
+              )}
+            </div>
           </div>
-        </div>
-        <div className={styles.team_card}>
-          <img alt="Image of Team Member" src={"data:image/png;base64, " + data.stylists[currentMember].photo} />
-          <div className={styles.member_info}>
-            <b>{data.stylists[currentMember].name}</b>
-            <p>{data.stylists[currentMember].about}</p>
-            <button onClick={(_) => handleNavigation("/appointment")}>BOOK APPOINTMENT</button>
+          <div className={`col-md-8`}>
+            <div className={`${styles.team_card} row align-items-center`}>
+              <img className='col-sm-4' alt="Image of Team Member" src={"data:image/png;base64, " + data.stylists[currentMember].photo} />
+              <div className={`${styles.member_info} col-sm-8`}>
+                <b className={styles.name}>{data.stylists[currentMember].name}</b>
+                <p className={styles.about}>{data.stylists[currentMember].about}</p>
+                <SplatterButton className={styles.scheduleAppointmentButton} onButtonClick={() => handleNavigation("/appointment")}>Book Appointment</SplatterButton>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      {/* <div className={styles.client_reviews_section}>
-        <h3>CLIENT REVIEWS</h3>
-        <div className={styles.reviews}>
-          {Constants.REVIEWS.map((review, i) => 
-            [
-              <ClientReview key={review.id} review={review} className={styles.review}/>
-            ]
-          )}
-        </div>
-      </div> */}
       {featuredPromotionsDetails.length > 0 ?
         <div id={styles.promotion_banner}>
           <PromotionBanner promotion={featuredPromotionsDetails?.[featuredPromotionsDetails.findIndex(promotion => promotion.id == featuredPromotion)]} />
@@ -286,7 +280,7 @@ export default function Home({ featuredPromotions }) {
             {appError}
           </Alert>
         </Collapse>
-      </Container>  
+      </Container>
     </Layout>
   )
 }

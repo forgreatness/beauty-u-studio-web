@@ -17,7 +17,7 @@
     "@mui/icons-material": "^5.2.4",
     "@mui/lab": "^5.0.0-alpha.75",
     "@mui/material": "^5.4.4",
-    "bootstrap": "^5.0.1",
+    "bootstrap": "^5.2.3",
     "cookie": "^0.4.1",
     "dotenv": "^8.2.0",
     "graphql": "^15.5.0",

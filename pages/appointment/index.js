@@ -39,8 +39,8 @@ export default function ApppointmentPage({ clientsOccupiedAppointments, activePr
     today.setHours(0,0,0,0);
     const millisecondsPerDay = 8.64e+7;
     
-    const minAppointmentDate = new Date(today.getTime() + millisecondsPerDay * 4);
-    const maxAppointmentDate = new Date(today.getTime() + millisecondsPerDay * 19);
+    const minAppointmentDate = new Date(today.getTime() + millisecondsPerDay * 14);
+    const maxAppointmentDate = new Date(today.getTime() + millisecondsPerDay * 28);
 
     const [appError, setAppError] = useState("");
     const [showAppError, setShowAppError] = useState(false);

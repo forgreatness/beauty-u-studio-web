@@ -355,148 +355,158 @@ export default React.memo(function Navbar(props) {
         };
     }
 
-    return (
-        [
-            <nav css={styles}>
-                <div className={(menuClicked) ? 'menu-icon clicked' : 'menu-icon'} onClick={handleMenuClick}>
-                    <div className="bar1"></div>
-                    <div className="bar2"></div>
-                    <div className="bar3"></div>
-                </div>
-                <div className="home">
-                    <Link href="/" passHref>
-                        <a onClick={() => handleNavigation("/")}>
-                            <img 
-                                alt="BeautyUStudio Home Link" 
-                                src="/images/BeautyUStudio-logo.png" />
-                        </a>
-                    </Link>
-                </div>
-                <div className="nav">
-                    {(props.userDetail)
-                        ? (
-                            <Tooltip title="Account Menu">
-                                <div className="profile_action" onClick={handleClick}>
-                                    <Avatar {...stringAvatar(props.userDetail.name)} id="profile_icon" aria-label="account action" aria-controls={open ? 'account-menu' : undefined} aria-haspopup={true} aria-expanded={open ? true : undefined} />
-                                </div>
-                            </Tooltip>
-                        ) 
-                        : (
-                            <div className="signin" onClick={e => {
-                                e.preventDefault();
-                                router.push('/authenticate');
-                            }}>
-                                <img src={Constants.ICONS.signin} alt="Sign-In icon" />
-                                <b>Sign-In</b>
+    return [
+        <nav css={styles}>
+            <div className={(menuClicked) ? 'menu-icon clicked' : 'menu-icon'} onClick={handleMenuClick}>
+                <div className="bar1"></div>
+                <div className="bar2"></div>
+                <div className="bar3"></div>
+            </div>
+            <div className="home">
+                <Link href="/" passHref onClick={() => handleNavigation("/")}>
+
+                    <img 
+                        alt="BeautyUStudio Home Link" 
+                        src="/images/BeautyUStudio-logo.png" />
+
+                </Link>
+            </div>
+            <div className="nav">
+                {(props.userDetail)
+                    ? (
+                        <Tooltip title="Account Menu">
+                            <div className="profile_action" onClick={handleClick}>
+                                <Avatar {...stringAvatar(props.userDetail.name)} id="profile_icon" aria-label="account action" aria-controls={open ? 'account-menu' : undefined} aria-haspopup={true} aria-expanded={open ? true : undefined} />
                             </div>
-                        )
-                    }
-                    <Link href="/services" passHref>
-                        <a aria-selected={router.pathname == "/services"} onClick={(_) => handleNavigation("/services")}>Services</a>
-                    </Link>
-                    <Link href="/appointment" passHref>
-                        <a aria-selected={router.pathname == "/appointment"} onClick={(_) => handleNavigation("/appointment")}>Appointment</a>
-                    </Link>
-                    <Link href="/about" passHref>
-                        <a aria-selected={router.pathname == "/about"} onClick={(_) => handleNavigation("/about")}>About Us</a>
-                    </Link>
-                    <div className="footer">
-                        <Link href="/" passHref>
-                            <a className="footer_home">
-                                <img 
-                                    alt="BeautyUStudio Home Link" 
-                                    src="/images/BeautyUStudio-logo.png" />
-                            </a>
-                        </Link>
-                        <div className="social-media">
-                            <a href=""> 
-                                <img alt="BeautyUStudio Facebook Page" src={Constants.ICONS.facebook} />
-                            </a>
-                            <a href="https://www.instagram.com/beautyu_byyen/?hl=en" target="_blank"> 
-                                <img alt="BeautyUStudio Instagram Page" src={Constants.ICONS.instagram} />
-                            </a>
-                            <a href=""> 
-                                <img alt="BeautyUStudio Twitter Page" src={Constants.ICONS.twitter} />
-                            </a>
+                        </Tooltip>
+                    ) 
+                    : (
+                        <div className="signin" onClick={e => {
+                            e.preventDefault();
+                            router.push('/authenticate');
+                        }}>
+                            <img src={Constants.ICONS.signin} alt="Sign-In icon" />
+                            <b>Sign-In</b>
                         </div>
+                    )
+                }
+                <Link
+                    href="/services"
+                    passHref
+                    aria-selected={router.pathname == "/services"}
+                    onClick={(_) => handleNavigation("/services")}>
+                    Services
+                </Link>
+                <Link
+                    href="/appointment"
+                    passHref
+                    aria-selected={router.pathname == "/appointment"}
+                    onClick={(_) => handleNavigation("/appointment")}>
+                    Appointment
+                </Link>
+                <Link
+                    href="/about"
+                    passHref
+                    aria-selected={router.pathname == "/about"}
+                    onClick={(_) => handleNavigation("/about")}>
+                    About Us
+                </Link>
+                <div className="footer">
+                    <Link href="/" passHref className="footer_home">
+
+                        <img 
+                            alt="BeautyUStudio Home Link" 
+                            src="/images/BeautyUStudio-logo.png" />
+
+                    </Link>
+                    <div className="social-media">
+                        <a href=""> 
+                            <img alt="BeautyUStudio Facebook Page" src={Constants.ICONS.facebook} />
+                        </a>
+                        <a href="https://www.instagram.com/beautyu_byyen/?hl=en" target="_blank"> 
+                            <img alt="BeautyUStudio Instagram Page" src={Constants.ICONS.instagram} />
+                        </a>
+                        <a href=""> 
+                            <img alt="BeautyUStudio Twitter Page" src={Constants.ICONS.twitter} />
+                        </a>
                     </div>
                 </div>
-                <Menu
-                    id="account-menu"
-                    anchorEl={anchorE1}
-                    open={open}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                    transformOrigin={{ vertical: "top", horizontal: "right"}}
-                    onClose={handleClose}
-                    onClick={handleClose}
-                    sx={{
-                        '& .MuiMenuItem-root': {
-                            justifyContent: 'flex-start',
-                            gap: '10px'
-                        },
-                        '& .MuiAvatar-root': {
-                            bgcolor: 'black'
-                        }
-                    }}
-                >
-                    <MenuItem onClick={(_) => handleNavigation("/profile")}>
-                        <Avatar /> Profile
-                    </MenuItem>
-                    {(props?.userDetail?.role.toLowerCase() == 'admin')
-                        ? <MenuItem onClick={(_) => handleNavigation("/users")}>
-                            <Avatar>
-                                <GroupIcon />
-                            </Avatar>
-                            Users
-                        </MenuItem> : null
+            </div>
+            <Menu
+                id="account-menu"
+                anchorEl={anchorE1}
+                open={open}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                transformOrigin={{ vertical: "top", horizontal: "right"}}
+                onClose={handleClose}
+                onClick={handleClose}
+                sx={{
+                    '& .MuiMenuItem-root': {
+                        justifyContent: 'flex-start',
+                        gap: '10px'
+                    },
+                    '& .MuiAvatar-root': {
+                        bgcolor: 'black'
                     }
-                    {(props?.userDetail?.role.toLowerCase() == 'admin')
-                        ? <MenuItem onClick={(_) => handleNavigation("/appointment/bookings")}>
-                            <Avatar>
-                                <EventAvailableRoundedIcon />
-                            </Avatar>
-                            Bookings
-                        </MenuItem> : null
-                    }
-                    {(props?.userDetail?.role.toLowerCase() == 'admin')
-                        ? <MenuItem onClick={(_) => handleNavigation("/appointment/create")}>
-                            <Avatar>
-                                <EventIcon   />
-                            </Avatar>
-                            Add Appointments
-                        </MenuItem> : null
-                    }
-                    {(props?.userDetail?.role.toLowerCase() == 'admin') 
-                        ? <MenuItem onClick={(_) => handleNavigation("/promotion")}>
-                            <Avatar>
-                                <LocalOfferIcon />
-                            </Avatar>
-                            Add Promotions
-                        </MenuItem> : null
-                    }
-                    <MenuItem onClick={(_) => handleNavigation("/settings")}>
-                        <Avatar>
-                            <SettingsIcon />
-                        </Avatar>
-                        Settings
-                    </MenuItem>
-                    <Divider />
-                    <MenuItem onClick={handleSignOut}>
-                        <ListItemIcon>
-                            <LogoutIcon fontSize="medium" />
-                        </ListItemIcon>
-                        Sign Out
-                    </MenuItem>
-                </Menu>
-            </nav>,
-            <Backdrop
-                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-                open={loading}
+                }}
             >
-                <CircularProgress color="inherit" />
-            </Backdrop>
-        ]
-    );
+                <MenuItem onClick={(_) => handleNavigation("/profile")}>
+                    <Avatar /> Profile
+                </MenuItem>
+                {(props?.userDetail?.role.toLowerCase() == 'admin')
+                    ? <MenuItem onClick={(_) => handleNavigation("/users")}>
+                        <Avatar>
+                            <GroupIcon />
+                        </Avatar>
+                        Users
+                    </MenuItem> : null
+                }
+                {(props?.userDetail?.role.toLowerCase() == 'admin')
+                    ? <MenuItem onClick={(_) => handleNavigation("/appointment/bookings")}>
+                        <Avatar>
+                            <EventAvailableRoundedIcon />
+                        </Avatar>
+                        Bookings
+                    </MenuItem> : null
+                }
+                {(props?.userDetail?.role.toLowerCase() == 'admin')
+                    ? <MenuItem onClick={(_) => handleNavigation("/appointment/create")}>
+                        <Avatar>
+                            <EventIcon   />
+                        </Avatar>
+                        Add Appointments
+                    </MenuItem> : null
+                }
+                {(props?.userDetail?.role.toLowerCase() == 'admin') 
+                    ? <MenuItem onClick={(_) => handleNavigation("/promotion")}>
+                        <Avatar>
+                            <LocalOfferIcon />
+                        </Avatar>
+                        Add Promotions
+                    </MenuItem> : null
+                }
+                <MenuItem onClick={(_) => handleNavigation("/settings")}>
+                    <Avatar>
+                        <SettingsIcon />
+                    </Avatar>
+                    Settings
+                </MenuItem>
+                <Divider />
+                <MenuItem onClick={handleSignOut}>
+                    <ListItemIcon>
+                        <LogoutIcon fontSize="medium" />
+                    </ListItemIcon>
+                    Sign Out
+                </MenuItem>
+            </Menu>
+        </nav>,
+        <Backdrop
+            sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+            open={loading}
+        >
+            <CircularProgress color="inherit" />
+        </Backdrop>
+    ];
 }, function (prevProps, newProps) {
     return prevProps.userDetail?.id == newProps.userDetail?.id;
 });

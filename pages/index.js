@@ -194,7 +194,7 @@ export default function Home({ featuredPromotions }) {
           <h3>OUR STUDIO</h3>
           <div className={styles.description}>
             <p>{Constants.OUR_VISION}</p>
-            <Link href="/about" passHref>
+            <Link href="/about" passHref legacyBehavior>
               <CustomButton>Learn More</CustomButton>
             </Link>
           </div>
@@ -206,11 +206,15 @@ export default function Home({ featuredPromotions }) {
         <div className={styles.services_flexbox}>
           {typeOfServices.map(service => {
             return (
-              <Link key={service} href={`/services/${service.toLowerCase()}`} passHref>
-                <a className={styles.service_card}>
-                  <ServiceCard serviceType={service.toUpperCase()} />
-                </a>
-              </Link>
+              (<Link
+                key={service}
+                href={`/services/${service.toLowerCase()}`}
+                passHref
+                className={styles.service_card}>
+
+                <ServiceCard serviceType={service.toUpperCase()} />
+
+              </Link>)
             );
           })}
         </div>
@@ -282,7 +286,7 @@ export default function Home({ featuredPromotions }) {
         </Collapse>
       </Container>
     </Layout>
-  )
+  );
 }
 
 export async function getServerSideProps() {

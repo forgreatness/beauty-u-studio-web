@@ -64,7 +64,11 @@ export default function ServicesPage({ servicesByType }) {
             <div className={styles.services_menu}>
                 {Object.entries(servicesByType).map(key => {
                     return (
-                        <Link key={key[0]} href={`${router.pathname}/${key[0].toLowerCase()}`} passHref>
+                        <Link
+                            key={key[0]}
+                            href={`${router.pathname}/${key[0].toLowerCase()}`}
+                            passHref
+                            legacyBehavior>
                             <ServicePanel key={key[0]} onNavigate={handleNavigationChange} className={styles.service_panel} serviceType={key[0]} services={key[1]} /> 
                         </Link>
                     );

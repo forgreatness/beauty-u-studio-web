@@ -88,12 +88,12 @@ export default function Footbar() {
                 </a>
                 <h5>{Constants.CONTACTS.phone}</h5>
             </div>
-            <Link href="/" passHref>
-                <a className="home">
-                    <img src="/images/BeautyUStudio-logo.png" alt="BeautyUStudio Home Link" />
-                </a>
+            <Link href="/" passHref className="home">
+
+                <img src="/images/BeautyUStudio-logo.png" alt="BeautyUStudio Home Link" />
+
             </Link>            
-            <Link href="/appointment" passHref>
+            <Link href="/appointment" passHref legacyBehavior>
                 <CustomButton className="appointment_button">Appointment</CustomButton>
             </Link>
             <p id="copyright_container">

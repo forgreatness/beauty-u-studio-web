@@ -27,7 +27,7 @@ export default function AboutPage() {
     const ApolloClient = useApolloClient();
     const [userDetails, setUserDetails] = useState();
 
-    useEffect(async () => {
+    const getUserDetails = async () => {
         try {
             const cookies = Cookie.parse(document?.cookie ?? '');
 
@@ -60,6 +60,10 @@ export default function AboutPage() {
         } catch (err) {
             return;
         }
+    }
+
+    useEffect(() => {
+        getUserDetails();
     }, []);
     
     return (

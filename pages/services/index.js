@@ -25,7 +25,7 @@ export default function ServicesPage({ servicesByType }) {
         setOnLoading(true);
     }
 
-    useEffect(async () => {
+    const getUserDetails = async () => {
         try {
             const cookies = Cookie.parse(document?.cookie ?? '');
             const authToken = cookies?.token;
@@ -57,6 +57,10 @@ export default function ServicesPage({ servicesByType }) {
         } catch(err) {
             return;
         }
+    }
+
+    useEffect(() => {
+        getUserDetails();
     }, []);
 
     return (

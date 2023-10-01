@@ -10,15 +10,15 @@ import Layout from '../components/page-layout';
 export default function AccountRecovery({ authToken }) {
     const router = useRouter();
     const [userDetails, setUserDetails] = useState();
-    
-    useEffect(async () => {
-        const payload = Jwt.decode(authToken);
 
-        if (!payload || (payload?.exp ?? 0) * 1000 < Date.now()) {
-            throw new Error("Invalid auth token");
-        }
-
+    const getUserDetails = async () => {
         try {
+            const payload = Jwt.decode(authToken);
+
+            if (!payload || (payload?.exp ?? 0) * 1000 < Date.now()) {
+                throw new Error("Invalid auth token");
+            }
+            
             const getUser = await ApolloClient.query({
                 query: GET_USER,
                 variables: {
@@ -42,6 +42,10 @@ export default function AccountRecovery({ authToken }) {
         } catch (err) {
             router.push('/info/notRecovered');
         }
+    }
+    
+    useEffect(() => {
+        getUserDetails();
     }, []);
 
     return (

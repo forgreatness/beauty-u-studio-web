@@ -120,17 +120,7 @@ export default function ProfilePage({ emailJS, userDetails, error }) {
         setClientAppointmentsTimeframe(newValue);
     }
 
-    useEffect(async () => {
-        if (error) {
-            setApplicationError(error);
-            setShowAppError(true);
-            return;
-        }
-
-        if (userDetails?.photo) {
-            setProfileImage("data:image/png;base64, " + userDetails.photo);
-        }
-
+    const getUserAppointments = async () => {
         try {
             setOnLoading(true);
             const userAppointments = await apolloClient.query({
@@ -153,6 +143,20 @@ export default function ProfilePage({ emailJS, userDetails, error }) {
         } finally {
             setOnLoading(false);
         }
+    }
+
+    useEffect(() => {
+        if (error) {
+            setApplicationError(error);
+            setShowAppError(true);
+            return;
+        }
+
+        if (userDetails?.photo) {
+            setProfileImage("data:image/png;base64, " + userDetails.photo);
+        }
+
+        getUserAppointments();
 
         if ((userDetails?.role ?? '').toLowerCase() == 'stylist') {
             setOnLoading(true);

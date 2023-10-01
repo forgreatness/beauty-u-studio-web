@@ -423,7 +423,7 @@ export default function ApppointmentPage({ clientsOccupiedAppointments, activePr
         setServiceTypeFilter(key);
     }
 
-    useEffect(async () => {
+    const getStylistAppointments = async () => {
         try {
             if (selectedStylist) {
                 const { data } = await apolloClient.query({
@@ -467,6 +467,10 @@ export default function ApppointmentPage({ clientsOccupiedAppointments, activePr
             setOnLoadingNotification("");
             setOnLoading(false);
         }
+    }
+
+    useEffect(() => {
+        getStylistAppointments();
     }, [selectedStylist]);
 
     useEffect(() => {

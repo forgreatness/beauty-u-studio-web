@@ -22,7 +22,7 @@ export default function UsersPage({ payload, error, users }) {
     const [debounceSearch, setDebounceSearch] = useState();
     const [pagination, setPagination] = useState();
 
-    useEffect(async () => {
+    const getUserDetails = async () => {
         try {
             let user = JSON.parse(localStorage.getItem("user"));
 
@@ -45,6 +45,10 @@ export default function UsersPage({ payload, error, users }) {
         } catch (err) {
             router.replace('/404');
         }
+    }
+
+    useEffect(() => {
+        getUserDetails();
     }, []);
 
     useEffect(() => {

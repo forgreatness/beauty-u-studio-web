@@ -127,7 +127,7 @@ export default function Home({ featuredPromotions }) {
     }
   }
 
-  useEffect(async () => {
+  const getUserDetails = async () => {
     try {
       const cookies = Cookie.parse(document?.cookie ?? '');
 
@@ -165,6 +165,10 @@ export default function Home({ featuredPromotions }) {
     } catch(err) {
       return;
     }
+  }
+
+  useEffect(() => {
+    getUserDetails();
   }, []);
 
   if (loading) return <Loading /> 

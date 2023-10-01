@@ -23,7 +23,7 @@ function Service({ serviceType, servicesByKind }) {
         setSelectedServiceKind(newValue);
     }
 
-    useEffect(async () => {
+    const getUserDetails = async () => {
         try {
             const cookies = Cookie.parse(document?.cookie ?? '');
             const payload = Jwt.decode(cookies?.token);
@@ -54,6 +54,10 @@ function Service({ serviceType, servicesByKind }) {
         } catch (err) {
             return;
         }
+    }
+
+    useEffect(() => {
+        getUserDetails();
     }, []);
 
     return (

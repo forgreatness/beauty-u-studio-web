@@ -1,22 +1,19 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# BeautyUStudio Web App
 
-## Getting Started
+This is a next.js web application which acts as a client for the BeautyUStudio business. The web application is written in javascript with the support of next.js framework. All data used to power the application are coming from nosql database hosted in the cloud by MongoDB. 
 
-First, run the development server:
+## Installation
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+**LOCAL**
+1. Get project dependencies: "npm install"
+2. Run The backend services to power the web client from beauty-u-studio-server
+3. Either run the web client after building the application with "npm run build then npm run start"
+4. Or run the application for development mode with "npm run dev"
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+## Deployment
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+**Environments**
 
 ## Learn More
 

@@ -1,67 +1,62 @@
 import React, { useState, useEffect } from 'react';
 import Cookie from 'cookie'
 import Jwt from 'jsonwebtoken';
+import { useQuery, gql, useApolloClient } from '@apollo/client';
 
 import ApolloClient from '../../lib/apollo/apollo-client';
-import { GET_APPOINTMENTS, GET_USER } from '../../lib/apollo/data-queries';
+import { GET_APPOINTMENTS, GET_USER, GET_USERS } from '../../lib/apollo/data-queries';
 import PageLayout from '../../components/page-layout';
 import styles from '../../styles/bookingspage.module.css';
 import NonBootstrapAppointmentDetail from '../../components/non_bootstrap_appointment_details';
 import { StatusColor } from '../../src/constants';
 
 export default function ScheduledAppointments({ userDetail, appointments, error }) {
-    const [filteredDate, setFilteredDate] = useState(new Date(new Date().setHours(0,0,0,0)));
-    const [filteredStylist, setFilteredStylist] = useState();
-    const [filteredAppointments, setFilteredAppointments] = useState({});
     const [filteredDateStart, setFilteredDateStart] = useState(new Date(new Date().setHours(0,0,0,0)));
-    const [filteredDateEnd, setFilteredDateEnd] = useState(new Date(filteredDateStart.setDate(filteredDateStart.getDate() + 1)));
+    const [filteredDateEnd, setFilteredDateEnd] = useState();
+    const [filteredStylist, setFilteredStylist] = useState();
+    const [filteredAppointments, setFilteredAppointments] = useState({}); //shouldn't this display all the apointments we want to list
+    const [stylists, setStylists] = useState([]);
+    const { data: usersData, loading: getUsersLoading, error: getUsersErrors } = useQuery(GET_USERS, {
+        variables: {
+            userRole: "stylist"
+        },
+        onCompleted: data => {
+            if (!data?.users) {
+                return;
+            }
 
-    const handleOnFilteredDateChange = (e) => {
-        var zone = new Date().toLocaleTimeString('en-us',{timeZoneName:'short'}).split(' ')[2]
+            // We only want users whome are active and not anything else
+            let stylists = Array.from(data.users).filter(stylist => (stylist?.status ?? "").toLowerCase() == 'active');
 
-        const newFilteredDate = new Date(`${e.target.value} ${zone}`);
-
-        setFilteredDate(newFilteredDate);
-    }
+            setStylists(stylists);
+        },
+        onError: error => {
+            // setAlertMessage('Unable to fetch promotions list');
+            // setAlertStatus('error');
+            // setShowAlert(true);
+        },
+        onLoading: loading => {
+            console.log("loadding to useQuery(GET_USERS)");
+        }
+    });
 
     const handleOnFilteredStylistChange = (e) => {
         setFilteredStylist(e.target.value);
     }
 
-    useEffect(() => {
-        var appointmentsByStylist = {};
 
+    /*
+        GOAL: THIS effect runt he filtration of the appointments we want to display: The filtration process can definitely be improved
+    */
+    useEffect(() => {
+        // If there are any appointments we select the ones that has appointment.stylist.id == filteredStylist?.id 
         appointments.forEach(appointment => {
             let appointmentDate = new Date(new Date(appointment.time).setHours(0,0,0,0));
-            let appointmentKey = appointment.stylist.name.toString();
 
-            if (appointmentDate.toDateString() === filteredDate.toDateString()) {
-                if (Object.keys(appointmentsByStylist).includes(appointmentKey)) {
-                    appointmentsByStylist[appointmentKey].push(appointment);
-                } else {
-                    appointmentsByStylist[appointmentKey] = [appointment];
-                }
-            }
         });
+    }, [filteredDateStart, filteredDateEnd, filteredStylist]);
 
-        setFilteredAppointments(appointmentsByStylist);
-        setFilteredStylist(Object.keys(appointmentsByStylist)[0]);
-    }, []);
-
-    useEffect(() => {
-        let queriedAppointments = {};
-        appointments.forEach(appointment => {
-            let appointmentDate = new Date(new Date(appointment.time).setHours(0,0,0,0));
-            let appointmentKey = appointment.stylist.name.toString();
-
-            if (appointmentDate.toDateString() === filteredDate.toDateString()) {
-                queriedAppointments[appointmentKey] = [...(queriedAppointments[appointmentKey] ?? []), appointment];
-            }
-        });
-
-        setFilteredAppointments(queriedAppointments);
-        setFilteredStylist(Object.keys(queriedAppointments)[0]);
-    }, [filteredDate]);
+    console.log("what is my filteredDateStart", filteredDateStart);
 
     return (
         <PageLayout userDetail = {userDetail}>
@@ -78,21 +73,24 @@ export default function ScheduledAppointments({ userDetail, appointments, error 
                         <h5>Filtered Date</h5>
                         <div className={styles.startDateFilter}>
                             <label htmlFor="startDateFilter">From</label>
-                            <input type="date" id="startDateFilter" name="startDateFilter" value={filteredDateStart} />
+                            <input type="date" id="startDateFilter" name="startDateFilter" value={filteredDateStart.toISOString().split('T')[0]} />
                         </div>
                         <div className={styles.endDateFilter}>
                             <label htmlFor="endDateFilter">To</label>
-                            <input type="date" id="endDateFilter" name="" />
+                            <input type="date" id="endDateFilter" name="endDateFilter" value={filteredDateEnd?.toISOString()?.split('T')?.[0] ?? ''} />
                         </div>
                     </div>
-                    <div className={styles.filterContainer} id={styles.stylistFilterContainer}>
+                    <div className="container">
+                        <h3 className={`${styles.filterHeader} ${styles.neonText} mb-2 mb-md-3`}>Filtered Stylist</h3>
+                    </div>
+                    {/* <div className={styles.filterContainer} id={styles.stylistFilterContainer}>
                         <h5 id={styles.stylistFilterLabel}>Stylist</h5>
                         {Object.keys(filteredAppointments).map(stylist => {
                             return (
                                 <button onClick={handleOnFilteredStylistChange} aria-selected={filteredStylist==stylist} className={styles.stylistFilterOption} key={stylist} value={stylist}>{stylist}</button>
                             );
                         })}
-                    </div>
+                    </div> */}
                 </div>
                 <div id={styles.appointmentListWrapper}>
                     <h5 style={{ color: StatusColor["Confirmed"] }}>Confirmed</h5>
@@ -127,10 +125,18 @@ export default function ScheduledAppointments({ userDetail, appointments, error 
 
 export async function getServerSideProps(context) { 
     try {
+        console.log('hi i would like to see context in booking.js', context);
+
         const cookies = Cookie.parse(context.req.headers?.cookie ?? '');
         const authToken = cookies?.token;
         const payload = Jwt.decode(authToken);
 
+        // This check:
+        /*
+            1. If they are authenticated
+            2. If their authentication is not expired
+            3. If they have the appropriate roles
+        */
         if (!payload || (payload?.exp ?? 0) * 1000 < Date.now() || payload?.role?.toLowerCase() != 'admin') {
             throw new Error('Invalid auth token');
         }
@@ -147,6 +153,11 @@ export async function getServerSideProps(context) {
             }
         });
 
+        /*
+            A token will allow acess to application to certain amount of time, if the access is reovke, either token need to be remove, or we need to check if
+            it is revoke somewhere,
+            Below we check revocation as user being removed from DB and not exist
+        */
         const user = getUser?.data?.user;
 
         if (!user || user?.status != 'active') {
@@ -155,9 +166,6 @@ export async function getServerSideProps(context) {
 
         const getAppointments = await ApolloClient.query({
             query: GET_APPOINTMENTS,
-            variables: {
-                future: true
-            },
             context: {
                 headers: {
                     authorization: `Bearer ${authToken}`

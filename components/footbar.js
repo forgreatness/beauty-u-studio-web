@@ -7,6 +7,7 @@ import CopyrightIcon from '@mui/icons-material/Copyright';
 
 import CustomButton from './custom_button';
 import * as Constants from '../src/constants/index';
+import { Container } from 'react-bootstrap';
 
 export default function Footbar() {
     const styles = css`
@@ -72,6 +73,10 @@ export default function Footbar() {
             right: 30px;
             color: #303f9f;
         }
+
+        #alle_payments_link {
+            display: block;
+        }
     `;
 
     return (
@@ -92,10 +97,15 @@ export default function Footbar() {
 
                 <img src="/images/BeautyUStudio-logo.png" alt="BeautyUStudio Home Link" />
 
-            </Link>            
-            <Link href="/appointment" passHref legacyBehavior>
-                <CustomButton className="appointment_button">Appointment</CustomButton>
             </Link>
+            <div className='d-flex flex-column gap-2' style={{ flexBasis: "min-content" }}>
+                <a id='alle_payments_link' href='https://pay.withcherry.com/beautyu-studio?utm_source=merchant&utm_medium=website' target='_blank'>
+                    <img src='/images/allePaymentsByCherryButton.png' />
+                </a>            
+                <Link href="/appointment" passHref legacyBehavior>
+                    <CustomButton className="appointment_button">Appointment</CustomButton>
+                </Link>
+            </div>
             <p id="copyright_container">
                 <b>Copyright </b>
                 <CopyrightIcon fontSize='medium' />

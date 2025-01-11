@@ -306,11 +306,19 @@ export default React.memo(function Navbar(props) {
         }
     }
 
-    const handleNavigation = (path) => {
+    const handleNavigation = (path, e = undefined) => {
+        if (e) {
+            e?.preventDefault();
+        }
+
+        console.log("handle navg", path);
+
         setLoading(true);
         if (router.pathname == path) {
+            console.log('here');
             router.reload();
         } else {
+            console.log('there');
             router.push(path);
         }
     }
@@ -410,6 +418,13 @@ export default React.memo(function Navbar(props) {
                     aria-selected={router.pathname == "/about"}
                     onClick={(_) => handleNavigation("/about")}>
                     About Us
+                </Link>
+                <Link
+                    href="/allePayments"
+                    passHref
+                    aria-selected={router.pathname == "/allePayments"}
+                    onClick={(e) => handleNavigation("/allePayments", e)}>
+                    About Alle Payments
                 </Link>
                 <div className="footer">
                     <Link href="/" passHref className="footer_home">

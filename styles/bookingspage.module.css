@@ -91,3 +91,12 @@
 #appointmentListWrapper {
     padding: 30px 3%;
 }
+
+
+#filterContainerWrapper {
+
+}
+
+#filteredStylistOptionWrapper {
+    overflow: auto;
+}
